@@ -7,6 +7,7 @@ import Network.Wai.Handler.Warp
 -- import Network.Wai(Response(..))
 import System.IO.Unsafe (unsafePerformIO)
 -- import Blaze.ByteString.Builder
+import Data.ByteString.Builder (lazyByteString)
 import Blaze.ByteString.Builder (fromByteString)
 import Network.Wai.Internal
 import Network.Wai.Parse (parseRequestBody,lbsBackEnd)
@@ -22,6 +23,7 @@ import Debug.Trace
 import Data.Aeson (encode)
 import Network.AWS.Data.Log
 import qualified Text.HTML.TagStream.ByteString as THTB (cc)
+-- import Data.ByteString.Builder (lazyByteString)
 -- import Data.Aeson.Parser (json)
 import Model
 
@@ -35,9 +37,8 @@ app req respond = respond $
     case pathInfo req of
         -- 参数传递的问题
         ["linux"] -> 
-            -- Response
-            -- unsafePerformIO $ testParam req
-            testParam req
+            unsafePerformIO $ testParam req
+            -- testParam req
         ["static", subDir, fileName] -> 
             serveStatic subDir fileName
         [] -> 
@@ -47,18 +48,18 @@ app req respond = respond $
         _ -> res404    
 -- get 
 
-g :: Data.ByteString.Lazy.Internal.ByteString -> Data.ByteString.Builder.Internal.Builder
-g a = ...
-
 -- 仅post
-testParam :: Request ->Response
+testParam :: Request ->IO Response
 testParam req=do
     (params, _) <- parseRequestBody lbsBackEnd req
     -- type Param = (ByteString, ByteString)  Data.ByteString params =[param] [("code","ls")]
-    withParams params ["code"] answer
-    where answer [code]=responseBuilder status200 [("Content-Type",contentType)] $ codeout
-          codeout = encode(CodeOutput {code=decodeUtf8 code,output="i get ur code"})
-          contentType= "application/json"
+    return $ withParams params ["code"] answer
+
+
+answer :: [String] -> Response
+answer [name] =responseBuilder status200 [("Content-Type",contentType)] $ lazyByteString $ encode (CodeOutput {code=Text.pack name,output=message})
+       where  contentType= "application/json"
+              message ="i get ur code"
 
 withParams :: BSAssoc -> [BS.ByteString] -> ([String] ->Response) -> Response
 withParams params paramNames fn = 
