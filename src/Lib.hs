@@ -17,12 +17,13 @@ import qualified Data.Text as Text
 import Data.ByteString.UTF8 (toString)
 import Data.Text.Encoding (decodeUtf8)
 import Data.String (fromString)
-import qualified Data.ByteString as DB (concat)
+import qualified Data.ByteString as DB (concat,hPutStrLn)
 import Data.Monoid
 import Debug.Trace
 import Data.Aeson (encode)
 import Network.AWS.Data.Log
 import qualified Text.HTML.TagStream.ByteString as THTB (cc)
+import System.IO as IO
 -- import Data.ByteString.Builder (lazyByteString)
 -- import Data.Aeson.Parser (json)
 import Model
@@ -53,8 +54,12 @@ testParam :: Request ->IO Response
 testParam req=do
     (params, _) <- parseRequestBody lbsBackEnd req
     -- type Param = (ByteString, ByteString)  Data.ByteString params =[param] [("code","ls")]
+    let fileName = "./static/code/" ++ (BS.unpack . fst $ head params) ++".txt"
+    --traceM(show(fileName))
+    outh <- IO.openFile fileName WriteMode
+    DB.hPutStrLn outh $ snd $ head params
+    IO.hClose outh
     return $ withParams params ["code"] answer
-
 
 answer :: [String] -> Response
 answer [name] =responseBuilder status200 [("Content-Type",contentType)] $ lazyByteString $ encode (CodeOutput {code=Text.pack name,output=message})
