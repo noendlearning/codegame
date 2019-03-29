@@ -58,7 +58,7 @@ testParam req=do
     let fileName = (BS.unpack . fst $ head params) ++".py"
     -- JSON数据写入文件的路径
     let pathName = "./static/code/" ++ fileName
-    -- shell命令运行的文件名
+    -- shell运行
     let order= "python "++ fileName
     -- 写入文件文件名不存在的时候会新建，每次都会重新写入
     outh <- IO.openFile pathName WriteMode
@@ -70,12 +70,12 @@ testParam req=do
     -- 文件运行的结果
     contents <- hGetContents (hout)
     --traceM(show(contents))
-    return $ withParams params ["code"] answer
-
-answer :: [String] -> Response
+    return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {code=Text.pack "name",output=Text.pack contents})
+--暂时废废弃了
+{- answer :: [String] -> Response
 answer [name] =responseBuilder status200 [("Content-Type",contentType)] $ lazyByteString $ encode (CodeOutput {code=Text.pack name,output=message})
        where  contentType= "application/json"
-              message ="i get ur code"
+              message ="i get ur code" 
 
 withParams :: BSAssoc -> [BS.ByteString] -> ([String] ->Response) -> Response
 withParams params paramNames fn = 
@@ -95,7 +95,7 @@ allLookups :: Eq a => [(a, a)] -> [a] -> Maybe [a]
 allLookups assoc keys = sequence $ map (\k -> lookup k assoc) keys
     
 resError :: String -> Response
-resError message =responseLBS unauthorized401 [] $ fromString message
+resError message =responseLBS unauthorized401 [] $ fromString message-}
 
 resFile :: BS.ByteString -> FilePath -> Response
 resFile contentType filename = responseFile status200 [("Content-Type", contentType)] filename Nothing    
