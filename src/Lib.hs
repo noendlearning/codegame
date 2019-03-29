@@ -27,7 +27,7 @@ import System.IO as IO
 -- import Data.ByteString.Builder (lazyByteString)
 -- import Data.Aeson.Parser (json)
 import Model
-
+import System.Process
 someFunc = do
     let port = 3000
     putStrLn $ "Listening on port " ++ show port
@@ -54,11 +54,22 @@ testParam :: Request ->IO Response
 testParam req=do
     (params, _) <- parseRequestBody lbsBackEnd req
     -- type Param = (ByteString, ByteString)  Data.ByteString params =[param] [("code","ls")]
-    let fileName = "./static/code/" ++ (BS.unpack . fst $ head params) ++".txt"
-    --traceM(show(fileName))
-    outh <- IO.openFile fileName WriteMode
+    -- 使用JSON数据中的第一个元组的key当作文件名
+    let fileName = (BS.unpack . fst $ head params) ++".py"
+    -- JSON数据写入文件的路径
+    let pathName = "./static/code/" ++ fileName
+    -- shell命令运行的文件名
+    let order= "python "++ fileName
+    -- 写入文件文件名不存在的时候会新建，每次都会重新写入
+    outh <- IO.openFile pathName WriteMode
+    DB.hPutStrLn outh "#!/user/bin/env python"
     DB.hPutStrLn outh $ snd $ head params
     IO.hClose outh
+    -- 用shell命令去给定位置找到文件运行脚本。得到输出的句柄。（输入句柄，输出句柄，错误句柄，不详）
+    (_,Just hout,_,_) <- createProcess (shell order){cwd=Just"./static/code",std_out=CreatePipe}
+    -- 文件运行的结果
+    contents <- hGetContents (hout)
+    --traceM(show(contents))
     return $ withParams params ["code"] answer
 
 answer :: [String] -> Response

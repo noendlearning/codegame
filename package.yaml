@@ -33,7 +33,7 @@ dependencies:
 - aeson
 - amazonka-core
 - tagstream-conduit
-
+- process
 library:
   source-dirs: src
 
