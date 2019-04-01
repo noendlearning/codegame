@@ -1,7 +1,7 @@
 -- module Name exposing (Model, Msg, update, view, subscriptions, init)
 
 
-module Main exposing (Model, Msg(..), StateModel(..), init, initCode, jsonReq, main, outputDecoder, subscriptions, update, view)
+module Main exposing (Model, Msg(..), StateModel(..), init, jsonReq, main, outputDecoder, subscriptions, update, view)
 
 import Browser
 import Html exposing (..)
@@ -9,6 +9,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http exposing (..)
 import Json.Decode as Decode exposing (..)
+import Debug exposing (..)
 
 
 main =
@@ -64,7 +65,7 @@ update msg model =
                     ( { model | loadState = Fail }, Cmd.none )
 
         ChangeCode str ->
-            ( { model | code = str }, Cmd.none )
+           ( { model | code = str }, Cmd.none )
 
         SubmitCode ->
             ( model, jsonReq model )
@@ -76,7 +77,7 @@ update msg model =
                     --服务器成功返回数据
                     case Decode.decodeString outputDecoder fullText of
                         Ok output ->
-                            ( { model | outPut = output, jsonReqState = Success, parseJson = Success }, Cmd.none )
+                            Debug.log "output" ( { model | outPut = output, jsonReqState = Success, parseJson = Success }, Cmd.none )
 
                         Err _ ->
                             ( { model | parseJson = Fail, jsonReqState = Success }, Cmd.none )
@@ -110,19 +111,26 @@ view : Model -> Html Msg
 view model =
     case model.loadState of
         Loading ->
-            div [ class "container" ]
+             div [ class "container" ]
                 [ div [ class "row" ]
-                    [ div [ class "col-md-6" ] [ text "output:" ]
+                    [ div [ class "col-md-6" ] [ pre []
+                            [ if model.parseJson == Success then
+                                text model.outPut
+
+                              else
+                                text model.outPut
+                            ]
+                         ]
                     , div [ class "col-md-6" ]
-                        [ textarea [] [ text "loading..." ]
+                        [ textarea [onInput ChangeCode] [ text model.code ]
                         , -- todo >> 代码
-                          button [] [ text "submit" ]
+                          button [onClick SubmitCode] [ text "submit" ]
                         ]
                     ]
                 ]
 
         Success ->
-            div [ class "container" ]
+            Debug.log "success"  div [ class "container" ]
                 [ div [ class "row" ]
                     [ div [ class "col-md-6" ]
                         [ pre []
@@ -132,6 +140,7 @@ view model =
                               else
                                 text model.outPut
                             ]
+                        , textarea [] [ text model.code ]
                         ]
                     , div [ class "col-md-6" ]
                         [ textarea [ onInput ChangeCode ] [ text model.code ]
@@ -156,17 +165,19 @@ subscriptions model =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { loadState = Loading
-      , code = ""
+      , code = "print 2+3"
       , outPut = ""
       , parseJson = Loading
       , jsonReqState = Loading
       }
-    , initCode
+    , Cmd.none
+      -- initCode
     )
 
 
-initCode =
-    Http.get
-        { url = "/temp/temp1.txt"
-        , expect = Http.expectString GotText
-        }
+
+-- initCode =
+--     Http.get
+--         { url = "http://localhost:3000/static/code/code.py"
+--         , expect = Http.expectString GotTewdweqwewqdgsdhkdg,dksewhrewetwdjkof,wqjpfd;sajhxt
+--         }
