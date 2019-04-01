@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
 
 module Model where
 
@@ -6,15 +6,22 @@ import Data.Aeson
 import qualified Data.ByteString.Char8 as BS
 -- import Control.Monad.Trans.Resource (ResourceT)
 import Data.Text    
-
+import GHC.Generics
 -- type RES = ResourceT IO Response
 type BSAssoc = [(BS.ByteString, BS.ByteString)]
 data CodeOutput = CodeOutput {
-      code :: Text
-    , output  :: Text
-    } deriving (Show)
-
-instance ToJSON CodeOutput where
+      output  :: Text,
+      errMessage  :: Text
+    } deriving (Generic,Show)
+instance ToJSON CodeOutput 
+instance FromJSON CodeOutput     
+-- 保存代码的类型
+data CodeList = CodeList {
+      codeList :: [String]
+    } deriving (Generic,Show)
+instance ToJSON CodeList 
+instance FromJSON CodeList    
+{- instance ToJSON CodeOutput where
     -- this generates a Value
     toJSON (CodeOutput code output) =
         object ["code" .= code, "output" .= output]
@@ -26,5 +33,5 @@ instance ToJSON CodeOutput where
 instance FromJSON CodeOutput where
     parseJSON = withObject "CodeOutput" $ \v -> CodeOutput
         <$> v .: "code"
-        <*> v .: "output"
+        <*> v .: "output" -}
 

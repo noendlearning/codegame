@@ -38,6 +38,7 @@ app req respond = respond $
     case pathInfo req of
         -- 参数传递的问题
         ["linux"] -> 
+            -- unsafePerformIO 函数是取出IO中的 Response
             unsafePerformIO $ testParam req
             -- testParam req
         ["static", subDir, fileName] -> 
@@ -46,15 +47,25 @@ app req respond = respond $
             resFile "text/html" "static/index.html"
         ["favicon.ico"] -> 
             resPlaceholder
+        ["init"] -> 
+          unsafePerformIO $ initCode req 
         _ -> res404    
 -- get 
 
+-- 返回初始的代码
+initCode :: Request ->IO Response
+initCode req = do
+    (params, _) <- parseRequestBody lbsBackEnd req
+    let pathName = "./static/init/"++(BS.unpack . snd $ head params)
+    inpStr <- readFile pathName
+    return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeList {codeList = lines inpStr})
 -- 仅post
 testParam :: Request ->IO Response
-testParam req=do
+testParam req = do
     (params, _) <- parseRequestBody lbsBackEnd req
     -- type Param = (ByteString, ByteString)  Data.ByteString params =[param] [("code","ls")]
     -- 使用JSON数据中的第一个元组的key当作文件名
+    --traceM(show(params))
     let fileName = (BS.unpack . fst $ head params) ++".py"
     -- JSON数据写入文件的路径
     let pathName = "./static/code/" ++ fileName
@@ -67,10 +78,12 @@ testParam req=do
     IO.hClose outh
     -- 用shell命令去给定位置找到文件运行脚本。得到输出的句柄。（输入句柄，输出句柄，错误句柄，不详）
     (_,Just hout,_,_) <- createProcess (shell order){cwd=Just"./static/code",std_out=CreatePipe}
+    (_,_,Just err,_) <- createProcess (shell order){cwd=Just"./static/code",std_err=CreatePipe}
     -- 文件运行的结果
     contents <- hGetContents (hout)
-    --traceM(show(contents))
-    return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {code=Text.pack "name",output=Text.pack contents})
+    errMessage <- hGetContents (err)
+    -- 打印数据的方法 traceM(show(contents))
+    return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output=Text.pack contents,errMessage=Text.pack errMessage})
 --暂时废废弃了
 {- answer :: [String] -> Response
 answer [name] =responseBuilder status200 [("Content-Type",contentType)] $ lazyByteString $ encode (CodeOutput {code=Text.pack name,output=message})
