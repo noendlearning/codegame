@@ -6048,7 +6048,10 @@ var author$project$Main$view = function (model) {
 									[
 										A2(
 										elm$html$Html$pre,
-										_List_Nil,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$class('.pre-scrollable')
+											]),
 										_List_fromArray(
 											[
 												_Utils_eq(model.parseJson, author$project$Main$Success) ? elm$html$Html$text(model.outPut) : elm$html$Html$text(model.outPut)
@@ -6063,24 +6066,44 @@ var author$project$Main$view = function (model) {
 								_List_fromArray(
 									[
 										A2(
-										elm$html$Html$textarea,
+										elm$html$Html$div,
 										_List_fromArray(
 											[
-												elm$html$Html$Events$onInput(author$project$Main$ChangeCode)
+												elm$html$Html$Attributes$class('row')
 											]),
 										_List_fromArray(
 											[
-												elm$html$Html$text(model.code)
+												A2(
+												elm$html$Html$textarea,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class('col-md-12'),
+														elm$html$Html$Events$onInput(author$project$Main$ChangeCode)
+													]),
+												_List_fromArray(
+													[
+														elm$html$Html$text(model.code)
+													]))
 											])),
 										A2(
-										elm$html$Html$button,
+										elm$html$Html$div,
 										_List_fromArray(
 											[
-												elm$html$Html$Events$onClick(author$project$Main$SubmitCode)
+												elm$html$Html$Attributes$class('row')
 											]),
 										_List_fromArray(
 											[
-												elm$html$Html$text('submit')
+												A2(
+												elm$html$Html$button,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class('btn btn-info col-md-12'),
+														elm$html$Html$Events$onClick(author$project$Main$SubmitCode)
+													]),
+												_List_fromArray(
+													[
+														elm$html$Html$text('submit')
+													]))
 											]))
 									]))
 							]))
@@ -6114,7 +6137,10 @@ var author$project$Main$view = function (model) {
 									[
 										A2(
 										elm$html$Html$pre,
-										_List_Nil,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$class('.pre-scrollable')
+											]),
 										_List_fromArray(
 											[
 												_Utils_eq(model.parseJson, author$project$Main$Fail) ? elm$html$Html$text('解析失败') : elm$html$Html$text(model.outPut)
@@ -6136,24 +6162,44 @@ var author$project$Main$view = function (model) {
 								_List_fromArray(
 									[
 										A2(
-										elm$html$Html$textarea,
+										elm$html$Html$div,
 										_List_fromArray(
 											[
-												elm$html$Html$Events$onInput(author$project$Main$ChangeCode)
+												elm$html$Html$Attributes$class('row')
 											]),
 										_List_fromArray(
 											[
-												elm$html$Html$text(model.code)
+												A2(
+												elm$html$Html$textarea,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class('span12'),
+														elm$html$Html$Events$onInput(author$project$Main$ChangeCode)
+													]),
+												_List_fromArray(
+													[
+														elm$html$Html$text(model.code)
+													]))
 											])),
 										A2(
-										elm$html$Html$button,
+										elm$html$Html$div,
 										_List_fromArray(
 											[
-												elm$html$Html$Events$onClick(author$project$Main$SubmitCode)
+												elm$html$Html$Attributes$class('row')
 											]),
 										_List_fromArray(
 											[
-												elm$html$Html$text('submit')
+												A2(
+												elm$html$Html$button,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class('btn btn-info span12'),
+														elm$html$Html$Events$onClick(author$project$Main$SubmitCode)
+													]),
+												_List_fromArray(
+													[
+														elm$html$Html$text('submit')
+													]))
 											]))
 									]))
 							]))
