@@ -48,7 +48,7 @@ app req respond = respond $
         ["favicon.ico"] -> 
             resPlaceholder
         ["init"] -> 
-          unsafePerformIO $ initCode req 
+          trace "init" unsafePerformIO $ initCode req 
         _ -> res404    
 -- get 
 
@@ -57,8 +57,10 @@ initCode :: Request ->IO Response
 initCode req = do
     (params, _) <- parseRequestBody lbsBackEnd req
     let pathName = "./static/init/"++(BS.unpack . snd $ head params)
+    traceM(show pathName) 
     inpStr <- readFile pathName
-    return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeList {codeList = lines inpStr})
+    traceM(show inpStr)
+    return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeList {codeList = inpStr})
 -- 仅post
 testParam :: Request ->IO Response
 testParam req = do
@@ -80,8 +82,8 @@ testParam req = do
     (_,Just hout,_,_) <- createProcess (shell order){cwd=Just"./static/code",std_out=CreatePipe}
     (_,_,Just err,_) <- createProcess (shell order){cwd=Just"./static/code",std_err=CreatePipe}
     -- 文件运行的结果
-    contents <- hGetContents (hout)
-    errMessage <- hGetContents (err)
+    contents <- hGetContents hout
+    errMessage <- hGetContents err
     -- 打印数据的方法 traceM(show(contents))
     return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output=Text.pack contents,errMessage=Text.pack errMessage})
 --暂时废废弃了

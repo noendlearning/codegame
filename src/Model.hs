@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Model where
 
@@ -17,7 +17,7 @@ instance ToJSON CodeOutput
 instance FromJSON CodeOutput     
 -- 保存代码的类型
 data CodeList = CodeList {
-      codeList :: [String]
+      codeList :: String
     } deriving (Generic,Show)
 instance ToJSON CodeList 
 instance FromJSON CodeList    

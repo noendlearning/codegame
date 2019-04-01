@@ -4,12 +4,12 @@
 module Main exposing (Model, Msg(..), StateModel(..), init, jsonReq, main, outputDecoder, subscriptions, update, view)
 
 import Browser
+import Debug exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http exposing (..)
 import Json.Decode as Decode exposing (..)
-import Debug exposing (..)
 
 
 main =
@@ -36,13 +36,15 @@ type StateModel
 type alias Model =
     { loadState : StateModel
     , --页面初始化
-      code : String
+      code :String
     , --代码
-      outPut : String
+      codeOutput : CodeOutput
     , --代码解析结果
       parseJson : StateModel
     , --json解析状态
       jsonReqState : StateModel -- 后台代码返回状态
+    , errMessage : String
+    , codeState : StateModel
     }
 
 
@@ -59,13 +61,18 @@ update msg model =
         GotText result ->
             case result of
                 Ok fullText ->
-                    ( { model | loadState = Success, code = fullText }, Cmd.none )
+                    case Decode.decodeString codeDecoder fullText of
+                        Ok codes ->
+                          Debug.log "ok get code" ( { model | code = codes,codeState=Success,loadState=Success}, Cmd.none )
+
+                        Err _ ->
+                           Debug.log "err" ( { model | codeState = Fail,loadState=Success }, Cmd.none )
 
                 Err _ ->
-                    ( { model | loadState = Fail }, Cmd.none )
+                  Debug.log "fail"  ( { model | loadState = Fail }, Cmd.none )
 
         ChangeCode str ->
-           ( { model | code = str }, Cmd.none )
+            ( { model | code = str }, Cmd.none )
 
         SubmitCode ->
             ( model, jsonReq model )
@@ -77,7 +84,7 @@ update msg model =
                     --服务器成功返回数据
                     case Decode.decodeString outputDecoder fullText of
                         Ok output ->
-                            Debug.log "output" ( { model | outPut = output, jsonReqState = Success, parseJson = Success }, Cmd.none )
+                            Debug.log "output" ( { model | codeOutput = output, jsonReqState = Success, parseJson = Success }, Cmd.none )
 
                         Err _ ->
                             ( { model | parseJson = Fail, jsonReqState = Success }, Cmd.none )
@@ -85,11 +92,25 @@ update msg model =
                 Err _ ->
                     --服务器返回失败
                     ( { model | jsonReqState = Fail }, Cmd.none )
+type alias Code =String
+
+type alias Codes = List Code
+
+codeDecoder : Decoder Code
+codeDecoder =
+    Decode.field "codeList"  string
+
+type alias CodeOutput =
+    { output : String
+    , errMessage : String
+    }
 
 
-outputDecoder : Decoder String
+outputDecoder : Decoder CodeOutput
 outputDecoder =
-    Decode.field "output" string
+    Decode.map2 CodeOutput
+        (Decode.field "output" string)
+        (Decode.field "errMessage" string)
 
 
 jsonReq : Model -> Cmd Msg
@@ -111,40 +132,39 @@ view : Model -> Html Msg
 view model =
     case model.loadState of
         Loading ->
-             div [ class "container" ]
+            div [ class "container" ]
                 [ div [ class "row" ]
-                    [ div [ class "col-md-6" ] [ pre []
-                            [ if model.parseJson == Success then
-                                text model.outPut
-
-                              else
-                                text model.outPut
-                            ]
-                         ]
+                    [ div [ class "col-md-6" ] [ text "output:" ]
                     , div [ class "col-md-6" ]
-                        [ textarea [onInput ChangeCode] [ text model.code ]
+                        [ textarea [] [ text "loading..." ]
                         , -- todo >> 代码
-                          button [onClick SubmitCode] [ text "submit" ]
+                          button [] [ text "submit" ]
                         ]
                     ]
                 ]
 
         Success ->
-            Debug.log "success"  div [ class "container" ]
+            Debug.log "success"
+                div
+                [ class "container" ]
                 [ div [ class "row" ]
                     [ div [ class "col-md-6" ]
-                        [ pre []
+                        [ pre [ class ".pre-scrollable" ]
                             [ if model.parseJson == Fail then
                                 text "解析失败"
 
                               else
-                                text model.outPut
+                                text model.codeOutput.output
                             ]
-                        , textarea [] [ text model.code ]
+                        , pre []
+                            [ text model.codeOutput.errMessage
+                            ]
                         ]
                     , div [ class "col-md-6" ]
-                        [ textarea [ onInput ChangeCode ] [ text model.code ]
-                        , button [ onClick SubmitCode ] [ text "submit" ]
+                        [ div [ class "row" ]
+                            [ textarea [ class "col-md-12", onInput ChangeCode ] [ text model.code ]
+                            ]
+                        , div [ class "row" ] [ button [ class "btn btn-info col-md-12", onClick SubmitCode ] [ text "submit" ] ]
                         ]
                     ]
                 ]
@@ -165,19 +185,28 @@ subscriptions model =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { loadState = Loading
-      , code = "print 2+3"
-      , outPut = ""
+      , code = ""
+      , codeOutput =
+            { output = ""
+            , errMessage = ""
+            }
       , parseJson = Loading
       , jsonReqState = Loading
+      , errMessage = ""
+      , codeState = Loading
       }
-    , Cmd.none
-      -- initCode
+    , --Cmd.none
+      initCode
     )
 
-
-
--- initCode =
---     Http.get
---         { url = "http://localhost:3000/static/code/code.py"
---         , expect = Http.expectString GotTewdweqwewqdgsdhkdg,dksewhrewetwdjkof,wqjpfd;sajhxt
---         }
+initCode :Cmd Msg
+initCode  =
+    Http.post
+        { url = "/init"
+        --todo post 请求携带参数
+        , body =
+            multipartBody
+                [ stringPart "code" "python.py" 
+                ]
+        , expect = Http.expectString GotText
+        }
