@@ -85,13 +85,6 @@ testParam req = do
     errMessage <- hGetContents err
     -- 打印数据的方法 traceM(show(contents))
     return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output=Text.pack contents,errMessage=Text.pack errMessage})
-docat :: Handle -> IO Handle
-docat hin = do
-  (_, Just hout, _, ph) <- 
-         createProcess (proc "cat" []){ std_in = UseHandle hin,
-                                        std_out = CreatePipe }
-  return hout
-
 
     --暂时废废弃了
 {- answer :: [String] -> Response
