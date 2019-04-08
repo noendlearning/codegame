@@ -57,9 +57,7 @@ initCode :: Request ->IO Response
 initCode req = do
     (params, _) <- parseRequestBody lbsBackEnd req
     let pathName = "./static/init/"++(BS.unpack . snd $ head params)
-    traceM(show pathName) 
     inpStr <- readFile pathName
-    traceM(show inpStr)
     return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeList {codeList = inpStr})
 -- 仅post
 testParam :: Request ->IO Response
@@ -67,7 +65,7 @@ testParam req = do
     (params, _) <- parseRequestBody lbsBackEnd req
     -- type Param = (ByteString, ByteString)  Data.ByteString params =[param] [("code","ls")]
     -- 使用JSON数据中的第一个元组的key当作文件名
-    --traceM(show(params))
+    traceM(show(snd $ head params))
     let fileName = (BS.unpack . fst $ head params) ++".py"
     -- JSON数据写入文件的路径
     let pathName = "./static/code/" ++ fileName
@@ -75,18 +73,27 @@ testParam req = do
     let order= "python "++ fileName
     -- 写入文件文件名不存在的时候会新建，每次都会重新写入
     outh <- IO.openFile pathName WriteMode
-    DB.hPutStrLn outh "#!/user/bin/env python"
-    DB.hPutStrLn outh $ snd $ head params
+    DB.hPutStrLn outh $ BS.append (BS.pack "#!/user/bin/env python\r")  (snd $ head params)
     IO.hClose outh
+    let a = BS.pack "#!/user/bin/env python"
     -- 用shell命令去给定位置找到文件运行脚本。得到输出的句柄。（输入句柄，输出句柄，错误句柄，不详）
-    (_,Just hout,_,_) <- createProcess (shell order){cwd=Just"./static/code",std_out=CreatePipe}
-    (_,_,Just err,_) <- createProcess (shell order){cwd=Just"./static/code",std_err=CreatePipe}
+    inh <- openFile "./static/code/factor.txt" ReadMode
+    (_,Just hout,Just err,_) <- createProcess (shell order){cwd=Just"./static/code",std_in = UseHandle inh,std_out=CreatePipe,std_err=CreatePipe}
+    hClose inh
     -- 文件运行的结果
     contents <- hGetContents hout
     errMessage <- hGetContents err
     -- 打印数据的方法 traceM(show(contents))
     return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output=Text.pack contents,errMessage=Text.pack errMessage})
---暂时废废弃了
+docat :: Handle -> IO Handle
+docat hin = do
+  (_, Just hout, _, ph) <- 
+         createProcess (proc "cat" []){ std_in = UseHandle hin,
+                                        std_out = CreatePipe }
+  return hout
+
+
+    --暂时废废弃了
 {- answer :: [String] -> Response
 answer [name] =responseBuilder status200 [("Content-Type",contentType)] $ lazyByteString $ encode (CodeOutput {code=Text.pack name,output=message})
        where  contentType= "application/json"
