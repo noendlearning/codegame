@@ -86,6 +86,7 @@ testParam req = do
     -- 获取文件运行的结果
     content <- hGetContents hout
     let contents = DL.lines content
+    
     -- 获取文件的错误信息
     errMessage <- hGetContents err
     --获取正确答案的路径
@@ -93,7 +94,7 @@ testParam req = do
     --读取文件中保存的正确答案
     inpStr <- readFile answerPath
     let inpStrs = DL.lines inpStr
-    let codeOutput =  if DL.null $ contents \\  inpStrs
+    let codeOutput =  if contents == inpStrs
                       then encode (CodeOutput {output=Text.pack content, message="Success", found="", expected="", errMessage=Text.pack errMessage})
                       else encode (CodeOutput {output=Text.pack content, message="Failure", found=DL.head inpStrs, expected=DL.head inpStrs, errMessage=Text.pack errMessage})
     -- 打印数据的方法 traceM(show(content))
@@ -109,8 +110,8 @@ getPath factorPath
       | factorPath == "1" = ["./static/factor/factor1.txt","./static/answer/answer1.txt"]
       | factorPath == "2" = ["./static/factor/factor2.txt","./static/answer/answer2.txt"]
       | factorPath == "3" = ["./static/factor/factor3.txt","./static/answer/answer3.txt"]
-      | factorPath == "4" = ["./static/factor/factor3.txt","./static/answer/answer4.txt"]
-      | otherwise         = ["./static/factor/factor4.txt","./static/answer/answer5.txt"]      
+      | factorPath == "4" = ["./static/factor/factor4.txt","./static/answer/answer4.txt"]
+      | otherwise         = ["./static/factor/factor5.txt","./static/answer/answer5.txt"]      
     --暂时废废弃了
 {- answer :: [String] -> Response
 answer [name] =responseBuilder status200 [("Content-Type",contentType)] $ lazyByteString $ encode (CodeOutput {code=Text.pack name,output=message})
