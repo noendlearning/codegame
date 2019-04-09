@@ -5880,23 +5880,24 @@ var author$project$Main$codeDecoder = A2(elm$json$Json$Decode$field, 'codeList',
 var author$project$Main$RenderOutput = function (a) {
 	return {$: 'RenderOutput', a: a};
 };
-var author$project$Main$jsonReq = function (model) {
-	return elm$http$Http$post(
-		{
-			body: elm$http$Http$multipartBody(
-				_List_fromArray(
-					[
-						A2(elm$http$Http$stringPart, 'code', model.code),
-						A2(elm$http$Http$stringPart, 'language', 'python'),
-						A2(
-						elm$http$Http$stringPart,
-						'testIndex',
-						elm$core$String$fromInt(model.testIndex))
-					])),
-			expect: elm$http$Http$expectString(author$project$Main$RenderOutput),
-			url: '/linux'
-		});
-};
+var author$project$Main$jsonReq = F2(
+	function (code, testIndex) {
+		return elm$http$Http$post(
+			{
+				body: elm$http$Http$multipartBody(
+					_List_fromArray(
+						[
+							A2(elm$http$Http$stringPart, 'code', code),
+							A2(elm$http$Http$stringPart, 'language', 'python'),
+							A2(
+							elm$http$Http$stringPart,
+							'testIndex',
+							elm$core$String$fromInt(testIndex))
+						])),
+				expect: elm$http$Http$expectString(author$project$Main$RenderOutput),
+				url: '/linux'
+			});
+	});
 var author$project$Main$CodeOutput = F2(
 	function (output, errMessage) {
 		return {errMessage: errMessage, output: output};
@@ -5958,11 +5959,12 @@ var author$project$Main$update = F2(
 					elm$core$Platform$Cmd$none);
 			case 'SubmitCode':
 				var index = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
+				return A2(
+					elm$core$Debug$log,
+					'index',
+					_Utils_Tuple2(
 						model,
-						{testIndex: index}),
-					author$project$Main$jsonReq(model));
+						A2(author$project$Main$jsonReq, model.code, index)));
 			default:
 				var result = msg.a;
 				if (result.$ === 'Ok') {
