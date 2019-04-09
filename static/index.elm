@@ -36,23 +36,22 @@ type StateModel
 type alias Model =
     { loadState : StateModel
     , --页面初始化
-      code :String
+        code :String
     , --代码
-      codeOutput : CodeOutput
+        codeOutput : CodeOutput
     , --代码解析结果
-      parseJson : StateModel
+        parseJson : StateModel
     , --json解析状态
-      jsonReqState : StateModel -- 后台代码返回状态
+        jsonReqState : StateModel -- 后台代码返回状态
     , errMessage : String
     , codeState : StateModel
+    ,testIndex : Int
     }
 
-
-type Msg
-    = GotText (Result Http.Error String)
-    | ChangeCode String --输入代码
-    | RenderOutput (Result Http.Error String) --代码运行结果填充页面
-    | SubmitCode -- 提交代码
+type Msg = GotText (Result Http.Error String)
+            | ChangeCode String --输入代码
+            | RenderOutput (Result Http.Error String) --代码运行结果填充页面
+            | SubmitCode Int-- 提交代码
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -63,19 +62,20 @@ update msg model =
                 Ok fullText ->
                     case Decode.decodeString codeDecoder fullText of
                         Ok codes ->
-                          Debug.log "ok get code" ( { model | code = codes,codeState=Success,loadState=Success}, Cmd.none )
+                            Debug.log "ok get code" ( { model | code = codes,codeState=Success,loadState=Success}, Cmd.none )
 
                         Err _ ->
-                           Debug.log "err" ( { model | codeState = Fail,loadState=Success }, Cmd.none )
+                            Debug.log "err" ( { model | codeState = Fail,loadState=Success }, Cmd.none )
 
                 Err _ ->
-                  Debug.log "fail"  ( { model | loadState = Fail }, Cmd.none )
+                    Debug.log "fail"  ( { model | loadState = Fail }, Cmd.none )
 
         ChangeCode str ->
             ( { model | code = str }, Cmd.none )
 
-        SubmitCode ->
-            ( model, jsonReq model )
+        SubmitCode index->
+            ( {model|testIndex=index}, jsonReq model )
+
 
         RenderOutput result ->
             --渲染代码运行的结果
@@ -123,6 +123,7 @@ jsonReq model =
             multipartBody
                 [ stringPart "code" model.code
                 , stringPart "language" "python"
+                , stringPart "testIndex" (String.fromInt model.testIndex)
                 ]
         , expect = Http.expectString RenderOutput
         }
@@ -138,7 +139,7 @@ view model =
                     , div [ class "col-md-6" ]
                         [ textarea [] [ text "loading..." ]
                         , -- todo >> 代码
-                          button [] [ text "submit" ]
+                            button [] [ text "submit" ]
                         ]
                     ]
                 ]
@@ -152,8 +153,7 @@ view model =
                         [ pre [ class ".pre-scrollable" ]
                             [ if model.parseJson == Fail then
                                 text "解析失败"
-
-                              else
+                            else
                                 text model.codeOutput.output
                             ]
                         , pre []
@@ -164,7 +164,16 @@ view model =
                         [ div [ class "row" ]
                             [ textarea [ class "col-md-12", onInput ChangeCode ] [ text model.code ]
                             ]
-                        , div [ class "row" ] [ button [ class "btn btn-info col-md-12", onClick SubmitCode ] [ text "submit" ] ]
+                            -- TODO  
+                        , div [ class "row" ] 
+                            [
+                                button [ class "btn btn-info col-md-12", onClick (SubmitCode 1)] [ text "Test only one letter:E" ] ,
+                                button [ class "btn btn-info col-md-12", onClick (SubmitCode 2)] [ text "Test MANHATTAN" ] ,
+                                button [ class "btn btn-info col-md-12", onClick (SubmitCode 3)] [ text "Test ManhAtTan" ] ,
+                                button [ class "btn btn-info col-md-12", onClick (SubmitCode 4)] [ text "Test M@NH@TT@N" ] ,
+                                button [ class "btn btn-info col-md-12", onClick (SubmitCode 5)] [ text "MANHAATTAN with another ASCII representation" ] ,
+                                button [ class "btn btn-info col-md-12", onClick (SubmitCode 6)] [ text "play all testcase" ] 
+                            ]
                         ]
                     ]
                 ]
@@ -194,6 +203,7 @@ init _ =
       , jsonReqState = Loading
       , errMessage = ""
       , codeState = Loading
+      , testIndex = 0
       }
     , --Cmd.none
       initCode

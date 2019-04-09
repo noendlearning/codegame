@@ -5862,7 +5862,8 @@ var author$project$Main$init = function (_n0) {
 			errMessage: '',
 			jsonReqState: author$project$Main$Loading,
 			loadState: author$project$Main$Loading,
-			parseJson: author$project$Main$Loading
+			parseJson: author$project$Main$Loading,
+			testIndex: 0
 		},
 		author$project$Main$initCode);
 };
@@ -5886,7 +5887,11 @@ var author$project$Main$jsonReq = function (model) {
 				_List_fromArray(
 					[
 						A2(elm$http$Http$stringPart, 'code', model.code),
-						A2(elm$http$Http$stringPart, 'language', 'python')
+						A2(elm$http$Http$stringPart, 'language', 'python'),
+						A2(
+						elm$http$Http$stringPart,
+						'testIndex',
+						elm$core$String$fromInt(model.testIndex))
 					])),
 			expect: elm$http$Http$expectString(author$project$Main$RenderOutput),
 			url: '/linux'
@@ -5952,8 +5957,11 @@ var author$project$Main$update = F2(
 						{code: str}),
 					elm$core$Platform$Cmd$none);
 			case 'SubmitCode':
+				var index = msg.a;
 				return _Utils_Tuple2(
-					model,
+					_Utils_update(
+						model,
+						{testIndex: index}),
 					author$project$Main$jsonReq(model));
 			default:
 				var result = msg.a;
@@ -5989,7 +5997,9 @@ var author$project$Main$update = F2(
 var author$project$Main$ChangeCode = function (a) {
 	return {$: 'ChangeCode', a: a};
 };
-var author$project$Main$SubmitCode = {$: 'SubmitCode'};
+var author$project$Main$SubmitCode = function (a) {
+	return {$: 'SubmitCode', a: a};
+};
 var elm$json$Json$Decode$map = _Json_map1;
 var elm$json$Json$Decode$succeed = _Json_succeed;
 var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
@@ -6208,11 +6218,72 @@ var author$project$Main$view = function (model) {
 												_List_fromArray(
 													[
 														elm$html$Html$Attributes$class('btn btn-info col-md-12'),
-														elm$html$Html$Events$onClick(author$project$Main$SubmitCode)
+														elm$html$Html$Events$onClick(
+														author$project$Main$SubmitCode(1))
 													]),
 												_List_fromArray(
 													[
-														elm$html$Html$text('submit')
+														elm$html$Html$text('Test only one letter:E')
+													])),
+												A2(
+												elm$html$Html$button,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class('btn btn-info col-md-12'),
+														elm$html$Html$Events$onClick(
+														author$project$Main$SubmitCode(2))
+													]),
+												_List_fromArray(
+													[
+														elm$html$Html$text('Test MANHATTAN')
+													])),
+												A2(
+												elm$html$Html$button,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class('btn btn-info col-md-12'),
+														elm$html$Html$Events$onClick(
+														author$project$Main$SubmitCode(3))
+													]),
+												_List_fromArray(
+													[
+														elm$html$Html$text('Test ManhAtTan')
+													])),
+												A2(
+												elm$html$Html$button,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class('btn btn-info col-md-12'),
+														elm$html$Html$Events$onClick(
+														author$project$Main$SubmitCode(4))
+													]),
+												_List_fromArray(
+													[
+														elm$html$Html$text('Test M@NH@TT@N')
+													])),
+												A2(
+												elm$html$Html$button,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class('btn btn-info col-md-12'),
+														elm$html$Html$Events$onClick(
+														author$project$Main$SubmitCode(5))
+													]),
+												_List_fromArray(
+													[
+														elm$html$Html$text('MANHAATTAN with another ASCII representation')
+													])),
+												A2(
+												elm$html$Html$button,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class('btn btn-info col-md-12'),
+														elm$html$Html$Events$onClick(
+														author$project$Main$SubmitCode(6))
+													]),
+												_List_fromArray(
+													[
+														elm$html$Html$text('play all testcase')
 													]))
 											]))
 									]))
