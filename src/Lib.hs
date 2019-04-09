@@ -67,6 +67,7 @@ testParam req = do
     -- type Param = (ByteString, ByteString)  Data.ByteString params =[param] [("code","ls")]
     -- 使用JSON数据中的第一个元组的key当作文件名
     --traceM(show(params))
+
     let fileName = (BS.unpack . fst $ head params) ++".py"
     -- JSON数据写入文件的路径
     let pathName = "./static/code/" ++ fileName
@@ -77,7 +78,6 @@ testParam req = do
     DB.hPutStrLn outh $ BS.append (BS.pack "#!/user/bin/env python\r")  (snd $ head params)
     IO.hClose outh
     -- 用shell命令去给定位置找到文件运行脚本。得到输出的句柄。（输入句柄，输出句柄，错误句柄，不详）
-   
     --获取输入参数的文件路径
     let factorPath = head $ getPath $ BS.unpack $ snd $ last params 
     inh <- openFile factorPath ReadMode
@@ -98,13 +98,19 @@ testParam req = do
                       else encode (CodeOutput {output=Text.pack content, message="Failure", found=DL.head inpStrs, expected=DL.head inpStrs, errMessage=Text.pack errMessage})
     -- 打印数据的方法 traceM(show(content))
     return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ codeOutput
+getpathName :: String -> [String]
+getpathName language
+      | language == "Python3" = ["./static/code/Python3.py","python Python3.py"]
+      | otherwise         = ["./static/factor/factor4.txt","./static/answer/answer5.txt"]    
+
 
 getPath :: String -> [String]
 getPath factorPath 
       | factorPath == "1" = ["./static/factor/factor1.txt","./static/answer/answer1.txt"]
       | factorPath == "2" = ["./static/factor/factor2.txt","./static/answer/answer2.txt"]
       | factorPath == "3" = ["./static/factor/factor3.txt","./static/answer/answer3.txt"]
-      | otherwise         = ["./static/factor/factor4.txt","./static/answer/answer4.txt"]
+      | factorPath == "4" = ["./static/factor/factor3.txt","./static/answer/answer4.txt"]
+      | otherwise         = ["./static/factor/factor4.txt","./static/answer/answer5.txt"]      
     --暂时废废弃了
 {- answer :: [String] -> Response
 answer [name] =responseBuilder status200 [("Content-Type",contentType)] $ lazyByteString $ encode (CodeOutput {code=Text.pack name,output=message})
