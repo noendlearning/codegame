@@ -11,6 +11,9 @@ import GHC.Generics
 type BSAssoc = [(BS.ByteString, BS.ByteString)]
 data CodeOutput = CodeOutput {
       output  :: Text,
+      message  :: String,
+      found  :: String,
+      expected  :: String,
       errMessage  :: Text
     } deriving (Generic,Show)
 instance ToJSON CodeOutput 
