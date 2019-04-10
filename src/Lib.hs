@@ -2,33 +2,34 @@
 
 module Lib (someFunc) where
 
-import Network.Wai
-import Network.Wai.Handler.Warp
+import           Blaze.ByteString.Builder (fromByteString)
+import           Data.Aeson (encode)
 -- import Network.Wai(Response(..))
-import System.IO.Unsafe (unsafePerformIO)
--- import Blaze.ByteString.Builder
-import Data.ByteString.Builder (lazyByteString)
-import Blaze.ByteString.Builder (fromByteString)
-import Network.Wai.Internal
-import Network.Wai.Parse (parseRequestBody,lbsBackEnd)
-import Network.HTTP.Types (status200, unauthorized401, status404)
-import qualified Data.ByteString.Char8 as BS
-import qualified Data.Text as Text
-import Data.ByteString.UTF8 (toString)
-import Data.Text.Encoding (decodeUtf8)
-import Data.String (fromString)
 import qualified Data.ByteString as DB (concat,hPutStrLn)
-import Data.Monoid
-import Debug.Trace
-import Data.Aeson (encode)
-import Network.AWS.Data.Log
-import qualified Text.HTML.TagStream.ByteString as THTB (cc)
-import System.IO as IO
-import Data.List as DL
+-- import Blaze.ByteString.Builder
+import           Data.ByteString.Builder (lazyByteString)
+import qualified Data.ByteString.Char8 as BS
+import           Data.ByteString.UTF8 (toString)
+import           Data.List as DL
+import qualified Data.Maybe as M
+import           Data.Monoid
+import           Data.String (fromString)
+import qualified Data.Text as Text
+import           Data.Text.Encoding (decodeUtf8)
+import           Debug.Trace
+import           Model
+import           Network.AWS.Data.Log
+import           Network.HTTP.Types (status200, unauthorized401, status404)
+import           Network.Wai
+import           Network.Wai.Handler.Warp
+import           Network.Wai.Internal
+import           Network.Wai.Parse (parseRequestBody,lbsBackEnd)
+import           System.IO as IO
+import           System.IO.Unsafe (unsafePerformIO)
 -- import Data.ByteString.Builder (lazyByteString)
 -- import Data.Aeson.Parser (json)
-import Model
-import System.Process
+import           System.Process
+import qualified Text.HTML.TagStream.ByteString as THTB (cc)
 someFunc = do
     let port = 3000
     putStrLn $ "Listening on port " ++ show port
@@ -42,6 +43,8 @@ app req respond = respond $
             -- unsafePerformIO 函数是取出IO中的 Response
             unsafePerformIO $ testParam req
             -- testParam req
+        ["linuxget"] ->
+            unsafePerformIO $ testParamGet req
         ["static", subDir, fileName] -> 
             serveStatic subDir fileName
         [] -> 
@@ -52,7 +55,13 @@ app req respond = respond $
           trace "init" unsafePerformIO $ initCode req 
         _ -> res404    
 -- get 
-
+testParamGet :: Request ->IO Response
+testParamGet req = do
+    -- type Param = (ByteString, ByteString)  Data.ByteString params =[param] [("code","ls")]
+    -- 使用JSON数据中的第一个元组的key当作文件名
+    --traceM(show(params))
+    let params = paramFoldr (queryString req)
+    return res404
 -- 返回初始的代码
 initCode :: Request ->IO Response
 initCode req = do
@@ -157,3 +166,6 @@ serveStatic subDir fName =
         
 resPlaceholder :: Response
 resPlaceholder = responseLBS status404 [] $ fromString "Not implemented yet"
+
+paramFoldr :: [(a,Maybe b)] -> [(a,b)]
+paramFoldr xs = foldr (\x acc -> (fst x , M.fromJust $ snd x) : acc) [] xs
