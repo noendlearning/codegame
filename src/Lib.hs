@@ -2,34 +2,34 @@
 
 module Lib (someFunc) where
 
-import           Blaze.ByteString.Builder (fromByteString)
-import           Data.Aeson (encode)
+import Network.Wai
+import Network.Wai.Handler.Warp
 -- import Network.Wai(Response(..))
-import qualified Data.ByteString as DB (concat,hPutStrLn)
+import System.IO.Unsafe (unsafePerformIO)
 -- import Blaze.ByteString.Builder
-import           Data.ByteString.Builder (lazyByteString)
+import Data.ByteString.Builder (lazyByteString)
+import Blaze.ByteString.Builder (fromByteString)
+import Network.Wai.Parse (parseRequestBody,lbsBackEnd)
+import Network.HTTP.Types (status200, unauthorized401, status404)
 import qualified Data.ByteString.Char8 as BS
-import           Data.ByteString.UTF8 (toString)
-import           Data.List as DL
-import qualified Data.Maybe as M
-import           Data.Monoid
-import           Data.String (fromString)
 import qualified Data.Text as Text
-import           Data.Text.Encoding (decodeUtf8)
-import           Debug.Trace
-import           Model
-import           Network.AWS.Data.Log
-import           Network.HTTP.Types (status200, unauthorized401, status404)
-import           Network.Wai
-import           Network.Wai.Handler.Warp
-import           Network.Wai.Internal
-import           Network.Wai.Parse (parseRequestBody,lbsBackEnd)
-import           System.IO as IO
-import           System.IO.Unsafe (unsafePerformIO)
+import Data.ByteString.UTF8 (toString)
+import Data.Text.Encoding (decodeUtf8)
+import Data.String (fromString)
+import qualified Data.ByteString as DB (concat,hPutStrLn)
+import Data.Monoid
+import Debug.Trace
+import Data.Aeson (encode,decode)
+import Network.AWS.Data.Log
+import qualified Text.HTML.TagStream.ByteString as THTB (cc)
+import System.IO as IO
+import qualified Data.List as DL
+import qualified Data.Map.Lazy as DML
 -- import Data.ByteString.Builder (lazyByteString)
 -- import Data.Aeson.Parser (json)
-import           System.Process
-import qualified Text.HTML.TagStream.ByteString as THTB (cc)
+import Model
+import System.Process
+import qualified Data.Maybe as M
 someFunc = do
     let port = 3000
     putStrLn $ "Listening on port " ++ show port
@@ -73,24 +73,22 @@ initCode req = do
 testParam :: Request ->IO Response
 testParam req = do
     (params, _) <- parseRequestBody lbsBackEnd req
+    
     -- type Param = (ByteString, ByteString)  Data.ByteString params =[param] [("code","ls")]
     -- 使用JSON数据中的第一个元组的key当作文件名
-    --traceM(show(params))
-
-    let fileName = (BS.unpack . fst $ head params) ++".py"
-    -- JSON数据写入文件的路径
-    let pathName = "./static/code/" ++ fileName
-    -- shell运行
-    let order= "python "++ fileName
+    traceM(show(params))
+    --返回代码写入文件的路径和shell脚本在哪个路径下运行的命令
+    let paramsMap = DML.fromList $ changRequestType params
+    let languageSetting = getLanguageSetting  (paramsMap DML.! "language") (paramsMap DML.! "code")
     -- 写入文件文件名不存在的时候会新建，每次都会重新写入
-    outh <- IO.openFile pathName WriteMode
-    DB.hPutStrLn outh $ BS.append (BS.pack "#!/user/bin/env python\r")  (snd $ head params)
+    outh <- IO.openFile (head languageSetting) WriteMode
+    DB.hPutStrLn outh (BS.pack ((!!) languageSetting 2))
     IO.hClose outh
     -- 用shell命令去给定位置找到文件运行脚本。得到输出的句柄。（输入句柄，输出句柄，错误句柄，不详）
     --获取输入参数的文件路径
-    let factorPath = head $ getPath $ BS.unpack $ snd $ last params 
+    let factorPath = head $ getPath (paramsMap DML.! "testIndex")
     inh <- openFile factorPath ReadMode
-    (_,Just hout,Just err,_) <- createProcess (shell order){cwd=Just"./static/code",std_in = UseHandle inh,std_out=CreatePipe,std_err=CreatePipe}
+    (_,Just hout,Just err,_) <- createProcess (shell (last languageSetting)){cwd=Just((!!) languageSetting 1),std_in = UseHandle inh,std_out=CreatePipe,std_err=CreatePipe}
     hClose inh
     -- 获取文件运行的结果
     content <- hGetContents hout
@@ -99,7 +97,7 @@ testParam req = do
     -- 获取文件的错误信息
     errMessage <- hGetContents err
     --获取正确答案的路径
-    let answerPath = last $ getPath $ BS.unpack $ snd $ last params
+    let answerPath = last $ getPath (paramsMap DML.! "testIndex")
     --读取文件中保存的正确答案
     inpStr <- readFile answerPath
     let inpStrs = DL.lines inpStr
@@ -108,11 +106,18 @@ testParam req = do
                       else encode (CodeOutput {output=Text.pack content, message="Failure", found=DL.head inpStrs, expected=DL.head inpStrs, errMessage=Text.pack errMessage})
     -- 打印数据的方法 traceM(show(content))
     return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ codeOutput
-getpathName :: String -> [String]
-getpathName language
-      | language == "Python3" = ["./static/code/Python3.py","python Python3.py"]
-      | otherwise         = ["./static/factor/factor4.txt","./static/answer/answer5.txt"]    
 
+
+changRequestType :: [(BS.ByteString,BS.ByteString)] -> [(String,String)]
+changRequestType [] = []
+changRequestType (x:xs) = 
+  [(BS.unpack (fst x),BS.unpack (snd x))]  ++ changRequestType xs
+  
+getLanguageSetting :: String -> String -> [String]
+getLanguageSetting language code
+      | language == "python" = ["./static/code/Python3.py", "./static/code", "#!/user/bin/env python\r" ++ code, "python Python3.py"]
+      | language == "java"   = ["./static/code/Solution.java", "./static/code", code, "javac Solution.java && java Solution"]
+      | otherwise            = ["",""]    
 
 getPath :: String -> [String]
 getPath factorPath 
