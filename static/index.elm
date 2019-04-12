@@ -76,7 +76,12 @@ update msg model =
             ( { model | code = str }, Cmd.none )
 
         SubmitCode index ->
-            ( { model | testIndex = index }, jsonReq model )
+            if index == 6 then
+                -- TODO 批量发送请求
+                ( { model | testIndex = index }, jsonReq index model.code )
+
+            else
+                ( { model | testIndex = index }, jsonReq index model.code )
 
         RenderOutput result ->
             --渲染代码运行的结果
@@ -111,27 +116,33 @@ codeDecoder =
 type alias CodeOutput =
     { output : String
     , errMessage : String
+    , message : String
+    , found : String
+    , expected : String
     }
 
 
 outputDecoder : Decoder CodeOutput
 outputDecoder =
-    Decode.map2 CodeOutput
+    Decode.map5 CodeOutput
         (Decode.field "output" string)
         (Decode.field "errMessage" string)
+        (Decode.field "message" string)
+        (Decode.field "found" string)
+        (Decode.field "expected" string)
 
 
-jsonReq : Model -> Cmd Msg
-jsonReq model =
+jsonReq : Int->String -> Cmd Msg
+jsonReq testIndex code =
     Http.post
         { url = "/linux"
 
         --todo post 请求携带参数
         , body =
             multipartBody
-                [ stringPart "code" model.code
+                [ stringPart "code" code
                 , stringPart "language" "python"
-                , stringPart "testIndex" (String.fromInt model.testIndex)
+                , stringPart "testIndex" (String.fromInt testIndex)
                 ]
         , expect = Http.expectString RenderOutput
         }
@@ -141,54 +152,45 @@ view : Model -> Html Msg
 view model =
     case model.loadState of
         Loading ->
-            -- div [ class "container" ]
-            --     [ div [ class "row" ]
-            --         [ div [ class "col-md-6" ] [ text "output:" ]
-            --         , div [ class "col-md-6" ]
-            --             [ textarea [] [ text "loading..." ]
-            --             , -- todo >> 代码
-            --                 button [] [ text "submit" ]
-            --             ]
-            --         ]
-            --     ]
-            div
-                [ class "all" ]
+            text "loding"
+        Success ->
+            div [ class "all" ]
                 [ div
                     [ class "nag" ]
                     [ a
                         [ href "#" ]
                         [ img
-                            [ src "static/images/head.png" ]
+                            [ src "/static/images/head.png" ]
                             []
                         ]
                     , a
                         [ href "#" ]
                         [ img
-                            [ src "static/images/level.png" ]
+                            [ src "/static/images/level.png" ]
                             []
                         ]
                     , a
                         [ href "#" ]
                         [ img
-                            [ src "static/images/btn1.png" ]
+                            [ src "/static/images/btn1.png" ]
                             []
                         ]
                     , a
                         [ href "#" ]
                         [ img
-                            [ src "static/images/btn2.png" ]
+                            [ src "/static/images/btn2.png" ]
                             []
                         ]
                     , a
                         [ href "#" ]
                         [ img
-                            [ src "static/images/btn3.png" ]
+                            [ src "/static/images/btn3.png" ]
                             []
                         ]
                     , a
                         [ href "#" ]
                         [ img
-                            [ src "static/images/btn4.png" ]
+                            [ src "/static/images/btn4.png" ]
                             []
                         ]
                     , div
@@ -196,7 +198,7 @@ view model =
                         [ a
                             [ href "#" ]
                             [ img
-                                [ src "static/images/friends.png" ]
+                                [ src "/static/images/friends.png" ]
                                 []
                             ]
                         ]
@@ -221,9 +223,16 @@ view model =
                                 []
                             , div
                                 [ class "console_output" ]
-                                [ div
-                                    [ class "output" ]
-                                    [ text "Console output" ]
+                                [ pre
+                                    []
+                                    [ text
+                                        (if model.parseJson == Fail then
+                                            "解析失败"
+
+                                         else
+                                            model.codeOutput.output ++ "\n" ++ model.codeOutput.errMessage
+                                        )
+                                    ]
                                 , div
                                     [ class "put" ]
                                     []
@@ -234,29 +243,29 @@ view model =
                             [ div
                                 [ class "write_code" ]
                                 [ div
-                                    [ class "write_code" ]
-                                    [ div
-                                        [ class "write_top" ]
-                                        [ select
-                                            [ class "drop-down" ]
-                                            [ option
-                                                []
-                                                [ text "Elm" ]
-                                            , option
-                                                []
-                                                [ text "Haskell" ]
-                                            , option
-                                                []
-                                                [ text "Java" ]
-                                            , option
-                                                []
-                                                [ text "Python" ]
-                                            , option
-                                                []
-                                                [ text "PHP" ]
-                                            ]
+                                    [ class "write_top" ]
+                                    [ select
+                                        [ class "drop-down" ]
+                                        [ option
+                                            []
+                                            [ text "Elm" ]
+                                        , option
+                                            []
+                                            [ text "Haskell" ]
+                                        , option
+                                            []
+                                            [ text "Java" ]
+                                        , option
+                                            []
+                                            [ text "Python" ]
+                                        , option
+                                            []
+                                            [ text "PHP" ]
                                         ]
                                     ]
+                                , textarea
+                                    [ id "codeTextarea" ]
+                                    [ text model.code ]
                                 ]
                             , div
                                 [ class "right_bottom" ]
@@ -270,13 +279,103 @@ view model =
                                         , div
                                             [ class "img_one" ]
                                             [ img
-                                                [ src "static/images/menu.png" ]
+                                                [ src "/static/images/menu.png" ]
                                                 []
                                             ]
                                         ]
                                     , div
                                         [ class "bottom" ]
-                                        []
+                                        [ div
+                                            [ class "test" ]
+                                            [ button
+                                                [ class "btn_test", onClick (SubmitCode 1) ]
+                                                [ span
+                                                    []
+                                                    [ text "▶ PLAY TESTCASES" ]
+                                                ]
+                                            , span
+                                                [ class "img_0" ]
+                                                [ img
+                                                    [ src "/static/images/01.png" ]
+                                                    []
+                                                ]
+                                            , div
+                                                [ class "word_0" ]
+                                                [ text "Test only letter:E" ]
+                                            ]
+                                        , div
+                                            [ class "test" ]
+                                            [ button
+                                                [ class "btn_test", onClick (SubmitCode 2) ]
+                                                [ span
+                                                    []
+                                                    [ text "▶ PLAY TESTCASES" ]
+                                                ]
+                                            , span
+                                                [ class "img_0" ]
+                                                [ img
+                                                    [ src "/static/images/02.png" ]
+                                                    []
+                                                ]
+                                            , div
+                                                [ class "word_0" ]
+                                                [ text "Test MANHATTAN" ]
+                                            ]
+                                        , div
+                                            [ class "test" ]
+                                            [ button
+                                                [ class "btn_test", onClick (SubmitCode 3) ]
+                                                [ span
+                                                    []
+                                                    [ text "▶ PLAY TESTCASES" ]
+                                                ]
+                                            , span
+                                                [ class "img_0" ]
+                                                [ img
+                                                    [ src "/static/images/03.png" ]
+                                                    []
+                                                ]
+                                            , div
+                                                [ class "word_0" ]
+                                                [ text "Test ManhAtTan" ]
+                                            ]
+                                        , div
+                                            [ class "test" ]
+                                            [ button
+                                                [ class "btn_test", onClick (SubmitCode 4) ]
+                                                [ span
+                                                    []
+                                                    [ text "▶ PLAY TESTCASES" ]
+                                                ]
+                                            , span
+                                                [ class "img_0" ]
+                                                [ img
+                                                    [ src "/static/images/04.png" ]
+                                                    []
+                                                ]
+                                            , div
+                                                [ class "word_0" ]
+                                                [ text "Test M@NH@TT@N" ]
+                                            ]
+                                        , div
+                                            [ class "test_0" ]
+                                            [ button
+                                                [ class "btn_test", onClick (SubmitCode 5) ]
+                                                [ span
+                                                    []
+                                                    [ text "▶ PLAY TESTCASES" ]
+                                                ]
+                                            , span
+                                                [ class "img_0" ]
+                                                [ img
+                                                    [ src "/static/images/05.png" ]
+                                                    []
+                                                ]
+                                            , div
+                                                [ class "word_0" ]
+                                                [ text "MANHATTAN with..." ]
+                                            ]
+                                        ]
                                     ]
                                 , div
                                     [ class "actions" ]
@@ -286,7 +385,7 @@ view model =
                                     , div
                                         [ class "actions_bottom" ]
                                         [ button
-                                            [ class "btn_1" ]
+                                            [ class "btn_1", onClick (SubmitCode 6) ]
                                             [ text "▶ PLAY ALL   TESTCASES" ]
                                         , button
                                             [ class "btn_2" ]
@@ -299,41 +398,18 @@ view model =
                     ]
                 ]
 
-        Success ->
-            Debug.log "success"
-                div
-                [ class "container" ]
-                [ div [ class "row" ]
-                    [ div [ class "col-md-6" ]
-                        [ pre [ class ".pre-scrollable" ]
-                            [ if model.parseJson == Fail then
-                                text "解析失败"
-
-                              else
-                                text model.codeOutput.output
-                            ]
-                        , pre []
-                            [ text model.codeOutput.errMessage
-                            ]
-                        ]
-                    , div [ class "col-md-6" ]
-                        [ div [ class "row" ]
-                            [ textarea [ class "col-md-12", onInput ChangeCode ] [ text model.code ]
-                            ]
-
-                        -- TODO
-                        , div [ class "row" ]
-                            [ button [ class "btn btn-info col-md-12", onClick (SubmitCode 1) ] [ text "Test only one letter:E" ]
-                            , button [ class "btn btn-info col-md-12", onClick (SubmitCode 2) ] [ text "Test MANHATTAN" ]
-                            , button [ class "btn btn-info col-md-12", onClick (SubmitCode 3) ] [ text "Test ManhAtTan" ]
-                            , button [ class "btn btn-info col-md-12", onClick (SubmitCode 4) ] [ text "Test M@NH@TT@N" ]
-                            , button [ class "btn btn-info col-md-12", onClick (SubmitCode 5) ] [ text "MANHAATTAN with another ASCII representation" ]
-                            , button [ class "btn btn-info col-md-12", onClick (SubmitCode 6) ] [ text "play all testcase" ]
-                            ]
-                        ]
-                    ]
-                ]
-
+        --         -- TODO
+        --         , div [ class "row" ]
+        --             [ button [ class "btn btn-info col-md-12", onClick (SubmitCode 1) ] [ text "Test only one letter:E" ]
+        --             , button [ class "btn btn-info col-md-12", onClick (SubmitCode 2) ] [ text "Test MANHATTAN" ]
+        --             , button [ class "btn btn-info col-md-12", onClick (SubmitCode 3) ] [ text "Test ManhAtTan" ]
+        --             , button [ class "btn btn-info col-md-12", onClick (SubmitCode 4) ] [ text "Test M@NH@TT@N" ]
+        --             , button [ class "btn btn-info col-md-12", onClick (SubmitCode 5) ] [ text "MANHAATTAN with another ASCII representation" ]
+        --             , button [ class "btn btn-info col-md-12", onClick (SubmitCode 6) ] [ text "play all testcase" ]
+        --             ]
+        --         ]
+        --     ]
+        -- ]
         Fail ->
             div [ class "container" ]
                 [ div [ class "row" ]
@@ -354,6 +430,9 @@ init _ =
       , codeOutput =
             { output = ""
             , errMessage = ""
+            , message = ""
+            , found = ""
+            , expected = ""
             }
       , parseJson = Loading
       , jsonReqState = Loading

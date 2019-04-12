@@ -5857,7 +5857,7 @@ var author$project$Main$init = function (_n0) {
 	return _Utils_Tuple2(
 		{
 			code: '',
-			codeOutput: {errMessage: '', output: ''},
+			codeOutput: {errMessage: '', expected: '', found: '', message: '', output: ''},
 			codeState: author$project$Main$Loading,
 			errMessage: '',
 			jsonReqState: author$project$Main$Loading,
@@ -5881,7 +5881,7 @@ var author$project$Main$RenderOutput = function (a) {
 	return {$: 'RenderOutput', a: a};
 };
 var author$project$Main$jsonReq = F2(
-	function (code, testIndex) {
+	function (testIndex, code) {
 		return elm$http$Http$post(
 			{
 				body: elm$http$Http$multipartBody(
@@ -5898,16 +5898,19 @@ var author$project$Main$jsonReq = F2(
 				url: '/linux'
 			});
 	});
-var author$project$Main$CodeOutput = F2(
-	function (output, errMessage) {
-		return {errMessage: errMessage, output: output};
+var author$project$Main$CodeOutput = F5(
+	function (output, errMessage, message, found, expected) {
+		return {errMessage: errMessage, expected: expected, found: found, message: message, output: output};
 	});
-var elm$json$Json$Decode$map2 = _Json_map2;
-var author$project$Main$outputDecoder = A3(
-	elm$json$Json$Decode$map2,
+var elm$json$Json$Decode$map5 = _Json_map5;
+var author$project$Main$outputDecoder = A6(
+	elm$json$Json$Decode$map5,
 	author$project$Main$CodeOutput,
 	A2(elm$json$Json$Decode$field, 'output', elm$json$Json$Decode$string),
-	A2(elm$json$Json$Decode$field, 'errMessage', elm$json$Json$Decode$string));
+	A2(elm$json$Json$Decode$field, 'errMessage', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'message', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'found', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'expected', elm$json$Json$Decode$string));
 var elm$core$Debug$log = _Debug_log;
 var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
@@ -5959,12 +5962,15 @@ var author$project$Main$update = F2(
 					elm$core$Platform$Cmd$none);
 			case 'SubmitCode':
 				var index = msg.a;
-				return A2(
-					elm$core$Debug$log,
-					'index',
-					_Utils_Tuple2(
+				return (index === 6) ? _Utils_Tuple2(
+					_Utils_update(
 						model,
-						A2(author$project$Main$jsonReq, model.code, index)));
+						{testIndex: index}),
+					A2(author$project$Main$jsonReq, index, model.code)) : _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{testIndex: index}),
+					A2(author$project$Main$jsonReq, index, model.code));
 			default:
 				var result = msg.a;
 				if (result.$ === 'Ok') {
@@ -5996,13 +6002,11 @@ var author$project$Main$update = F2(
 				}
 		}
 	});
-var author$project$Main$ChangeCode = function (a) {
-	return {$: 'ChangeCode', a: a};
-};
 var author$project$Main$SubmitCode = function (a) {
 	return {$: 'SubmitCode', a: a};
 };
 var elm$json$Json$Decode$map = _Json_map1;
+var elm$json$Json$Decode$map2 = _Json_map2;
 var elm$json$Json$Decode$succeed = _Json_succeed;
 var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	switch (handler.$) {
@@ -6016,9 +6020,14 @@ var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 			return 3;
 	}
 };
+var elm$html$Html$a = _VirtualDom_node('a');
 var elm$html$Html$button = _VirtualDom_node('button');
 var elm$html$Html$div = _VirtualDom_node('div');
+var elm$html$Html$img = _VirtualDom_node('img');
+var elm$html$Html$option = _VirtualDom_node('option');
 var elm$html$Html$pre = _VirtualDom_node('pre');
+var elm$html$Html$select = _VirtualDom_node('select');
+var elm$html$Html$span = _VirtualDom_node('span');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
 var elm$html$Html$textarea = _VirtualDom_node('textarea');
@@ -6031,6 +6040,19 @@ var elm$html$Html$Attributes$stringProperty = F2(
 			elm$json$Json$Encode$string(string));
 	});
 var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
+var elm$html$Html$Attributes$href = function (url) {
+	return A2(
+		elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
+};
+var elm$html$Html$Attributes$id = elm$html$Html$Attributes$stringProperty('id');
+var elm$html$Html$Attributes$src = function (url) {
+	return A2(
+		elm$html$Html$Attributes$stringProperty,
+		'src',
+		_VirtualDom_noJavaScriptOrHtmlUri(url));
+};
 var elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -6048,46 +6070,17 @@ var elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		elm$json$Json$Decode$succeed(msg));
 };
-var elm$html$Html$Events$alwaysStop = function (x) {
-	return _Utils_Tuple2(x, true);
-};
-var elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
-	return {$: 'MayStopPropagation', a: a};
-};
-var elm$html$Html$Events$stopPropagationOn = F2(
-	function (event, decoder) {
-		return A2(
-			elm$virtual_dom$VirtualDom$on,
-			event,
-			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
-	});
-var elm$json$Json$Decode$at = F2(
-	function (fields, decoder) {
-		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
-	});
-var elm$html$Html$Events$targetValue = A2(
-	elm$json$Json$Decode$at,
-	_List_fromArray(
-		['target', 'value']),
-	elm$json$Json$Decode$string);
-var elm$html$Html$Events$onInput = function (tagger) {
-	return A2(
-		elm$html$Html$Events$stopPropagationOn,
-		'input',
-		A2(
-			elm$json$Json$Decode$map,
-			elm$html$Html$Events$alwaysStop,
-			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
-};
 var author$project$Main$view = function (model) {
 	var _n0 = model.loadState;
 	switch (_n0.$) {
 		case 'Loading':
+			return elm$html$Html$text('loding');
+		case 'Success':
 			return A2(
 				elm$html$Html$div,
 				_List_fromArray(
 					[
-						elm$html$Html$Attributes$class('container')
+						elm$html$Html$Attributes$class('all')
 					]),
 				_List_fromArray(
 					[
@@ -6095,95 +6088,152 @@ var author$project$Main$view = function (model) {
 						elm$html$Html$div,
 						_List_fromArray(
 							[
-								elm$html$Html$Attributes$class('row')
+								elm$html$Html$Attributes$class('nag')
 							]),
 						_List_fromArray(
 							[
 								A2(
-								elm$html$Html$div,
+								elm$html$Html$a,
 								_List_fromArray(
 									[
-										elm$html$Html$Attributes$class('col-md-6')
+										elm$html$Html$Attributes$href('#')
 									]),
 								_List_fromArray(
 									[
-										elm$html$Html$text('output:')
+										A2(
+										elm$html$Html$img,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$src('/static/images/head.png')
+											]),
+										_List_Nil)
+									])),
+								A2(
+								elm$html$Html$a,
+								_List_fromArray(
+									[
+										elm$html$Html$Attributes$href('#')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										elm$html$Html$img,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$src('/static/images/level.png')
+											]),
+										_List_Nil)
+									])),
+								A2(
+								elm$html$Html$a,
+								_List_fromArray(
+									[
+										elm$html$Html$Attributes$href('#')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										elm$html$Html$img,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$src('/static/images/btn1.png')
+											]),
+										_List_Nil)
+									])),
+								A2(
+								elm$html$Html$a,
+								_List_fromArray(
+									[
+										elm$html$Html$Attributes$href('#')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										elm$html$Html$img,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$src('/static/images/btn2.png')
+											]),
+										_List_Nil)
+									])),
+								A2(
+								elm$html$Html$a,
+								_List_fromArray(
+									[
+										elm$html$Html$Attributes$href('#')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										elm$html$Html$img,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$src('/static/images/btn3.png')
+											]),
+										_List_Nil)
+									])),
+								A2(
+								elm$html$Html$a,
+								_List_fromArray(
+									[
+										elm$html$Html$Attributes$href('#')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										elm$html$Html$img,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$src('/static/images/btn4.png')
+											]),
+										_List_Nil)
 									])),
 								A2(
 								elm$html$Html$div,
 								_List_fromArray(
 									[
-										elm$html$Html$Attributes$class('col-md-6')
+										elm$html$Html$Attributes$class('friends')
 									]),
 								_List_fromArray(
 									[
 										A2(
-										elm$html$Html$textarea,
-										_List_Nil,
+										elm$html$Html$a,
 										_List_fromArray(
 											[
-												elm$html$Html$text('loading...')
-											])),
-										A2(
-										elm$html$Html$button,
-										_List_Nil,
-										_List_fromArray(
-											[
-												elm$html$Html$text('submit')
-											]))
-									]))
-							]))
-					]));
-		case 'Success':
-			return A4(
-				elm$core$Debug$log,
-				'success',
-				elm$html$Html$div,
-				_List_fromArray(
-					[
-						elm$html$Html$Attributes$class('container')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						elm$html$Html$div,
-						_List_fromArray(
-							[
-								elm$html$Html$Attributes$class('row')
-							]),
-						_List_fromArray(
-							[
-								A2(
-								elm$html$Html$div,
-								_List_fromArray(
-									[
-										elm$html$Html$Attributes$class('col-md-6')
-									]),
-								_List_fromArray(
-									[
-										A2(
-										elm$html$Html$pre,
-										_List_fromArray(
-											[
-												elm$html$Html$Attributes$class('.pre-scrollable')
+												elm$html$Html$Attributes$href('#')
 											]),
 										_List_fromArray(
 											[
-												_Utils_eq(model.parseJson, author$project$Main$Fail) ? elm$html$Html$text('解析失败') : elm$html$Html$text(model.codeOutput.output)
-											])),
-										A2(
-										elm$html$Html$pre,
-										_List_Nil,
-										_List_fromArray(
-											[
-												elm$html$Html$text(model.codeOutput.errMessage)
+												A2(
+												elm$html$Html$img,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$src('/static/images/friends.png')
+													]),
+												_List_Nil)
 											]))
-									])),
+									]))
+							])),
+						A2(
+						elm$html$Html$div,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('chat')
+							]),
+						_List_Nil),
+						A2(
+						elm$html$Html$div,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('mains')
+							]),
+						_List_fromArray(
+							[
 								A2(
 								elm$html$Html$div,
 								_List_fromArray(
 									[
-										elm$html$Html$Attributes$class('col-md-6')
+										elm$html$Html$Attributes$class('banner')
 									]),
 								_List_fromArray(
 									[
@@ -6191,101 +6241,517 @@ var author$project$Main$view = function (model) {
 										elm$html$Html$div,
 										_List_fromArray(
 											[
-												elm$html$Html$Attributes$class('row')
+												elm$html$Html$Attributes$class('word_one')
+											]),
+										_List_fromArray(
+											[
+												elm$html$Html$text('ASCII Art')
+											]))
+									])),
+								A2(
+								elm$html$Html$div,
+								_List_fromArray(
+									[
+										elm$html$Html$Attributes$class('containers')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										elm$html$Html$div,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$class('left')
 											]),
 										_List_fromArray(
 											[
 												A2(
-												elm$html$Html$textarea,
+												elm$html$Html$div,
 												_List_fromArray(
 													[
-														elm$html$Html$Attributes$class('col-md-12'),
-														elm$html$Html$Events$onInput(author$project$Main$ChangeCode)
+														elm$html$Html$Attributes$class('discription')
+													]),
+												_List_Nil),
+												A2(
+												elm$html$Html$div,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class('console_output')
 													]),
 												_List_fromArray(
 													[
-														elm$html$Html$text(model.code)
+														A2(
+														elm$html$Html$pre,
+														_List_Nil,
+														_List_fromArray(
+															[
+																elm$html$Html$text(
+																_Utils_eq(model.parseJson, author$project$Main$Fail) ? '解析失败' : (model.codeOutput.output + ('\n' + model.codeOutput.errMessage)))
+															])),
+														A2(
+														elm$html$Html$div,
+														_List_fromArray(
+															[
+																elm$html$Html$Attributes$class('put')
+															]),
+														_List_Nil)
 													]))
 											])),
 										A2(
 										elm$html$Html$div,
 										_List_fromArray(
 											[
-												elm$html$Html$Attributes$class('row')
+												elm$html$Html$Attributes$class('right')
 											]),
 										_List_fromArray(
 											[
 												A2(
-												elm$html$Html$button,
+												elm$html$Html$div,
 												_List_fromArray(
 													[
-														elm$html$Html$Attributes$class('btn btn-info col-md-12'),
-														elm$html$Html$Events$onClick(
-														author$project$Main$SubmitCode(1))
+														elm$html$Html$Attributes$class('write_code')
 													]),
 												_List_fromArray(
 													[
-														elm$html$Html$text('Test only one letter:E')
+														A2(
+														elm$html$Html$div,
+														_List_fromArray(
+															[
+																elm$html$Html$Attributes$class('write_top')
+															]),
+														_List_fromArray(
+															[
+																A2(
+																elm$html$Html$select,
+																_List_fromArray(
+																	[
+																		elm$html$Html$Attributes$class('drop-down')
+																	]),
+																_List_fromArray(
+																	[
+																		A2(
+																		elm$html$Html$option,
+																		_List_Nil,
+																		_List_fromArray(
+																			[
+																				elm$html$Html$text('Elm')
+																			])),
+																		A2(
+																		elm$html$Html$option,
+																		_List_Nil,
+																		_List_fromArray(
+																			[
+																				elm$html$Html$text('Haskell')
+																			])),
+																		A2(
+																		elm$html$Html$option,
+																		_List_Nil,
+																		_List_fromArray(
+																			[
+																				elm$html$Html$text('Java')
+																			])),
+																		A2(
+																		elm$html$Html$option,
+																		_List_Nil,
+																		_List_fromArray(
+																			[
+																				elm$html$Html$text('Python')
+																			])),
+																		A2(
+																		elm$html$Html$option,
+																		_List_Nil,
+																		_List_fromArray(
+																			[
+																				elm$html$Html$text('PHP')
+																			]))
+																	]))
+															])),
+														A2(
+														elm$html$Html$textarea,
+														_List_fromArray(
+															[
+																elm$html$Html$Attributes$id('codeTextarea')
+															]),
+														_List_fromArray(
+															[
+																elm$html$Html$text(model.code)
+															]))
 													])),
 												A2(
-												elm$html$Html$button,
+												elm$html$Html$div,
 												_List_fromArray(
 													[
-														elm$html$Html$Attributes$class('btn btn-info col-md-12'),
-														elm$html$Html$Events$onClick(
-														author$project$Main$SubmitCode(2))
+														elm$html$Html$Attributes$class('right_bottom')
 													]),
 												_List_fromArray(
 													[
-														elm$html$Html$text('Test MANHATTAN')
-													])),
-												A2(
-												elm$html$Html$button,
-												_List_fromArray(
-													[
-														elm$html$Html$Attributes$class('btn btn-info col-md-12'),
-														elm$html$Html$Events$onClick(
-														author$project$Main$SubmitCode(3))
-													]),
-												_List_fromArray(
-													[
-														elm$html$Html$text('Test ManhAtTan')
-													])),
-												A2(
-												elm$html$Html$button,
-												_List_fromArray(
-													[
-														elm$html$Html$Attributes$class('btn btn-info col-md-12'),
-														elm$html$Html$Events$onClick(
-														author$project$Main$SubmitCode(4))
-													]),
-												_List_fromArray(
-													[
-														elm$html$Html$text('Test M@NH@TT@N')
-													])),
-												A2(
-												elm$html$Html$button,
-												_List_fromArray(
-													[
-														elm$html$Html$Attributes$class('btn btn-info col-md-12'),
-														elm$html$Html$Events$onClick(
-														author$project$Main$SubmitCode(5))
-													]),
-												_List_fromArray(
-													[
-														elm$html$Html$text('MANHAATTAN with another ASCII representation')
-													])),
-												A2(
-												elm$html$Html$button,
-												_List_fromArray(
-													[
-														elm$html$Html$Attributes$class('btn btn-info col-md-12'),
-														elm$html$Html$Events$onClick(
-														author$project$Main$SubmitCode(6))
-													]),
-												_List_fromArray(
-													[
-														elm$html$Html$text('play all testcase')
+														A2(
+														elm$html$Html$div,
+														_List_fromArray(
+															[
+																elm$html$Html$Attributes$class('test_cases')
+															]),
+														_List_fromArray(
+															[
+																A2(
+																elm$html$Html$div,
+																_List_fromArray(
+																	[
+																		elm$html$Html$Attributes$class('top')
+																	]),
+																_List_fromArray(
+																	[
+																		A2(
+																		elm$html$Html$div,
+																		_List_fromArray(
+																			[
+																				elm$html$Html$Attributes$class('word_two')
+																			]),
+																		_List_fromArray(
+																			[
+																				elm$html$Html$text('Test cases')
+																			])),
+																		A2(
+																		elm$html$Html$div,
+																		_List_fromArray(
+																			[
+																				elm$html$Html$Attributes$class('img_one')
+																			]),
+																		_List_fromArray(
+																			[
+																				A2(
+																				elm$html$Html$img,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$src('/static/images/menu.png')
+																					]),
+																				_List_Nil)
+																			]))
+																	])),
+																A2(
+																elm$html$Html$div,
+																_List_fromArray(
+																	[
+																		elm$html$Html$Attributes$class('bottom')
+																	]),
+																_List_fromArray(
+																	[
+																		A2(
+																		elm$html$Html$div,
+																		_List_fromArray(
+																			[
+																				elm$html$Html$Attributes$class('test')
+																			]),
+																		_List_fromArray(
+																			[
+																				A2(
+																				elm$html$Html$button,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('btn_test'),
+																						elm$html$Html$Events$onClick(
+																						author$project$Main$SubmitCode(1))
+																					]),
+																				_List_fromArray(
+																					[
+																						A2(
+																						elm$html$Html$span,
+																						_List_Nil,
+																						_List_fromArray(
+																							[
+																								elm$html$Html$text('▶ PLAY TESTCASES')
+																							]))
+																					])),
+																				A2(
+																				elm$html$Html$span,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('img_0')
+																					]),
+																				_List_fromArray(
+																					[
+																						A2(
+																						elm$html$Html$img,
+																						_List_fromArray(
+																							[
+																								elm$html$Html$Attributes$src('/static/images/01.png')
+																							]),
+																						_List_Nil)
+																					])),
+																				A2(
+																				elm$html$Html$div,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('word_0')
+																					]),
+																				_List_fromArray(
+																					[
+																						elm$html$Html$text('Test only letter:E')
+																					]))
+																			])),
+																		A2(
+																		elm$html$Html$div,
+																		_List_fromArray(
+																			[
+																				elm$html$Html$Attributes$class('test')
+																			]),
+																		_List_fromArray(
+																			[
+																				A2(
+																				elm$html$Html$button,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('btn_test'),
+																						elm$html$Html$Events$onClick(
+																						author$project$Main$SubmitCode(2))
+																					]),
+																				_List_fromArray(
+																					[
+																						A2(
+																						elm$html$Html$span,
+																						_List_Nil,
+																						_List_fromArray(
+																							[
+																								elm$html$Html$text('▶ PLAY TESTCASES')
+																							]))
+																					])),
+																				A2(
+																				elm$html$Html$span,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('img_0')
+																					]),
+																				_List_fromArray(
+																					[
+																						A2(
+																						elm$html$Html$img,
+																						_List_fromArray(
+																							[
+																								elm$html$Html$Attributes$src('/static/images/02.png')
+																							]),
+																						_List_Nil)
+																					])),
+																				A2(
+																				elm$html$Html$div,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('word_0')
+																					]),
+																				_List_fromArray(
+																					[
+																						elm$html$Html$text('Test MANHATTAN')
+																					]))
+																			])),
+																		A2(
+																		elm$html$Html$div,
+																		_List_fromArray(
+																			[
+																				elm$html$Html$Attributes$class('test')
+																			]),
+																		_List_fromArray(
+																			[
+																				A2(
+																				elm$html$Html$button,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('btn_test'),
+																						elm$html$Html$Events$onClick(
+																						author$project$Main$SubmitCode(3))
+																					]),
+																				_List_fromArray(
+																					[
+																						A2(
+																						elm$html$Html$span,
+																						_List_Nil,
+																						_List_fromArray(
+																							[
+																								elm$html$Html$text('▶ PLAY TESTCASES')
+																							]))
+																					])),
+																				A2(
+																				elm$html$Html$span,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('img_0')
+																					]),
+																				_List_fromArray(
+																					[
+																						A2(
+																						elm$html$Html$img,
+																						_List_fromArray(
+																							[
+																								elm$html$Html$Attributes$src('/static/images/03.png')
+																							]),
+																						_List_Nil)
+																					])),
+																				A2(
+																				elm$html$Html$div,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('word_0')
+																					]),
+																				_List_fromArray(
+																					[
+																						elm$html$Html$text('Test ManhAtTan')
+																					]))
+																			])),
+																		A2(
+																		elm$html$Html$div,
+																		_List_fromArray(
+																			[
+																				elm$html$Html$Attributes$class('test')
+																			]),
+																		_List_fromArray(
+																			[
+																				A2(
+																				elm$html$Html$button,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('btn_test'),
+																						elm$html$Html$Events$onClick(
+																						author$project$Main$SubmitCode(4))
+																					]),
+																				_List_fromArray(
+																					[
+																						A2(
+																						elm$html$Html$span,
+																						_List_Nil,
+																						_List_fromArray(
+																							[
+																								elm$html$Html$text('▶ PLAY TESTCASES')
+																							]))
+																					])),
+																				A2(
+																				elm$html$Html$span,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('img_0')
+																					]),
+																				_List_fromArray(
+																					[
+																						A2(
+																						elm$html$Html$img,
+																						_List_fromArray(
+																							[
+																								elm$html$Html$Attributes$src('/static/images/04.png')
+																							]),
+																						_List_Nil)
+																					])),
+																				A2(
+																				elm$html$Html$div,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('word_0')
+																					]),
+																				_List_fromArray(
+																					[
+																						elm$html$Html$text('Test M@NH@TT@N')
+																					]))
+																			])),
+																		A2(
+																		elm$html$Html$div,
+																		_List_fromArray(
+																			[
+																				elm$html$Html$Attributes$class('test_0')
+																			]),
+																		_List_fromArray(
+																			[
+																				A2(
+																				elm$html$Html$button,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('btn_test'),
+																						elm$html$Html$Events$onClick(
+																						author$project$Main$SubmitCode(5))
+																					]),
+																				_List_fromArray(
+																					[
+																						A2(
+																						elm$html$Html$span,
+																						_List_Nil,
+																						_List_fromArray(
+																							[
+																								elm$html$Html$text('▶ PLAY TESTCASES')
+																							]))
+																					])),
+																				A2(
+																				elm$html$Html$span,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('img_0')
+																					]),
+																				_List_fromArray(
+																					[
+																						A2(
+																						elm$html$Html$img,
+																						_List_fromArray(
+																							[
+																								elm$html$Html$Attributes$src('/static/images/05.png')
+																							]),
+																						_List_Nil)
+																					])),
+																				A2(
+																				elm$html$Html$div,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('word_0')
+																					]),
+																				_List_fromArray(
+																					[
+																						elm$html$Html$text('MANHATTAN with...')
+																					]))
+																			]))
+																	]))
+															])),
+														A2(
+														elm$html$Html$div,
+														_List_fromArray(
+															[
+																elm$html$Html$Attributes$class('actions')
+															]),
+														_List_fromArray(
+															[
+																A2(
+																elm$html$Html$div,
+																_List_fromArray(
+																	[
+																		elm$html$Html$Attributes$class('actions_top')
+																	]),
+																_List_fromArray(
+																	[
+																		elm$html$Html$text('Action')
+																	])),
+																A2(
+																elm$html$Html$div,
+																_List_fromArray(
+																	[
+																		elm$html$Html$Attributes$class('actions_bottom')
+																	]),
+																_List_fromArray(
+																	[
+																		A2(
+																		elm$html$Html$button,
+																		_List_fromArray(
+																			[
+																				elm$html$Html$Attributes$class('btn_1'),
+																				elm$html$Html$Events$onClick(
+																				author$project$Main$SubmitCode(6))
+																			]),
+																		_List_fromArray(
+																			[
+																				elm$html$Html$text('▶ PLAY ALL   TESTCASES')
+																			])),
+																		A2(
+																		elm$html$Html$button,
+																		_List_fromArray(
+																			[
+																				elm$html$Html$Attributes$class('btn_2')
+																			]),
+																		_List_fromArray(
+																			[
+																				elm$html$Html$text('✔ SUBMIT')
+																			]))
+																	]))
+															]))
 													]))
 											]))
 									]))
