@@ -170,7 +170,7 @@ serveStatic subDir fName =
   case sub of
     "js" -> serve "text/javascript"
     "css" -> serve "text/css"
-    "img" -> serve "image/png"
+    "images" -> serve "image/png"
     _ -> res404
   where serve mimeType = resFile mimeType $ concat ["static/", sub, "/", Text.unpack fName]
         sub=Text.unpack subDir
