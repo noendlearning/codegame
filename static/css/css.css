@@ -47,7 +47,7 @@ body{
   margin-top: 0px;
 }
 .word_one{
-  width: 80px;
+  width: 100px;
   height: 40px;
   text-align: center;
   line-height: 40px;
@@ -135,6 +135,30 @@ body{
   font-family: sans-serif;
   font-weight: 900;
 }
+
+
+/* 代码编辑器 */
+#codeTextarea{
+  width: 831px;
+  height: 642px;
+  background-color:#515860;
+  overflow: auto;
+  color: white;
+  resize:none;
+}
+.textAreaWithLines{
+  font-family: courier;
+  border: 0px solid #ddd;
+}
+.textAreaWithLines textarea,.textAreaWithLines div{
+  border: 0px;
+  line-height: 120%;
+  font-size: 12px;
+}
+.lineObj{
+  color: #87888a;
+}
+
 .right_bottom{
   width:865px;
   height: 242px;
@@ -169,9 +193,51 @@ body{
 .bottom{
   width: 574px;
   height: 207px;
-  background-color: #252e38s;
+  background-color: #252e38;
   overflow-y: scroll;
   word-break:break-all;
+}
+.test{
+  width: 545px;
+  height: 58px;
+  background-color: #252e38;
+  border-top: 1px solid #464d56;
+  margin-left: 9px;
+  float: left;
+}
+.test_0{
+  width: 545px;
+  height: 58px;
+  background-color: #252e38;
+  border-top: 1px solid #464d56;
+  border-bottom: 1px solid #464d56;
+  margin-left: 9px;
+  float: left;
+}
+.img_0{
+  line-height: 75px;
+  margin-left: 10px;
+  float: left;
+}
+.word_0{
+  margin-top: 15px;
+  margin-left: 100px;
+  color: #1a95a6;
+  font-size: 20px;
+  float: left;
+}
+.btn_test{
+  width: 150px;
+  height: 32px;
+  float: right;
+  margin-right: 10px;
+  margin-top: 13px;
+  background-color: #464d56;
+  border: 0px;
+}
+.btn_test span{
+  font-size: 11px;
+  color: #218c9b;
 }
 .actions{
   width: 277px;
