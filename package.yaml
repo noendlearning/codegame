@@ -35,6 +35,7 @@ dependencies:
 - tagstream-conduit
 - process
 - containers
+- strict
 library:
   source-dirs: src
 

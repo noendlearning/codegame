@@ -29,6 +29,8 @@ import qualified Data.Map.Lazy as DML
 -- import Data.Aeson.Parser (json)
 import Model
 import System.Process
+import System.IO.Strict as IS (hGetContents)
+import System.Timeout
 import qualified Data.Maybe as M
 someFunc = do
     let port = 3000
@@ -52,7 +54,7 @@ app req respond = respond $
         ["favicon.ico"] -> 
             resPlaceholder
         ["init"] -> 
-          trace "init" unsafePerformIO $ initCode req 
+             unsafePerformIO $ initCode req 
         _ -> res404    
 -- get 
 testParamGet :: Request ->IO Response
@@ -76,7 +78,7 @@ testParam req = do
     
     -- type Param = (ByteString, ByteString)  Data.ByteString params =[param] [("code","ls")]
     -- 使用JSON数据中的第一个元组的key当作文件名
-    traceM(show(params))
+    --traceM(show(params))
     --返回代码写入文件的路径和shell脚本在哪个路径下运行的命令
     let paramsMap = DML.fromList $ changRequestType params
     let languageSetting = getLanguageSetting  (paramsMap DML.! "language") (paramsMap DML.! "code")
@@ -91,21 +93,24 @@ testParam req = do
     (_,Just hout,Just err,_) <- createProcess (shell (last languageSetting)){cwd=Just((!!) languageSetting 1),std_in = UseHandle inh,std_out=CreatePipe,std_err=CreatePipe}
     hClose inh
     -- 获取文件运行的结果
-    content <- hGetContents hout
-    let contents = DL.lines content
+    content <- timeout 2000000 (IS.hGetContents hout)
+    errMessage <- IS.hGetContents err
+    case content of
+      Nothing     -> 
+        return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output=Text.pack "Timeout: your program did not provide an input in due time.", message="Failure", found="", expected="", errMessage=Text.pack errMessage})
+      Just value  -> do 
+        let contents = DL.lines value
+        -- 读取文件中保存的正确答案
+        inpStr <- readFile (last $ getPath (paramsMap DML.! "testIndex"))
+        let inpStrs = DL.lines inpStr
+        let codeOutput =  if contents == inpStrs
+                          then encode (CodeOutput {output=Text.pack value, message="Success", found="", expected="", errMessage=Text.pack errMessage})
+                          else encode (CodeOutput {output=Text.pack value, message="Failure", found=DL.head contents, expected=DL.head inpStrs, errMessage=Text.pack errMessage})
+                  -- 打印数据的方法 traceM(show(content))
+        return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ codeOutput  
     
-    -- 获取文件的错误信息
-    errMessage <- hGetContents err
-    --获取正确答案的路径
-    let answerPath = last $ getPath (paramsMap DML.! "testIndex")
-    --读取文件中保存的正确答案
-    inpStr <- readFile answerPath
-    let inpStrs = DL.lines inpStr
-    let codeOutput =  if contents == inpStrs
-                      then encode (CodeOutput {output=Text.pack content, message="Success", found="", expected="", errMessage=Text.pack errMessage})
-                      else encode (CodeOutput {output=Text.pack content, message="Failure", found=DL.head inpStrs, expected=DL.head inpStrs, errMessage=Text.pack errMessage})
-    -- 打印数据的方法 traceM(show(content))
-    return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ codeOutput
+    
+    
 
 
 changRequestType :: [(BS.ByteString,BS.ByteString)] -> [(String,String)]
@@ -117,6 +122,7 @@ getLanguageSetting :: String -> String -> [String]
 getLanguageSetting language code
       | language == "python" = ["./static/code/Python3.py", "./static/code", "#!/user/bin/env python\r" ++ code, "python Python3.py"]
       | language == "java"   = ["./static/code/Solution.java", "./static/code", code, "javac Solution.java && java Solution"]
+      | language == "haskell"   = ["./static/code/Haskell.hs", "./static/code", code, "runghc Haskell.hs"]
       | otherwise            = ["",""]    
 
 getPath :: String -> [String]
