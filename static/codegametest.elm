@@ -114,29 +114,29 @@ view model =
                     [ div
                         [ class "write_code" ]
                         [ div
-                            [ class "write_code" ]
-                            [ div
-                                [ class "write_top" ]
-                                [ select
-                                    [ class "drop-down" ]
-                                    [ option
-                                        []
-                                        [ text "Elm" ]
-                                    , option
-                                        []
-                                        [ text "Haskell" ]
-                                    , option
-                                        []
-                                        [ text "Java" ]
-                                    , option
-                                        []
-                                        [ text "Python" ]
-                                    , option
-                                        []
-                                        [ text "PHP" ]
-                                    ]
+                            [ class "write_top" ]
+                            [ select
+                                [ class "drop-down" ]
+                                [ option
+                                    []
+                                    [ text "Elm" ]
+                                , option
+                                    []
+                                    [ text "Haskell" ]
+                                , option
+                                    []
+                                    [ text "Java" ]
+                                , option
+                                    []
+                                    [ text "Python" ]
+                                , option
+                                    []
+                                    [ text "PHP" ]
                                 ]
                             ]
+                        , textarea
+                            [ id "codeTextarea" ]
+                            []
                         ]
                     , div
                         [ class "right_bottom" ]
@@ -156,7 +156,97 @@ view model =
                                 ]
                             , div
                                 [ class "bottom" ]
-                                []
+                                [ div
+                                    [ class "test" ]
+                                    [ button
+                                        [ class "btn_test" ]
+                                        [ span
+                                            []
+                                            [ text "▶ PLAY TESTCASES" ]
+                                        ]
+                                    , span
+                                        [ class "img_0" ]
+                                        [ img
+                                            [ src "static/images/01.png" ]
+                                            []
+                                        ]
+                                    , div
+                                        [ class "word_0" ]
+                                        [ text "Test only letter:E" ]
+                                    ]
+                                , div
+                                    [ class "test" ]
+                                    [ button
+                                        [ class "btn_test" ]
+                                        [ span
+                                            []
+                                            [ text "▶ PLAY TESTCASES" ]
+                                        ]
+                                    , span
+                                        [ class "img_0" ]
+                                        [ img
+                                            [ src "static/images/02.png" ]
+                                            []
+                                        ]
+                                    , div
+                                        [ class "word_0" ]
+                                        [ text "Test MANHATTAN" ]
+                                    ]
+                                , div
+                                    [ class "test" ]
+                                    [ button
+                                        [ class "btn_test" ]
+                                        [ span
+                                            []
+                                            [ text "▶ PLAY TESTCASES" ]
+                                        ]
+                                    , span
+                                        [ class "img_0" ]
+                                        [ img
+                                            [ src "static/images/03.png" ]
+                                            []
+                                        ]
+                                    , div
+                                        [ class "word_0" ]
+                                        [ text "Test ManhAtTan" ]
+                                    ]
+                                , div
+                                    [ class "test" ]
+                                    [ button
+                                        [ class "btn_test" ]
+                                        [ span
+                                            []
+                                            [ text "▶ PLAY TESTCASES" ]
+                                        ]
+                                    , span
+                                        [ class "img_0" ]
+                                        [ img
+                                            [ src "static/images/04.png" ]
+                                            []
+                                        ]
+                                    , div
+                                        [ class "word_0" ]
+                                        [ text "Test M@NH@TT@N" ]
+                                    ]
+                                , div
+                                    [ class "test_0" ]
+                                    [ button
+                                        [ class "btn_test" ]
+                                        [ span
+                                            []
+                                            [ text "▶ PLAY TESTCASES" ]
+                                        ]
+                                    , span
+                                        [ class "img_0" ]
+                                        [ img
+                                            [ src "static/images/05.png" ]
+                                            []
+                                        ]
+                                    , div
+                                        [ class "word_0" ]
+                                        [ text "MANHATTAN with..." ]
+                                    ]
+                                ]
                             ]
                         , div
                             [ class "actions" ]
