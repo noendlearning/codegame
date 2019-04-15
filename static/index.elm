@@ -32,6 +32,11 @@ type StateModel
     | Success
     | Loading
 
+type alias CodeList=
+    {
+        code : String,
+        language : String
+    }
 
 type alias Model =
     { loadState : StateModel
@@ -46,6 +51,7 @@ type alias Model =
     , errMessage : String
     , codeState : StateModel
     , testIndex : Int
+    , language : String
     }
 
 
@@ -54,6 +60,7 @@ type Msg
     | ChangeCode String --输入代码
     | RenderOutput (Result Http.Error String) --代码运行结果填充页面
     | SubmitCode Int -- 提交代码
+    | CheckLanguage String --选择语言
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -73,15 +80,15 @@ update msg model =
                     Debug.log "fail" ( { model | loadState = Fail }, Cmd.none )
 
         ChangeCode str ->
-            ( { model | code = str }, Cmd.none )
+            ( { model | code= str }, Cmd.none )
 
         SubmitCode index ->
             if index == 6 then
                 -- TODO 批量发送请求
-                ( { model | testIndex = index }, jsonReq index model.code )
+                ( { model | testIndex = index }, jsonReq index model.code model.language )
 
             else
-                ( { model | testIndex = index }, jsonReq index model.code )
+                ( { model | testIndex = index }, jsonReq index model.code model.language )
 
         RenderOutput result ->
             --渲染代码运行的结果
@@ -99,19 +106,25 @@ update msg model =
                     --服务器返回失败
                     ( { model | jsonReqState = Fail }, Cmd.none )
 
+        CheckLanguage str ->
+            ( { model | language = str }, initCode str)
+
 
 type alias Code =
     String
 
 
-type alias Codes =
-    List Code
+-- type alias Codes =
+--     List Code
 
 
 codeDecoder : Decoder Code
+-- codeDecoder : Decoder CodeList
 codeDecoder =
     Decode.field "codeList" string
-
+    -- Decode.map2 CodeList
+    --     (Decode.field "codeList" string)
+    --    ( Decode.field "language" string)
 
 type alias CodeOutput =
     { output : String
@@ -120,7 +133,6 @@ type alias CodeOutput =
     , found : String
     , expected : String
     }
-
 
 outputDecoder : Decoder CodeOutput
 outputDecoder =
@@ -132,16 +144,16 @@ outputDecoder =
         (Decode.field "expected" string)
 
 
-jsonReq : Int->String -> Cmd Msg
-jsonReq testIndex code =
+jsonReq : Int -> String -> String -> Cmd Msg
+jsonReq testIndex code language =
     Http.post
-        { url = "/linux"
+        { url = "/play"
 
         --todo post 请求携带参数
         , body =
             multipartBody
                 [ stringPart "code" code
-                , stringPart "language" "python"
+                , stringPart "language" language
                 , stringPart "testIndex" (String.fromInt testIndex)
                 ]
         , expect = Http.expectString RenderOutput
@@ -153,6 +165,7 @@ view model =
     case model.loadState of
         Loading ->
             text "loding"
+
         Success ->
             div [ class "all" ]
                 [ div
@@ -246,21 +259,33 @@ view model =
                                     [ class "write_top" ]
                                     [ select
                                         [ class "drop-down" ]
-                                        [ option
-                                            []
-                                            [ text "Elm" ]
-                                        , option
-                                            []
+                                        [ --     option
+                                          --     []
+                                          --     [ text "Elm" ]
+                                          -- ,
+                                        --   FIXME 数据库查询 放在session内？
+                                          option
+                                            [case model.language of 
+                                            "haskell" ->selected True 
+                                            _->selected False
+                                            ,onClick (CheckLanguage "haskell")]
                                             [ text "Haskell" ]
                                         , option
-                                            []
+                                            [case model.language of 
+                                            "java" ->selected True 
+                                            _->selected False
+                                            , onClick (CheckLanguage "java") ]
                                             [ text "Java" ]
                                         , option
-                                            []
+                                            [ case model.language of 
+                                            "python" ->selected True 
+                                            _->selected False
+                                            ,onClick (CheckLanguage "python")]
                                             [ text "Python" ]
-                                        , option
-                                            []
-                                            [ text "PHP" ]
+
+                                        -- , option
+                                        --     []
+                                        --     [ text "PHP" ]
                                         ]
                                     ]
                                 , textarea
@@ -398,18 +423,6 @@ view model =
                     ]
                 ]
 
-        --         -- TODO
-        --         , div [ class "row" ]
-        --             [ button [ class "btn btn-info col-md-12", onClick (SubmitCode 1) ] [ text "Test only one letter:E" ]
-        --             , button [ class "btn btn-info col-md-12", onClick (SubmitCode 2) ] [ text "Test MANHATTAN" ]
-        --             , button [ class "btn btn-info col-md-12", onClick (SubmitCode 3) ] [ text "Test ManhAtTan" ]
-        --             , button [ class "btn btn-info col-md-12", onClick (SubmitCode 4) ] [ text "Test M@NH@TT@N" ]
-        --             , button [ class "btn btn-info col-md-12", onClick (SubmitCode 5) ] [ text "MANHAATTAN with another ASCII representation" ]
-        --             , button [ class "btn btn-info col-md-12", onClick (SubmitCode 6) ] [ text "play all testcase" ]
-        --             ]
-        --         ]
-        --     ]
-        -- ]
         Fail ->
             div [ class "container" ]
                 [ div [ class "row" ]
@@ -438,22 +451,24 @@ init _ =
       , jsonReqState = Loading
       , errMessage = ""
       , codeState = Loading
-      , testIndex = 0
+      , testIndex = 0 
+      , language = "python"
       }
     , --Cmd.none
-      initCode
+      initCode ""
     )
 
 
-initCode : Cmd Msg
-initCode =
+initCode : String->Cmd Msg
+initCode language=
     Http.post
         { url = "/init"
 
         --todo post 请求携带参数
         , body =
             multipartBody
-                [ stringPart "code" "python.py"
+            -- FIXME 初始默认是python
+                [ stringPart "language" ( if (String.isEmpty language) then "python" else language)
                 ]
         , expect = Http.expectString GotText
         }

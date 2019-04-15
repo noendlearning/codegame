@@ -4489,19 +4489,6 @@ var author$project$Main$Loading = {$: 'Loading'};
 var author$project$Main$GotText = function (a) {
 	return {$: 'GotText', a: a};
 };
-var elm$core$Result$Ok = function (a) {
-	return {$: 'Ok', a: a};
-};
-var elm$core$Basics$composeR = F3(
-	function (f, g, x) {
-		return g(
-			f(x));
-	});
-var elm$core$Basics$identity = function (x) {
-	return x;
-};
-var elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
-var elm$core$Dict$empty = elm$core$Dict$RBEmpty_elm_builtin;
 var elm$core$Elm$JsArray$foldr = _JsArray_foldr;
 var elm$core$Array$foldr = F3(
 	function (func, baseCase, _n0) {
@@ -4582,6 +4569,23 @@ var elm$core$Set$toList = function (_n0) {
 	var dict = _n0.a;
 	return elm$core$Dict$keys(dict);
 };
+var elm$core$Basics$eq = _Utils_equal;
+var elm$core$String$isEmpty = function (string) {
+	return string === '';
+};
+var elm$core$Result$Ok = function (a) {
+	return {$: 'Ok', a: a};
+};
+var elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
+var elm$core$Basics$identity = function (x) {
+	return x;
+};
+var elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
+var elm$core$Dict$empty = elm$core$Dict$RBEmpty_elm_builtin;
 var elm$core$Basics$compare = _Utils_compare;
 var elm$core$Maybe$Just = function (a) {
 	return {$: 'Just', a: a};
@@ -4726,7 +4730,6 @@ var elm$core$Dict$insert = F3(
 			return x;
 		}
 	});
-var elm$core$Basics$eq = _Utils_equal;
 var elm$core$Basics$lt = _Utils_lt;
 var elm$core$Dict$getMin = function (dict) {
 	getMin:
@@ -5843,16 +5846,21 @@ var elm$http$Http$post = function (r) {
 		{body: r.body, expect: r.expect, headers: _List_Nil, method: 'POST', timeout: elm$core$Maybe$Nothing, tracker: elm$core$Maybe$Nothing, url: r.url});
 };
 var elm$http$Http$stringPart = _Http_pair;
-var author$project$Main$initCode = elm$http$Http$post(
-	{
-		body: elm$http$Http$multipartBody(
-			_List_fromArray(
-				[
-					A2(elm$http$Http$stringPart, 'code', 'python.py')
-				])),
-		expect: elm$http$Http$expectString(author$project$Main$GotText),
-		url: '/init'
-	});
+var author$project$Main$initCode = function (language) {
+	return elm$http$Http$post(
+		{
+			body: elm$http$Http$multipartBody(
+				_List_fromArray(
+					[
+						A2(
+						elm$http$Http$stringPart,
+						'language',
+						elm$core$String$isEmpty(language) ? 'python' : language)
+					])),
+			expect: elm$http$Http$expectString(author$project$Main$GotText),
+			url: '/init'
+		});
+};
 var author$project$Main$init = function (_n0) {
 	return _Utils_Tuple2(
 		{
@@ -5861,11 +5869,12 @@ var author$project$Main$init = function (_n0) {
 			codeState: author$project$Main$Loading,
 			errMessage: '',
 			jsonReqState: author$project$Main$Loading,
+			language: 'python',
 			loadState: author$project$Main$Loading,
 			parseJson: author$project$Main$Loading,
 			testIndex: 0
 		},
-		author$project$Main$initCode);
+		author$project$Main$initCode(''));
 };
 var elm$core$Platform$Sub$batch = _Platform_batch;
 var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
@@ -5880,22 +5889,22 @@ var author$project$Main$codeDecoder = A2(elm$json$Json$Decode$field, 'codeList',
 var author$project$Main$RenderOutput = function (a) {
 	return {$: 'RenderOutput', a: a};
 };
-var author$project$Main$jsonReq = F2(
-	function (testIndex, code) {
+var author$project$Main$jsonReq = F3(
+	function (testIndex, code, language) {
 		return elm$http$Http$post(
 			{
 				body: elm$http$Http$multipartBody(
 					_List_fromArray(
 						[
 							A2(elm$http$Http$stringPart, 'code', code),
-							A2(elm$http$Http$stringPart, 'language', 'python'),
+							A2(elm$http$Http$stringPart, 'language', language),
 							A2(
 							elm$http$Http$stringPart,
 							'testIndex',
 							elm$core$String$fromInt(testIndex))
 						])),
 				expect: elm$http$Http$expectString(author$project$Main$RenderOutput),
-				url: '/linux'
+				url: '/play'
 			});
 	});
 var author$project$Main$CodeOutput = F5(
@@ -5966,12 +5975,12 @@ var author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{testIndex: index}),
-					A2(author$project$Main$jsonReq, index, model.code)) : _Utils_Tuple2(
+					A3(author$project$Main$jsonReq, index, model.code, model.language)) : _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{testIndex: index}),
-					A2(author$project$Main$jsonReq, index, model.code));
-			default:
+					A3(author$project$Main$jsonReq, index, model.code, model.language));
+			case 'RenderOutput':
 				var result = msg.a;
 				if (result.$ === 'Ok') {
 					var fullText = result.a;
@@ -6000,8 +6009,18 @@ var author$project$Main$update = F2(
 							{jsonReqState: author$project$Main$Fail}),
 						elm$core$Platform$Cmd$none);
 				}
+			default:
+				var str = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{language: str}),
+					author$project$Main$initCode(str));
 		}
 	});
+var author$project$Main$CheckLanguage = function (a) {
+	return {$: 'CheckLanguage', a: a};
+};
 var author$project$Main$SubmitCode = function (a) {
 	return {$: 'SubmitCode', a: a};
 };
@@ -6047,6 +6066,15 @@ var elm$html$Html$Attributes$href = function (url) {
 		_VirtualDom_noJavaScriptUri(url));
 };
 var elm$html$Html$Attributes$id = elm$html$Html$Attributes$stringProperty('id');
+var elm$json$Json$Encode$bool = _Json_wrap;
+var elm$html$Html$Attributes$boolProperty = F2(
+	function (key, bool) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			elm$json$Json$Encode$bool(bool));
+	});
+var elm$html$Html$Attributes$selected = elm$html$Html$Attributes$boolProperty('selected');
 var elm$html$Html$Attributes$src = function (url) {
 	return A2(
 		elm$html$Html$Attributes$stringProperty,
@@ -6330,38 +6358,60 @@ var author$project$Main$view = function (model) {
 																	[
 																		A2(
 																		elm$html$Html$option,
-																		_List_Nil,
 																		_List_fromArray(
 																			[
-																				elm$html$Html$text('Elm')
-																			])),
-																		A2(
-																		elm$html$Html$option,
-																		_List_Nil,
+																				function () {
+																				var _n1 = model.language;
+																				if (_n1 === 'haskell') {
+																					return elm$html$Html$Attributes$selected(true);
+																				} else {
+																					return elm$html$Html$Attributes$selected(false);
+																				}
+																			}(),
+																				elm$html$Html$Events$onClick(
+																				author$project$Main$CheckLanguage('haskell'))
+																			]),
 																		_List_fromArray(
 																			[
 																				elm$html$Html$text('Haskell')
 																			])),
 																		A2(
 																		elm$html$Html$option,
-																		_List_Nil,
+																		_List_fromArray(
+																			[
+																				function () {
+																				var _n2 = model.language;
+																				if (_n2 === 'java') {
+																					return elm$html$Html$Attributes$selected(true);
+																				} else {
+																					return elm$html$Html$Attributes$selected(false);
+																				}
+																			}(),
+																				elm$html$Html$Events$onClick(
+																				author$project$Main$CheckLanguage('java'))
+																			]),
 																		_List_fromArray(
 																			[
 																				elm$html$Html$text('Java')
 																			])),
 																		A2(
 																		elm$html$Html$option,
-																		_List_Nil,
+																		_List_fromArray(
+																			[
+																				function () {
+																				var _n3 = model.language;
+																				if (_n3 === 'python') {
+																					return elm$html$Html$Attributes$selected(true);
+																				} else {
+																					return elm$html$Html$Attributes$selected(false);
+																				}
+																			}(),
+																				elm$html$Html$Events$onClick(
+																				author$project$Main$CheckLanguage('python'))
+																			]),
 																		_List_fromArray(
 																			[
 																				elm$html$Html$text('Python')
-																			])),
-																		A2(
-																		elm$html$Html$option,
-																		_List_Nil,
-																		_List_fromArray(
-																			[
-																				elm$html$Html$text('PHP')
 																			]))
 																	]))
 															])),
@@ -6888,9 +6938,6 @@ var elm$core$String$startsWith = _String_startsWith;
 var elm$url$Url$Http = {$: 'Http'};
 var elm$url$Url$Https = {$: 'Https'};
 var elm$core$String$indexes = _String_indexes;
-var elm$core$String$isEmpty = function (string) {
-	return string === '';
-};
 var elm$core$String$left = F2(
 	function (n, string) {
 		return (n < 1) ? '' : A3(elm$core$String$slice, 0, n, string);
