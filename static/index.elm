@@ -52,6 +52,7 @@ type alias Model =
     , codeState : StateModel
     , testIndex : Int
     , language : String
+    , batchSubmit : Bool
     }
 
 
@@ -61,6 +62,7 @@ type Msg
     | RenderOutput (Result Http.Error String) --代码运行结果填充页面
     | SubmitCode Int -- 提交代码
     | CheckLanguage String --选择语言
+    | BatchSubmitCode
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -83,12 +85,7 @@ update msg model =
             ( { model | code= str }, Cmd.none )
 
         SubmitCode index ->
-            if index == 6 then
-                -- TODO 批量发送请求
-                ( { model | testIndex = index }, jsonReq index model.code model.language )
-
-            else
-                ( { model | testIndex = index }, jsonReq index model.code model.language )
+            ( { model | testIndex = index }, jsonReq index model.code model.language )
 
         RenderOutput result ->
             --渲染代码运行的结果
@@ -97,7 +94,15 @@ update msg model =
                     --服务器成功返回数据
                     case Decode.decodeString outputDecoder fullText of
                         Ok output ->
-                            Debug.log "output" ( { model | codeOutput = output, jsonReqState = Success, parseJson = Success }, Cmd.none )
+                            if model.batchSubmit then
+                                if model.testIndex<5 then
+                                    Debug.log (String.fromInt model.testIndex) ( { model | codeOutput = output, jsonReqState = Success, parseJson = Success,testIndex=model.testIndex+1 }, jsonReq (model.testIndex+1) model.code model.language )
+                                
+                                else
+                                    Debug.log (String.fromInt model.testIndex) ( { model | codeOutput = output, jsonReqState = Success, parseJson = Success,testIndex=5,batchSubmit=False }, jsonReq 5 model.code model.language )
+
+                            else
+                                Debug.log "output3" ( { model | codeOutput = output, jsonReqState = Success, parseJson = Success }, Cmd.none )
 
                         Err _ ->
                             ( { model | parseJson = Fail, jsonReqState = Success }, Cmd.none )
@@ -108,6 +113,8 @@ update msg model =
 
         CheckLanguage str ->
             ( { model | language = str }, initCode str)
+        BatchSubmitCode ->
+            ({model|batchSubmit=True,testIndex=1},jsonReq 1 model.code model.language)
 
 
 type alias Code =
@@ -410,7 +417,7 @@ view model =
                                     , div
                                         [ class "actions_bottom" ]
                                         [ button
-                                            [ class "btn_1", onClick (SubmitCode 6) ]
+                                            [ class "btn_1", onClick BatchSubmitCode ]
                                             [ text "▶ PLAY ALL   TESTCASES" ]
                                         , button
                                             [ class "btn_2" ]
@@ -453,6 +460,7 @@ init _ =
       , codeState = Loading
       , testIndex = 0 
       , language = "python"
+      , batchSubmit=False
       }
     , --Cmd.none
       initCode ""

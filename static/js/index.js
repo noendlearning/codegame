@@ -5864,6 +5864,7 @@ var author$project$Main$initCode = function (language) {
 var author$project$Main$init = function (_n0) {
 	return _Utils_Tuple2(
 		{
+			batchSubmit: false,
 			code: '',
 			codeOutput: {errMessage: '', expected: '', found: '', message: '', output: ''},
 			codeState: author$project$Main$Loading,
@@ -5971,11 +5972,7 @@ var author$project$Main$update = F2(
 					elm$core$Platform$Cmd$none);
 			case 'SubmitCode':
 				var index = msg.a;
-				return (index === 6) ? _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{testIndex: index}),
-					A3(author$project$Main$jsonReq, index, model.code, model.language)) : _Utils_Tuple2(
+				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{testIndex: index}),
@@ -5987,9 +5984,23 @@ var author$project$Main$update = F2(
 					var _n4 = A2(elm$json$Json$Decode$decodeString, author$project$Main$outputDecoder, fullText);
 					if (_n4.$ === 'Ok') {
 						var output = _n4.a;
-						return A2(
+						return model.batchSubmit ? ((model.testIndex < 5) ? A2(
 							elm$core$Debug$log,
-							'output',
+							elm$core$String$fromInt(model.testIndex),
+							_Utils_Tuple2(
+								_Utils_update(
+									model,
+									{codeOutput: output, jsonReqState: author$project$Main$Success, parseJson: author$project$Main$Success, testIndex: model.testIndex + 1}),
+								A3(author$project$Main$jsonReq, model.testIndex + 1, model.code, model.language))) : A2(
+							elm$core$Debug$log,
+							elm$core$String$fromInt(model.testIndex),
+							_Utils_Tuple2(
+								_Utils_update(
+									model,
+									{batchSubmit: false, codeOutput: output, jsonReqState: author$project$Main$Success, parseJson: author$project$Main$Success, testIndex: 5}),
+								A3(author$project$Main$jsonReq, 5, model.code, model.language)))) : A2(
+							elm$core$Debug$log,
+							'output3',
 							_Utils_Tuple2(
 								_Utils_update(
 									model,
@@ -6009,15 +6020,22 @@ var author$project$Main$update = F2(
 							{jsonReqState: author$project$Main$Fail}),
 						elm$core$Platform$Cmd$none);
 				}
-			default:
+			case 'CheckLanguage':
 				var str = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{language: str}),
 					author$project$Main$initCode(str));
+			default:
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{batchSubmit: true, testIndex: 1}),
+					A3(author$project$Main$jsonReq, 1, model.code, model.language));
 		}
 	});
+var author$project$Main$BatchSubmitCode = {$: 'BatchSubmitCode'};
 var author$project$Main$CheckLanguage = function (a) {
 	return {$: 'CheckLanguage', a: a};
 };
@@ -6783,8 +6801,7 @@ var author$project$Main$view = function (model) {
 																		_List_fromArray(
 																			[
 																				elm$html$Html$Attributes$class('btn_1'),
-																				elm$html$Html$Events$onClick(
-																				author$project$Main$SubmitCode(6))
+																				elm$html$Html$Events$onClick(author$project$Main$BatchSubmitCode)
 																			]),
 																		_List_fromArray(
 																			[
