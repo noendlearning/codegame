@@ -1,0 +1,72 @@
+body{
+  margin: 0;
+  padding: 0;
+  background-color: #252e38;
+}
+
+.all{
+  width: 1899px;
+  height:996px;
+  min-width: 1899px;
+  margin: 0;
+  padding: 0;
+  margin: auto;
+}
+.logo{
+  width:100%;
+  height: 60px;
+  background-color: #252e38;
+}
+.icon img{
+  margin-top: 20px;
+  margin-left: 30px;
+}
+#btn1{
+  width:155px;
+  height: 42px;
+  background-color: #363e48;
+  float: right;
+  border: 0px;
+  color: white;
+  font-weight: 900;
+  margin-top: 9px;
+  margin-left: 70px;
+}
+#btn2{
+  width:155px;
+  height: 42px;
+  background-color: #f2bb13;
+  float: right;
+  border: 0px;
+  color: #4d5151;
+  font-weight: 900;
+  margin-right: 20px;
+  margin-left: 9px;
+  margin-top: 8px;
+}
+.word1{
+  width: 20px;
+  height: 200px;
+  float: right;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+.word1 a{
+  font-size: 15px;
+  color: #f2bb13;
+  font-weight: 600;
+  text-decoration: none;
+}
+.banner{
+  width:100%;
+  height:890px;
+  background-color: green;
+  background-image: url(../images/background.jpg);
+  background-repeat: no-repeat;
+}
+.bottom{
+  width:100%;
+  height: 46px;
+  background-image: url(../images/jiantou.png);
+  background-repeat: no-repeat;
+}
