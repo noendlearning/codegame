@@ -41,7 +41,7 @@ app :: Application
 app req respond = respond $ 
     case pathInfo req of
         -- 参数传递的问题
-        ["linux"] -> 
+        ["play"] -> 
             -- unsafePerformIO 函数是取出IO中的 Response
             unsafePerformIO $ testParam req
             -- testParam req
@@ -54,7 +54,7 @@ app req respond = respond $
         ["favicon.ico"] -> 
             resPlaceholder
         ["init"] -> 
-             unsafePerformIO $ initCode req 
+            unsafePerformIO $ initCode req 
         _ -> res404    
 -- get 
 testParamGet :: Request ->IO Response
@@ -68,9 +68,18 @@ testParamGet req = do
 initCode :: Request ->IO Response
 initCode req = do
     (params, _) <- parseRequestBody lbsBackEnd req
-    let pathName = "./static/init/"++(BS.unpack . snd $ head params)
+    let paramsMap = DML.fromList $ changRequestType params
+    let language =(paramsMap DML.! "language")
+    -- FIXME 文件名
+    let pathName = "./static/init/"++ case language of
+                                          -- "python"->"python.py" 
+                                          "java"->"Solution.java"
+                                          "haskell"->"haskell.hs"
+                                          _->"python.py"
     inpStr <- readFile pathName
-    return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeList {codeList = inpStr})
+    -- ,language=if language == "" then "python" else language
+    let codeList=encode (CodeList {codeList = inpStr})
+    return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ codeList
 -- 仅post
 testParam :: Request ->IO Response
 testParam req = do
