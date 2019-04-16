@@ -47,6 +47,10 @@ app req respond = respond $
             -- testParam req
         ["linuxget"] ->
             unsafePerformIO $ testParamGet req
+        ["registUser"] -> 
+          unsafePerformIO $ registUser req 
+        ["loginUser"] -> 
+            unsafePerformIO $ loginUser req       
         ["static", subDir, fileName] -> 
             serveStatic subDir fileName
         [] -> 
@@ -189,3 +193,44 @@ resPlaceholder = responseLBS status404 [] $ fromString "Not implemented yet"
 
 paramFoldr :: [(a,Maybe b)] -> [(a,b)]
 paramFoldr xs = foldr (\x acc -> (fst x , M.fromJust $ snd x) : acc) [] xs
+
+--用户登录
+loginUser :: Request ->IO Response
+loginUser req = do
+    (params, _) <- parseRequestBody lbsBackEnd req
+  
+    let pathName = "./static/code/User.txt" 
+    --获取目标文件中的内容
+    contentsp<-readFile pathName
+    --比较登录时的用户名和密码是否和文件中一样
+    --traceM(show(contentsp))
+    let boolPar = elem (userPass params) (lines $ contentsp)
+    
+    if   boolPar
+    then   return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= "欢迎登录", message="", found="", expected="", errMessage=""})
+    else   return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= "用户不存在，请注册", message="", found="", expected="", errMessage=""})
+
+
+--注册用户信息到文件中
+registUser :: Request ->IO Response
+registUser req = do
+  (params, _) <- parseRequestBody lbsBackEnd req
+  let pathName = "./static/code/User.txt"
+  contentsp <- readFile pathName
+  let boolPar = elem (takeWhile (/= ',') $ userPass params) $ map (takeWhile (/= ',')) (lines $ contentsp)
+  registResponse pathName params boolPar
+  
+registResponse :: String ->[(BS.ByteString,BS.ByteString)] -> Bool -> IO Response
+registResponse pathName params boolPar
+    | boolPar == False =  do
+      outh <- IO.openFile pathName AppendMode 
+      DB.hPutStrLn outh $ fromString $ userPass params
+      IO.hClose outh
+      return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= "注册成功", message="", found="", expected="", errMessage=""})
+    | boolPar == True =  
+      return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= "注册失败", message="", found="", expected="", errMessage=""})
+     
+userPass :: [(BS.ByteString,BS.ByteString)] -> [Char]
+userPass [x] = BS.unpack (snd x)
+userPass (x:xs) = 
+  BS.unpack (snd x)  ++ "," ++ userPass xs
