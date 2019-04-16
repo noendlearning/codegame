@@ -3,6 +3,8 @@ module Main exposing (main, view)
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
+import Http
 
 
 main =
@@ -10,27 +12,74 @@ main =
 
 
 type alias Model =
-    Int
+    { loadState : StateModel
+    , login : Login
+    , singup : Singup
+    }
+type alias Login =
+    { email : String
+    , password : String
+    }
+type alias Singup =
+    { email : String
+    , password : String
+    }
+init : () -> (Model, Cmd Msg)
+init _ =
+        ({loadState = StateModel
+        , login =
+          { email = ""
+          , password = ""
+          }
+        , singup =
+          { email = ""
+          , password = ""
+          }
+        }
+        , Http.post
+          { url = ""
+          , expect = Http.expectString GotText
+          }
+        )
 
 
-init : Model
-init =
-    0
 
+type StateModel
+  = Fail
+  | Loading
+  | Success
 
 type Msg
-    = Display
+    = GotText (Result Http.Error String)
+    | LoginSubmit Login                              --登录提交
+    | SingupSubmit Singup                           --注册提交
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Display ->
-            0
+        GotText result ->
+          case result of
+            Ok fullText ->
+
+            Err _ ->
+              (Fail,Cmd.none)
+
+        LoginSubmit login ->
+            case login of
+                Ok fullText ->
+                  if model.login.password == /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/ then
+
+
+                  else
+
+
 
 
 view : Model -> Html Msg
 view model =
+  case model.loadState of
+    Loading ->
     div
         [ class "all" ]
         [ div
@@ -98,7 +147,7 @@ view model =
             , div
                 [ class "row" ]
                 [ a
-                    [ href "#", id "loginbtn" ]
+                    [ href "#", id "loginbtn", onClick LoginSubmit ]
                     [ text "LOG IN" ]
                 ]
             ]
@@ -146,7 +195,7 @@ view model =
             , div
                 [ class "row" ]
                 [ a
-                    [ href "#", id "singupbtn" ]
+                    [ href "#", id "singupbtn", onClick SingupSubmit ]
                     [ text "SING UP" ]
                 ]
             ]
