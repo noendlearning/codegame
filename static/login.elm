@@ -99,7 +99,7 @@ view model =
             , div
                 [ class "icon" ]
                 [ img
-                    [ src "static/images/icon.png" ]
+                    [ src "/static/images/icon.png" ]
                     []
                 ]
             ]
@@ -126,7 +126,7 @@ view model =
                         []
                     ]
                 , a
-                    [ href "javascript:void(0)", title "提示", class "warning", id "warn" ]
+                    [ href "#", title "提示", class "warning", id "warn" ]
                     [ text "*" ]
                 ]
             , div
@@ -141,7 +141,7 @@ view model =
                         []
                     ]
                 , a
-                    [ href "javascript:void(0)", title "提示", class "warning", id "warn2" ]
+                    [ href "#", title "提示", class "warning", id "warn2" ]
                     [ text "*" ]
                 ]
             , div
@@ -170,11 +170,12 @@ view model =
                 , span
                     [ class "inputBox" ]
                     [ input
-                        [ id "txtName1", placeholder "Email" ]
+                    -- TODO check email
+                        [ id "txtName1", placeholder "Email",onInput CheckEmail ]
                         []
                     ]
                 , a
-                    [ href "javascript:void(0)", title "提示", class "warning", id "warn3" ]
+                    [ href "#", title "提示", class "warning", id "warn3" ]
                     [ text "*" ]
                 ]
             , div
@@ -185,16 +186,18 @@ view model =
                 , span
                     [ class "inputBox" ]
                     [ input
+                    -- TODO check password
                         [ id "txtPwd", placeholder "Password" ]
                         []
                     ]
                 , a
-                    [ href "javascript:void(0)", title "提示", class "warning", id "warn4" ]
+                    [ href "#", title "提示", class "warning", id "warn4" ]
                     [ text "*" ]
                 ]
             , div
                 [ class "row" ]
                 [ a
+                -- TODO check both email and pwd then post req
                     [ href "#", id "singupbtn", onClick SingupSubmit ]
                     [ text "SING UP" ]
                 ]
