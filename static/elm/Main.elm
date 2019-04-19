@@ -29,11 +29,6 @@ type alias Model =
     }
 
 
--- type alias Form =
---     { email : String
---     , password : String
---     }
-
 
 type Problem
     = InvalidEntry ValidatedField String
@@ -57,22 +52,38 @@ subscriptions model =
     Sub.none
 
 
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        SubmittedForm ->
-            case validate model.form of
-                Ok validForm ->
-                    ( { model | problems = [] }
-                    , register validForm
-                    )
+        SubmittedForm index->
+            case index of
+                0 ->
+                -- sing up
+                    case validate model.form of
+                        Ok validForm ->
+                            ( { model | problems = [] }
+                            , register validForm
+                            )
 
-                Err problems ->
-                    ( { model | problems = problems }
-                    , Cmd.none
-                    )
+                        Err problems ->
+                            ( { model | problems = problems }
+                            , Cmd.none
+                            )
 
+            
+                _ ->
+                    -- sing in 
+                     case validate model.form of
+                        Ok validForm ->
+                            ( { model | problems = [] }
+                            , login validForm
+                            )
+
+                        Err problems ->
+                            ( { model | problems = problems }
+                            , Cmd.none
+                            )
+            
         EnteredEmail email ->
             updateForm (\form -> { form | email = email }) model
 
@@ -91,26 +102,30 @@ update msg model =
                                 )
 
                         Err _ ->
-                            Debug.log "err" (model, Cmd.none )
+                            Debug.log "err" ( model, Cmd.none )
 
                 Err _ ->
                     Debug.log "fail" ( model, Cmd.none )
+-- 与上面的方法一样 可以不写
+        -- CompletedLogin result ->
+        --     case result of
+        --         Ok fullText ->
+        --             case Decode.decodeString Viewer.decoder fullText of
+        --                 Ok codes ->
+        --                     Debug.log "ok get code"
+        --                         ( model
+        --                         , Api.storeFormWith model.form
+        --                         )
+
+        --                 Err _ ->
+        --                     Debug.log "err" ( model, Cmd.none )
+
+        --         Err _ ->
+        --             Debug.log "fail" ( model, Cmd.none )
 
 
 
--- CompletedRegister (Err error) ->
---     -- let
---     --     serverErrors =
---     --         Api.decodeErrors error
---     --             |> List.map ServerError
---     -- in
---     ( model
---     , Cmd.none
---     )
--- CompletedRegister (Ok viewer) ->
---     ( model
---     , Api.storeUserWith viewer
---     )
+
 
 
 type TrimmedForm
@@ -157,14 +172,16 @@ updateForm transform model =
     ( { model | form = transform model.form }, Cmd.none )
 
 
-type Msg
-    = SubmittedForm
+type
+    Msg
+    = SubmittedForm Int
     | EnteredEmail String
     | EnteredPassword String
     | CompletedRegister (Result Http.Error String)
+    -- | CompletedLogin (Result Http.Error String)
+    -- | GotSession Session
 
-
-
+-- todo   获取session
 -- | GotSession Session
 
 
@@ -195,9 +212,8 @@ fieldsToValidate =
 
 
 
--- todo test
-
-
+-- todo test regex
+-- todo 下面两个方法重复了 提取共用部分
 register : TrimmedForm -> Cmd Msg
 register (Trimmed form) =
     let
@@ -209,6 +225,21 @@ register (Trimmed form) =
     in
     Http.post
         { url = Endpoint.register
+        , body = body
+        , expect = Http.expectString CompletedRegister
+        }
+
+login : TrimmedForm -> Cmd Msg
+login (Trimmed form) =
+    let
+        body =
+            multipartBody
+                [ stringPart "email" form.email
+                , stringPart "password" form.password
+                ]
+    in
+    Http.post
+        { url = Endpoint.login
         , body = body
         , expect = Http.expectString CompletedRegister
         }
@@ -258,8 +289,11 @@ view model =
                 , span
                     [ class "inputBox" ]
                     [ input
-                        -- todo
-                        [ id "txtName", placeholder "Email" ]
+                        [ id "txtName"
+                        , placeholder "Email"
+                        , onInput EnteredEmail
+                        ,  Html.Attributes.value model.form.email
+                        ]
                         []
                     ]
                 , a
@@ -274,8 +308,13 @@ view model =
                 , span
                     [ class "inputBox" ]
                     [ input
-                        -- todo
-                        [ id "txtPwd", placeholder "Password" ]
+                        -- todo 密码在页面上显示框不对
+                        [ id "txtPwd"
+                        , placeholder "Password"
+                        , type_ "password"
+                        , onInput EnteredPassword
+                        ,  Html.Attributes.value model.form.password
+                        ]
                         []
                     ]
                 , a
@@ -285,8 +324,7 @@ view model =
             , div
                 [ class "row" ]
                 [ a
-                    -- , onClick LoginSubmit FIxme
-                    [ href "#", id "loginbtn" ]
+                    [ href "#", id "loginbtn" , onClick (SubmittedForm 1) ]
                     [ text "LOG IN" ]
                 ]
             ]
@@ -343,7 +381,7 @@ view model =
             , div
                 [ class "row" ]
                 [ a
-                    [ href "#", id "singupbtn", onClick SubmittedForm ]
+                    [ href "#", id "singupbtn", onClick (SubmittedForm 0) ]
                     [ text "SING UP" ]
                 ]
             ]

@@ -1,4 +1,4 @@
-module Api.Endpoint exposing (Endpoint, register)
+module Api.Endpoint exposing (..)
 
 import Http exposing (..)
 
