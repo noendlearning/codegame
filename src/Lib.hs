@@ -32,6 +32,8 @@ import System.Process
 import System.IO.Strict as IS (hGetContents)
 import System.Timeout
 import qualified Data.Maybe as M
+import qualified Database.MySQL.Base as Sql
+import qualified System.IO.Streams as Streams
 someFunc = do
     let port = 3000
     putStrLn $ "Listening on port " ++ show port
@@ -88,10 +90,18 @@ initCode req = do
 testParam :: Request ->IO Response
 testParam req = do
     (params, _) <- parseRequestBody lbsBackEnd req
-    
-    -- type Param = (ByteString, ByteString)  Data.ByteString params =[param] [("code","ls")]
-    -- 使用JSON数据中的第一个元组的key当作文件名
-    --traceM(show(params))
+     --开启一个连接 这个方法是自己封装的 使用完之后记得关闭
+    let conn = getConn
+    -- 曾删改时使用 execute_ 方法 会返回是否成功
+    result <- Sql.execute_ conn "insert into user (user_name,user_pawd,creation_time) values ('王五','159753',now())"
+    traceM(show(result))
+    --查询数据库时使用 query_ 方法 返回的是个元祖，元祖中第一位返回的是一些数据的信息，第二位才是查询的结果信息
+    (base,value) <- Sql.query_ conn "select * from user"
+    --返回的value实际是 InputStream [MySQLValue] 这个类型，所以通过toList方法变成[MySQLValue] 这个类型
+    result1 <- Streams.toList value
+    traceM(show(result1))
+    -- 关闭连接
+    Sql.close getConn 
     --返回代码写入文件的路径和shell脚本在哪个路径下运行的命令
     let paramsMap = DML.fromList $ changRequestType params
     let languageSetting = getLanguageSetting  (paramsMap DML.! "language") (paramsMap DML.! "code")
@@ -234,3 +244,8 @@ userPass :: [(BS.ByteString,BS.ByteString)] -> [Char]
 userPass [x] = BS.unpack (snd x)
 userPass (x:xs) = 
   BS.unpack (snd x)  ++ "," ++ userPass xs
+--连接数据库获取连接
+getConn :: Sql.MySQLConn
+getConn =  
+  -- 可以使用 ciHost 设置ip, ciPort 设置端口。 默认的ip 127.0.0.1 端口号 3306
+  unsafePerformIO $ Sql.connect $ Sql.defaultConnectInfo {Sql.ciUser = "root", Sql.ciPassword = "1", Sql.ciDatabase = "codegame"}

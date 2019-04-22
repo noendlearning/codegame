@@ -36,6 +36,8 @@ dependencies:
 - process
 - containers
 - strict
+- mysql-haskell
+- io-streams
 library:
   source-dirs: src
 
