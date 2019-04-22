@@ -142,30 +142,42 @@ main =
                             [ text "TO START" ]
                         , div
                             [ class "picture", id "picture" ]
-                            [ img
-                                [ src "#" ]
-                                []
+                            [ a
+                                [ href "#" ]
+                                [ img
+                                    [ src "#" ]
+                                    []
+                                ]
                             ]
                         , div
                             [ class "picture" ]
-                            [ img
-                                [ src "#" ]
-                                []
+                            [ a
+                                [ href "#" ]
+                                [ img
+                                    [ src "#" ]
+                                    []
+                                ]
                             ]
                         , div
                             [ class "picture_2", id "picture_2" ]
-                            [ img
-                                [ src "#" ]
-                                []
+                            [ a
+                                [ href "#" ]
+                                [ img
+                                    [ src "#" ]
+                                    []
+                                ]
                             ]
                         , div
                             [ class "word_3" ]
                             [ text "COMPLETED" ]
                         , div
                             [ class "picture_2", id "picture_2" ]
-                            [ img
-                                [ src "#" ]
-                                []
+                            [ a
+                                [ href "#" ]
+                                [ img
+                                    [ src "#" ]
+                                    []
+                                ]
                             ]
                         ]
                     ]
