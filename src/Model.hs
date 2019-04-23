@@ -23,7 +23,35 @@ data CodeList = CodeList {
       codeList :: String
     } deriving (Generic,Show)
 instance ToJSON CodeList 
-instance FromJSON CodeList    
+instance FromJSON CodeList 
+
+data PuzzleInput = PuzzleInput{
+    title::Text,
+    statement :: Text,
+    inputDescription::Text,
+    outputDescription::Text,
+    constraints::Text,
+    -- gameModes:
+    testCases :: [TestCase]
+
+}deriving (Generic,Show)
+instance ToJSON PuzzleInput
+instance FromJSON PuzzleInput
+
+data TestCase = TestCase{
+    testName::String,
+    validator::String,
+    test::StandCase,
+    validater::StandCase
+} deriving (Generic,Show)
+instance ToJSON TestCase
+instance FromJSON TestCase
+data StandCase = StandCase{
+    input::String,
+    oput::String
+} deriving (Generic,Show)
+instance ToJSON StandCase
+instance FromJSON StandCase
 {- instance ToJSON CodeOutput where
     -- this generates a Value
     toJSON (CodeOutput code output) =
