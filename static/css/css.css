@@ -2,6 +2,7 @@ body{
   margin: 0;
   padding: 0;
   background-color: #252e38;
+  position: fixed;
 }
 
 .all{
@@ -82,6 +83,128 @@ body{
   word-break:break-all;
   color: white;
 }
+
+
+.video{
+  width: 859px;
+  height: 480px;
+}
+.top1{
+  width:845px;
+  height:470px;
+}
+.step1{
+  width: 300px;
+  position: relative;
+  z-index: 9999;
+}
+.title{
+  color: #1d9aab;
+  font-weight: 900;
+  font-size: 24px;
+}
+.title_detail{
+  color: #4d535c;
+  font-weight: 700px;
+  font-size: 20px;
+}
+.top2{
+   width:845px;
+   height:450px;
+}
+.step2{
+  width: 300px;
+  position: relative;
+  z-index: 9999;
+}
+.top3{
+   width:115px;
+   height:45px;
+}
+.step3{
+  width: 300px;
+  position: relative;
+  z-index: 9999;
+}
+.top4{
+   width:860px;
+   height:642px;
+}
+.step4{
+  width: 300px;
+  position: relative;
+  z-index: 9999;
+}
+.code{
+  background-color: #f2f2f2;
+  border: 1px #dadada;
+  width: 700px;
+  height:80px;
+  color: #636971;
+  font-size: 10px;
+}
+.top5{
+   width:555px;
+   height:58px;
+}
+.step5{
+  width: 300px;
+  position: relative;
+  z-index: 9999;
+}
+.top6{
+   width:272px;
+   height:60px;
+}
+.step6{
+  width: 300px;
+  position: relative;
+  z-index: 9999;
+}
+
+
+.goal{
+  width: 859px;
+  height: 150px;
+}
+.goal_title{
+  width: 849px;
+  height: 50px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 50px;
+  color: #343b45;
+  padding-left: 10px;
+}
+.goal_content{
+  width: 829px;
+  height: 100px;
+  color: #535960;
+  font-size: 16px;
+  padding-left: 10px;
+  padding-right: 20px;
+}
+.rules{
+  width: 859px;
+  height: 300px;
+}
+.rules_title{
+  width: 849px;
+  height: 50px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 50px;
+  color: #343b45;
+  padding-left: 10px;
+}
+.rules_content{
+  width: 829px;
+  height: 250px;
+  color: #535960;
+  font-size: 16px;
+  padding-left: 10px;
+  padding-right: 20px;
+}
 .console_output{
   width: 871px;
   height: 241px;
@@ -117,6 +240,7 @@ body{
   height:693px;
   background-color: #252e38;
   border: 1px solid #41454a;
+  po
 }
 .write_top{
   width:863px;
