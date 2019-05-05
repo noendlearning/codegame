@@ -38,6 +38,14 @@ dependencies:
 - strict
 - mysql-haskell
 - io-streams
+- transformers
+- persistent-mysql 
+- persistent 
+- persistent-template 
+- monad-logger 
+- esqueleto 
+- MonadRandom
+- uuid
 library:
   source-dirs: src
 
