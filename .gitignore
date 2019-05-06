@@ -1,3 +1,16 @@
 .stack-work/
 codegame.cabal
 *~
+.classpath
+.project
+.settings/
+bin/
+elm-stuff/
+index.js
+index11.js
+src/Database.hi
+src/Database.o
+static/elm/Route.elm
+static/elm/Session.elm
+static/js/index1.js
+
