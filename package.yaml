@@ -46,6 +46,7 @@ dependencies:
 - esqueleto 
 - MonadRandom
 - uuid
+- password-instances  
 library:
   source-dirs: src
 
