@@ -10,8 +10,10 @@
 
 -- {-# LANGUAGE PackageImports #-}
 module Database
-  ( testFunc
-  , selectByUUID
+  ( 
+    -- testFunc
+  -- , 
+    selectByUUID
   , selectByEmail
   , updateEmailByUUID
   , updatePwdByUUID
@@ -51,12 +53,12 @@ User
     deriving Show
 |]
 
-testFunc :: IO ()
-testFunc = do
-  -- uuid1 <- UV.nextRandom
-  runNoLoggingT . withMySQLPool conInfo 10 . runSqlPool   $ do
-  -- runNoLoggingT . withMySQLPool conInfo 10 . runSqlPool
-    runMigration migrateAll
+-- testFunc :: IO ()
+-- testFunc = do
+--   -- uuid1 <- UV.nextRandom
+--   runNoLoggingT . withMySQLPool conInfo 10 . runSqlPool   $ do
+--   -- runNoLoggingT . withMySQLPool conInfo 10 . runSqlPool
+--     runMigration migrateAll
     -- do后面的不能取消 返回值不对
         -- johnId <- insert $ User (DU.toString uuid1) "123@qq.com" "123"
         -- johnId <- insert $ User (DU.toString uuid2) "234@qq.com" "234"
@@ -105,70 +107,39 @@ getStrictPwd password=
             unpack $ unPassHash hashedPassword
 
 -- 根据uuid查询用户
-selectByUUID ::
-     ( MonadIO m
-     , BackendCompatible SqlBackend backend
-     , PersistQueryRead backend
-     , PersistUniqueRead backend
-     )
-  => [Char]
-  -> ReaderT backend m [Entity User]
+selectByUUID ::( MonadIO m, BackendCompatible SqlBackend backend, PersistQueryRead backend, PersistUniqueRead backend)=> [Char]-> ReaderT backend m [Entity User]
 selectByUUID uuid =
-  E.select $
-  E.from $ \p -> do
+    E.select $
+    E.from $ \p -> do
     E.where_ (p ^. UserUuid E.==. val uuid)
     return p
 
 -- select via email
-selectByEmail ::
-     ( MonadIO m
-     , BackendCompatible SqlBackend backend
-     , PersistQueryRead backend
-     , PersistUniqueRead backend
-     )
-  => [Char]
-  -> ReaderT backend m [Entity User]
+selectByEmail ::( MonadIO m, BackendCompatible SqlBackend backend, PersistQueryRead backend, PersistUniqueRead backend)=> [Char]-> ReaderT backend m [Entity User]
 selectByEmail email =
-  E.select $
-  E.from $ \p -> do
+    E.select $
+    E.from $ \p -> do
     E.where_ (p ^. UserEmail E.==. val email)
     return p
 
 -- update email  via uuid
-updateEmailByUUID ::
-     ( MonadIO m
-     , BackendCompatible SqlBackend backend
-     , PersistQueryWrite backend
-     , PersistUniqueWrite backend
-     )
-  => [Char]
-  -> [Char]
-  -> ReaderT backend m ()
+updateEmailByUUID ::( MonadIO m, BackendCompatible SqlBackend backend, PersistQueryWrite backend, PersistUniqueWrite backend)=> [Char]-> [Char]-> ReaderT backend m ()
 updateEmailByUUID uuid email =
-  E.update $ \p -> do
+    E.update $ \p -> do
     E.set p [UserEmail E.=. val email]
     E.where_ (p ^. UserUuid E.==. val uuid)
 
 --update pwd by uuid
-updatePwdByUUID ::
-     ( MonadIO m
-     , BackendCompatible SqlBackend backend
-     , PersistQueryWrite backend
-     , PersistUniqueWrite backend
-     )
-  => [Char]
-  -> [Char]
-  -> ReaderT backend m ()
+updatePwdByUUID ::( MonadIO m, BackendCompatible SqlBackend backend, PersistQueryWrite backend, PersistUniqueWrite backend)=> [Char]-> [Char]-> ReaderT backend m ()
 updatePwdByUUID uuid pwd =
-  E.update $ \p -> do
+    E.update $ \p -> do
     E.set p [UserPassword E.=. val pwd]
     E.where_ (p ^. UserUuid E.==. val uuid)
 
 -- mysql 数据库连接
 conInfo :: ConnectInfo
-conInfo =
-  ConnectInfo
-    { connectHost = "localhost"
+conInfo = ConnectInfo{ 
+      connectHost = "localhost"
     , connectPort = 3306
     , connectUser = "root"
     , connectPassword = "1"
