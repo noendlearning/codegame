@@ -7,7 +7,8 @@
 {-# LANGUAGE QuasiQuotes                #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
-
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 -- {-# LANGUAGE PackageImports #-}
 module Database
   ( 
@@ -42,6 +43,8 @@ import Data.Text (unpack,pack)
 import Data.Password.Instances
 import Data.Text.Internal
 import System.IO.Unsafe (unsafePerformIO)
+-- import Control.Monad.Trans.Resource (ResourceT)
+import Control.Monad.Trans.Resource (runResourceT, ResourceT)
 
 share
   [mkPersist sqlSettings, mkMigrate "migrateAll"]
@@ -52,6 +55,15 @@ User
     password String
     deriving Show
 |]
+
+inBackend :: ReaderT SqlBackend (NoLoggingT (ResourceT IO)) a-> IO a
+inBackend action = runStderrLoggingT $ withMySQLPool conInfo 5 $ \pool -> liftIO $ do
+  flip runSqlPersistMPool pool $ do
+    runMigration migrateAll
+    action
+
+-- runDb :: SqlPersist (ResourceT IO) a -> IO a
+-- runDb act  = runResourceT . withMySQLPool conInfo 5 . runSqlConn $ act
 
 -- testFunc :: IO ()
 -- testFunc = do
@@ -84,15 +96,16 @@ User
     -- liftIO $ mapM_ (putStrLn . userEmail . entityVal) people
 
 -- 插入用户
-insertUser ::
-     (MonadIO m, PersistStoreWrite backend, BaseBackend backend ~ SqlBackend)
-  => String
-  -> String
-  -> ReaderT backend m ()
+-- insertUser ::
+--      (MonadIO m, PersistStoreWrite backend, BaseBackend backend ~ SqlBackend)
+--   => String
+--   -> String
+--   -> ReaderT backend m ()
+insertUser :: String -> String -> IO ()
 insertUser email pwd= 
   let uuid=unsafePerformIO UV.nextRandom
   in
-    insert_ $ User (DU.toString uuid) email $ getStrictPwd pwd
+    inBackend . insert_ $ User (DU.toString uuid) email $ getStrictPwd pwd
     -- return ()
 
 originalsalt = "hnbrina2019XN9dUU8uhnbrina2019bQSkvEZIRhnbrina2019UWr9UVWCjzOLsU=hnbrina2019LbmItlhltyIHhnbrina20194Nro2YyMFeCCKwtV0=hnbrina2019"
@@ -107,32 +120,37 @@ getStrictPwd password=
             unpack $ unPassHash hashedPassword
 
 -- 根据uuid查询用户
-selectByUUID ::( MonadIO m, BackendCompatible SqlBackend backend, PersistQueryRead backend, PersistUniqueRead backend)=> [Char]-> ReaderT backend m [Entity User]
-selectByUUID uuid =
+-- selectByUUID ::( MonadIO m, BackendCompatible SqlBackend backend, PersistQueryRead backend, PersistUniqueRead backend)=> [Char]-> ReaderT backend m [Entity User]
+-- selectByUUID String->IO()
+selectByUUID ::String->IO [Entity User]
+selectByUUID uuid =inBackend . 
     E.select $
     E.from $ \p -> do
     E.where_ (p ^. UserUuid E.==. val uuid)
     return p
 
 -- select via email
-selectByEmail ::( MonadIO m, BackendCompatible SqlBackend backend, PersistQueryRead backend, PersistUniqueRead backend)=> [Char]-> ReaderT backend m [Entity User]
-selectByEmail email =
+-- selectByEmail ::( MonadIO m, BackendCompatible SqlBackend backend, PersistQueryRead backend, PersistUniqueRead backend)=> [Char]-> ReaderT backend m [Entity User]
+selectByEmail ::String->IO [Entity User]
+selectByEmail email =inBackend .
     E.select $
     E.from $ \p -> do
     E.where_ (p ^. UserEmail E.==. val email)
     return p
 
 -- update email  via uuid
-updateEmailByUUID ::( MonadIO m, BackendCompatible SqlBackend backend, PersistQueryWrite backend, PersistUniqueWrite backend)=> [Char]-> [Char]-> ReaderT backend m ()
-updateEmailByUUID uuid email =
+-- updateEmailByUUID ::( MonadIO m, BackendCompatible SqlBackend backend, PersistQueryWrite backend, PersistUniqueWrite backend)=> [Char]-> [Char]-> ReaderT backend m ()
+updateEmailByUUID :: [Char] -> [Char] -> IO ()
+updateEmailByUUID uuid email =inBackend .
     E.update $ \p -> do
     E.set p [UserEmail E.=. val email]
     E.where_ (p ^. UserUuid E.==. val uuid)
 
 --update pwd by uuid
-updatePwdByUUID ::( MonadIO m, BackendCompatible SqlBackend backend, PersistQueryWrite backend, PersistUniqueWrite backend)=> [Char]-> [Char]-> ReaderT backend m ()
-updatePwdByUUID uuid pwd =
-    E.update $ \p -> do
+-- updatePwdByUUID ::( MonadIO m, BackendCompatible SqlBackend backend, PersistQueryWrite backend, PersistUniqueWrite backend)=> [Char]-> [Char]-> ReaderT backend m ()
+updatePwdByUUID :: [Char] -> [Char] -> IO ()
+updatePwdByUUID uuid pwd =inBackend .
+    E.update $ \p -> do 
     E.set p [UserPassword E.=. val pwd]
     E.where_ (p ^. UserUuid E.==. val uuid)
 
