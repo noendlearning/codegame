@@ -55,7 +55,7 @@ User
     password String
     deriving Show
 |]
-
+-- 
 inBackend :: ReaderT SqlBackend (NoLoggingT (ResourceT IO)) a-> IO a
 inBackend action = runStderrLoggingT $ withMySQLPool conInfo 5 $ \pool -> liftIO $ do
   flip runSqlPersistMPool pool $ do
@@ -96,11 +96,6 @@ inBackend action = runStderrLoggingT $ withMySQLPool conInfo 5 $ \pool -> liftIO
     -- liftIO $ mapM_ (putStrLn . userEmail . entityVal) people
 
 -- 插入用户
--- insertUser ::
---      (MonadIO m, PersistStoreWrite backend, BaseBackend backend ~ SqlBackend)
---   => String
---   -> String
---   -> ReaderT backend m ()
 insertUser :: String -> String -> IO ()
 insertUser email pwd= 
   let uuid=unsafePerformIO UV.nextRandom
@@ -110,6 +105,7 @@ insertUser email pwd=
 
 originalsalt = "hnbrina2019XN9dUU8uhnbrina2019bQSkvEZIRhnbrina2019UWr9UVWCjzOLsU=hnbrina2019LbmItlhltyIHhnbrina20194Nro2YyMFeCCKwtV0=hnbrina2019"
 
+-- 对密码进行加密
 getStrictPwd :: String -> String
 getStrictPwd password=
         let
