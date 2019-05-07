@@ -16,7 +16,7 @@ module Database
   , updateEmailByUUID
   , updatePwdByUUID
   , insertUser
-  , getStrictPwd
+  -- , getStrictPwd
   ) where
 
 import           Control.Monad.IO.Class              (liftIO)
@@ -39,6 +39,7 @@ import           Debug.Trace
 import Data.Text (unpack,pack)
 import Data.Password.Instances
 import Data.Text.Internal
+import System.IO.Unsafe (unsafePerformIO)
 
 share
   [mkPersist sqlSettings, mkMigrate "migrateAll"]
@@ -52,9 +53,11 @@ User
 
 testFunc :: IO ()
 testFunc = do
-  uuid1 <- UV.nextRandom
-  runNoLoggingT . withMySQLPool conInfo 10 . runSqlPool $ do
+  -- uuid1 <- UV.nextRandom
+  runNoLoggingT . withMySQLPool conInfo 10 . runSqlPool   $ do
+  -- runNoLoggingT . withMySQLPool conInfo 10 . runSqlPool
     runMigration migrateAll
+    -- do后面的不能取消 返回值不对
         -- johnId <- insert $ User (DU.toString uuid1) "123@qq.com" "123"
         -- johnId <- insert $ User (DU.toString uuid2) "234@qq.com" "234"
         -- johnId <- insert $ User (DU.toString uuid3) "345@qq.com" "345"
@@ -74,18 +77,21 @@ testFunc = do
     -- let salt = Salt "hnbrina2019"
     -- let hashedPassword=hashPassWithSalt pwd salt
     -- let strictPwd=unpack $ unPassHash hashedPassword
-    insertUser "godev1" "5mayiwen" uuid1
-    people <- E.select $ E.from $ \user -> return user
-    liftIO $ mapM_ (putStrLn . userEmail . entityVal) people
+    -- insertUser "godev1" "5mayiwen" uuid1
+    -- people <- E.select $ E.from $ \user -> return user
+    -- liftIO $ mapM_ (putStrLn . userEmail . entityVal) people
 
 -- 插入用户
 insertUser ::
      (MonadIO m, PersistStoreWrite backend, BaseBackend backend ~ SqlBackend)
   => String
   -> String
-  -> DU.UUID
   -> ReaderT backend m ()
-insertUser email pwd uuid = insert_ $ User (DU.toString uuid) email $ getStrictPwd pwd
+insertUser email pwd= 
+  let uuid=unsafePerformIO UV.nextRandom
+  in
+    insert_ $ User (DU.toString uuid) email $ getStrictPwd pwd
+    -- return ()
 
 originalsalt = "hnbrina2019XN9dUU8uhnbrina2019bQSkvEZIRhnbrina2019UWr9UVWCjzOLsU=hnbrina2019LbmItlhltyIHhnbrina20194Nro2YyMFeCCKwtV0=hnbrina2019"
 
