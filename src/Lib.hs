@@ -34,7 +34,10 @@ import System.Timeout
 import qualified Data.Maybe as M
 import qualified Database.MySQL.Base as Sql
 import qualified System.IO.Streams as Streams
+import qualified Database as DB 
+
 someFunc = do
+    -- DB.insertUser "12" "2222"
     let port = 3000
     putStrLn $ "Listening on port " ++ show port
     run port app
