@@ -3,7 +3,6 @@
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
--- {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE QuasiQuotes                #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
@@ -11,10 +10,10 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Database
   ( 
-    selectByUUID
-  , selectByEmail
-  , updateEmailByUUID
-  , updatePwdByUUID
+    selectUserByUUID
+  , selectUserByEmail
+  , updateUserEmailByUUID
+  , updateUserPwdByUUID
   , insertUser
   ) where
 
@@ -98,23 +97,55 @@ inBackend action = runStderrLoggingT $ withMySQLPool conInfo 5 $ \pool -> liftIO
     action
 
 {- 
+? puzzle crud
+-}    
+
+insertPuzzle ::Puzzle->IO ()
+insertPuzzle = undefined
+
+selectPuzzleByUUID::UUID->IO [Entity Puzzle]
+selectPuzzleByUUID=undefined
+
+updatePuzzle :: Puzzle->IO
+updatePuzzle = undefined
+{- 
+? solution crud
+-}
+insertSolutionWithPuzzleId::Solution->String->IO()
+insertSolutionWithPuzzleId=undefined
+
+updateSolution ::Solution->IO()
+updateSolution=undefined
+{- 
+? validation crud
+-}
+insertValidationWithPuzzleId::Validation->String->IO()
+insertValidationWithPuzzleId=undefined
+
+deleteSolutionByUUID::String->IO()
+deleteSolutionByUUID=undefined
+
+updateSolution::Solution->IO()
+updateSolution=undefined
+{- 
+? languages crud
+-}
+insertLanguage::Language->IO()
+insertLanguage=undefined
+
+queryAllLanguage::IO [Entity Language]
+queryAllLanguage = undefined
+
+{- 
 * user表的增删改查
 -}
 -- 插入用户
 insertUser :: User -> IO ()
 insertUser (User _ email pwd _ _)= 
   inBackend $ do
-    -- uuid<-UV.nextRandom
     let uuid=unsafePerformIO UV.nextRandom
     now <- liftIO getCurrentTime
     insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) now Nothing
-    -- comment <- get commentId
-    -- liftIO $ print comment
-    -- let uuid=unsafePerformIO UV.nextRandom
-    -- in
-    --   inBackend . insert_ $ User (DU.toString uuid) email $ getStrictPwd pwd
-    -- return ()
--- originalsalt = "hnbrina2019XN9dUU8uhnbrina2019bQSkvEZIRhnbrina2019UWr9UVWCjzOLsU=hnbrina2019LbmItlhltyIHhnbrina20194Nro2YyMFeCCKwtV0=hnbrina2019"
 
 -- 对密码进行加密
 getStrictPwd :: String -> String
@@ -127,31 +158,31 @@ getStrictPwd password=
             unpack $ unPassHash hashedPassword
 
 -- 根据uuid查询用户
-selectByUUID ::String->IO [Entity User]
-selectByUUID uuid =inBackend . 
+selectUserByUUID ::String->IO [Entity User]
+selectUserByUUID uuid =inBackend . 
     E.select $
     E.from $ \p -> do
     E.where_ (p ^. UserUuid E.==. val uuid)
     return p
 
 -- select via email
-selectByEmail ::String->IO [Entity User]
-selectByEmail email =inBackend .
+selectUserByEmail ::String->IO [Entity User]
+selectUserByEmail email =inBackend .
     E.select $
     E.from $ \p -> do
     E.where_ (p ^. UserEmail E.==. val email)
     return p
 
 -- update email  via uuid
-updateEmailByUUID :: [Char] -> [Char] -> IO ()
-updateEmailByUUID uuid email =inBackend .
+updateUserEmailByUUID :: [Char] -> [Char] -> IO ()
+updateUserEmailByUUID uuid email =inBackend .
     E.update $ \p -> do
     E.set p [UserEmail E.=. val email]
     E.where_ (p ^. UserUuid E.==. val uuid)
 
 --update pwd by uuid
-updatePwdByUUID :: [Char] -> [Char] -> IO ()
-updatePwdByUUID uuid pwd =inBackend .
+updateUserPwdByUUID :: [Char] -> [Char] -> IO ()
+updateUserPwdByUUID uuid pwd =inBackend .
     E.update $ \p -> do 
     E.set p [UserPassword E.=. val pwd]
     E.where_ (p ^. UserUuid E.==. val uuid)

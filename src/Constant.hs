@@ -29,7 +29,6 @@ originalsalt = "hnbrina2019XN9dUU8uhnbrina2019bQSkvEZIRhnbrina2019UWr9UVWCjzOLsU
 * dppwd 数据库密码
 * dbbase 数据库名称
 -}
--- dpport::GHC.Word.Word16
 dbport=3306::Word16
 
 dpip="localhost"
