@@ -8,6 +8,8 @@ bin/
 elm-stuff/
 index.js
 index11.js
+**/*.hi
+**/*.o
 src/Database.hi
 src/Database.o
 static/elm/Route.elm

@@ -47,6 +47,7 @@ dependencies:
 - MonadRandom
 - uuid
 - password-instances  
+- time
 library:
   source-dirs: src
 

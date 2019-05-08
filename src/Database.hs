@@ -37,17 +37,61 @@ import Data.Password.Instances
 import Data.Text.Internal
 import System.IO.Unsafe (unsafePerformIO)
 import Control.Monad.Trans.Resource (runResourceT, ResourceT)
+import Data.Time
 
-share
-  [mkPersist sqlSettings, mkMigrate "migrateAll"]
+share  
+  [mkPersist sqlSettings, mkMigrate "migrateAll"] 
   [persistLowerCase|
 User
     uuid String
     email String
     password String
+    createTime UTCTime default=CURRENT_TIMESTAMP
+    updateTime UTCTime Maybe
+    deriving Show
+Puzzle
+    uuid String
+    title String
+    createTime UTCTime default=CURRENT_TIMESTAMP
+    createBy String 
+    updateBy String
+    updateTime UTCTime Maybe
+    inputDescription String
+    outputDescription String
+    constraints String
+    deriving Show
+Solution
+    uuid String
+    language String
+    code String
+    puzzleId String
+    updateTime UTCTime Maybe
+    updateBy String
+    createTime UTCTime default=CURRENT_TIMESTAMP
+    createBy String
+    unsolve String
+    deriving Show
+Languages
+    uuid String
+    langeuage String
+    createBy String
+    createTime UTCTime default=CURRENT_TIMESTAMP
+    updateBy String
+    updateTime UTCTime Maybe
+    deriving Show
+Validation
+    uuid String
+    puzzleId String
+    input String
+    output String 
+    category Int 
+    orders Int 
     deriving Show
 |]
--- 
+
+
+
+-- 共用mysql数据库连接信息
 inBackend :: ReaderT SqlBackend (NoLoggingT (ResourceT IO)) a-> IO a
 inBackend action = runStderrLoggingT $ withMySQLPool conInfo 5 $ \pool -> liftIO $ do
   flip runSqlPersistMPool pool $ do
@@ -56,11 +100,18 @@ inBackend action = runStderrLoggingT $ withMySQLPool conInfo 5 $ \pool -> liftIO
 
 
 -- 插入用户
-insertUser :: String -> String -> IO ()
-insertUser email pwd= 
-  let uuid=unsafePerformIO UV.nextRandom
-  in
-    inBackend . insert_ $ User (DU.toString uuid) email $ getStrictPwd pwd
+insertUser :: User -> IO ()
+insertUser (User _ email pwd _ _)= 
+  inBackend $ do
+    -- uuid<-UV.nextRandom
+    let uuid=unsafePerformIO UV.nextRandom
+    now <- liftIO getCurrentTime
+    insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) now Nothing
+    -- comment <- get commentId
+    -- liftIO $ print comment
+    -- let uuid=unsafePerformIO UV.nextRandom
+    -- in
+    --   inBackend . insert_ $ User (DU.toString uuid) email $ getStrictPwd pwd
     -- return ()
 
 originalsalt = "hnbrina2019XN9dUU8uhnbrina2019bQSkvEZIRhnbrina2019UWr9UVWCjzOLsU=hnbrina2019LbmItlhltyIHhnbrina20194Nro2YyMFeCCKwtV0=hnbrina2019"
