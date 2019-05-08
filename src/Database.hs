@@ -54,7 +54,7 @@ Puzzle
     title String
     createTime UTCTime default=CURRENT_TIMESTAMP
     createBy String 
-    updateBy String
+    updateBy String Maybe
     updateTime UTCTime Maybe
     inputDescription String
     outputDescription String
@@ -66,7 +66,7 @@ Solution
     code String
     puzzleId String
     updateTime UTCTime Maybe
-    updateBy String
+    updateBy String Maybe
     createTime UTCTime default=CURRENT_TIMESTAMP
     createBy String
     unsolve String
@@ -76,7 +76,7 @@ Languages
     langeuage String
     createBy String
     createTime UTCTime default=CURRENT_TIMESTAMP
-    updateBy String
+    updateBy String Maybe
     updateTime UTCTime Maybe
     deriving Show
 Validation
