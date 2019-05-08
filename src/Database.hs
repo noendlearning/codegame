@@ -3,7 +3,7 @@
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE OverloadedStrings          #-}
+-- {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE QuasiQuotes                #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
@@ -38,6 +38,7 @@ import Data.Text.Internal
 import System.IO.Unsafe (unsafePerformIO)
 import Control.Monad.Trans.Resource (runResourceT, ResourceT)
 import Data.Time
+import Constant 
 
 share  
   [mkPersist sqlSettings, mkMigrate "migrateAll"] 
@@ -89,8 +90,6 @@ Validation
     deriving Show
 |]
 
-
-
 -- 共用mysql数据库连接信息
 inBackend :: ReaderT SqlBackend (NoLoggingT (ResourceT IO)) a-> IO a
 inBackend action = runStderrLoggingT $ withMySQLPool conInfo 5 $ \pool -> liftIO $ do
@@ -98,7 +97,9 @@ inBackend action = runStderrLoggingT $ withMySQLPool conInfo 5 $ \pool -> liftIO
     runMigration migrateAll
     action
 
-
+{- 
+* user表的增删改查
+-}
 -- 插入用户
 insertUser :: User -> IO ()
 insertUser (User _ email pwd _ _)= 
@@ -113,8 +114,7 @@ insertUser (User _ email pwd _ _)=
     -- in
     --   inBackend . insert_ $ User (DU.toString uuid) email $ getStrictPwd pwd
     -- return ()
-
-originalsalt = "hnbrina2019XN9dUU8uhnbrina2019bQSkvEZIRhnbrina2019UWr9UVWCjzOLsU=hnbrina2019LbmItlhltyIHhnbrina20194Nro2YyMFeCCKwtV0=hnbrina2019"
+-- originalsalt = "hnbrina2019XN9dUU8uhnbrina2019bQSkvEZIRhnbrina2019UWr9UVWCjzOLsU=hnbrina2019LbmItlhltyIHhnbrina20194Nro2YyMFeCCKwtV0=hnbrina2019"
 
 -- 对密码进行加密
 getStrictPwd :: String -> String
@@ -159,11 +159,11 @@ updatePwdByUUID uuid pwd =inBackend .
 -- mysql 数据库连接
 conInfo :: ConnectInfo
 conInfo = ConnectInfo{ 
-      connectHost = "localhost"
-    , connectPort = 3306
-    , connectUser = "root"
-    , connectPassword = "1"
-    , connectDatabase = "test"
+      connectHost = dpip
+    , connectPort = dbport
+    , connectUser = dpuser
+    , connectPassword = dppwd
+    , connectDatabase = dbbase
     , connectOptions = []
     , connectPath = ""
     , connectSSL = Nothing
