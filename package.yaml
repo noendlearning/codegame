@@ -23,6 +23,7 @@ dependencies:
 - base >= 4.7 && < 5
 - wai
 - warp
+- classy-prelude
 - http-types
 - bytestring
 - utf8-string
@@ -46,7 +47,25 @@ dependencies:
 - esqueleto 
 - MonadRandom
 - uuid
-- password-instances  
+- password-instances
+- hedis
+- safe-exceptions
+- cookie
+- time-lens
+default-extensions:
+- NoImplicitPrelude
+- OverloadedStrings  
+- EmptyDataDecls
+- FlexibleContexts
+- GADTs
+- GeneralizedNewtypeDeriving
+- MultiParamTypeClasses
+- QuasiQuotes
+- TemplateHaskell
+- TypeFamilies
+- TypeSynonymInstances
+- DeriveGeneric
+- ConstraintKinds  
 library:
   source-dirs: src
 

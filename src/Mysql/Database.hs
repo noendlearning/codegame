@@ -1,23 +1,15 @@
-{-# LANGUAGE EmptyDataDecls             #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE GADTs                      #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE QuasiQuotes                #-}
-{-# LANGUAGE TemplateHaskell            #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Database
+module Mysql.Database
   ( 
     selectByUUID
   , selectByEmail
   , updateEmailByUUID
   , updatePwdByUUID
   , insertUser
+  , login
   ) where
 
+import ClassyPrelude
 import           Control.Monad.IO.Class              (liftIO)
 import           Control.Monad.Trans.Reader
 import           Database.Persist
@@ -31,8 +23,6 @@ import qualified Data.UUID                           as DU (UUID, toString)
 import qualified Data.UUID.V4                        as UV (nextRandom)
 import           Database.Esqueleto                  as E
 import           Database.Persist.Sql.Types.Internal
-import           Debug.Trace
-import Data.Text (unpack,pack)
 import Data.Password.Instances
 import Data.Text.Internal
 import System.IO.Unsafe (unsafePerformIO)
@@ -96,7 +86,7 @@ updateEmailByUUID :: [Char] -> [Char] -> IO ()
 updateEmailByUUID uuid email =inBackend .
     E.update $ \p -> do
     E.set p [UserEmail E.=. val email]
-    E.where_ (p ^. UserUuid E.==. val uuid)
+    E.where_ (p ^. UserUuid E.==. val uuid) 
 
 --update pwd by uuid
 updatePwdByUUID :: [Char] -> [Char] -> IO ()
@@ -104,6 +94,13 @@ updatePwdByUUID uuid pwd =inBackend .
     E.update $ \p -> do 
     E.set p [UserPassword E.=. val pwd]
     E.where_ (p ^. UserUuid E.==. val uuid)
+
+-- 用户登录
+login ::String -> String-> IO [Entity User]
+login email pass =
+  inBackend . E.select $ E.from $ \p -> do
+    E.where_ (p ^. UserEmail E.==. val email &&. p ^. UserPassword E.==. val (getStrictPwd pass))
+    return p
 
 -- mysql 数据库连接
 conInfo :: ConnectInfo

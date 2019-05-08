@@ -1,8 +1,7 @@
-{-# LANGUAGE DeriveGeneric #-}
-
 module Model where
 
 import Data.Aeson
+import ClassyPrelude
 import qualified Data.ByteString.Char8 as BS
 -- import Control.Monad.Trans.Resource (ResourceT)
 import Data.Text    
