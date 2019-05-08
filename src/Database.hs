@@ -103,10 +103,10 @@ inBackend action = runStderrLoggingT $ withMySQLPool conInfo 5 $ \pool -> liftIO
 insertPuzzle ::Puzzle->IO ()
 insertPuzzle = undefined
 
-selectPuzzleByUUID::UUID->IO [Entity Puzzle]
+selectPuzzleByUUID::String->IO [Entity Puzzle]
 selectPuzzleByUUID=undefined
 
-updatePuzzle :: Puzzle->IO
+updatePuzzle :: Puzzle->IO ()
 updatePuzzle = undefined
 {- 
 ? solution crud
@@ -114,7 +114,7 @@ updatePuzzle = undefined
 insertSolutionWithPuzzleId::Solution->String->IO()
 insertSolutionWithPuzzleId=undefined
 
-updateSolution ::Solution->IO()
+updateSolution ::Solution->IO ()
 updateSolution=undefined
 {- 
 ? validation crud
@@ -122,18 +122,18 @@ updateSolution=undefined
 insertValidationWithPuzzleId::Validation->String->IO()
 insertValidationWithPuzzleId=undefined
 
-deleteSolutionByUUID::String->IO()
+deleteSolutionByUUID::String->IO ()
 deleteSolutionByUUID=undefined
 
-updateSolution::Solution->IO()
-updateSolution=undefined
+updateValidation::Solution->IO ()
+updateValidation=undefined
 {- 
 ? languages crud
 -}
-insertLanguage::Language->IO()
+insertLanguage::Languages->IO ()
 insertLanguage=undefined
 
-queryAllLanguage::IO [Entity Language]
+queryAllLanguage::IO [Entity Languages]
 queryAllLanguage = undefined
 
 {- 
