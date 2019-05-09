@@ -23,7 +23,7 @@ import qualified HTTP.SetCookie as Cookie
 initCode ::Request ->IO Response
 initCode req = do
     (params, _) <- parseRequestBody lbsBackEnd req
-    M.insertUser "qwe" "1231"
+    -- M.insertUser M.User { M.userEmail="test@test",M.userPassword="test" }
     let paramsMap = mapFromList params :: Map ByteString ByteString
     let language =(paramsMap MAP.! "language")
     -- FIXME 文件名

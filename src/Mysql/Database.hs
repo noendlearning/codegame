@@ -1,13 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-module Mysql.Database
-  ( 
-    selectByUUID
-  , selectByEmail
-  , updateEmailByUUID
-  , updatePwdByUUID
-  , insertUser
-  , login
-  ) where
+module Mysql.Database   where
 
 import ClassyPrelude
 import           Control.Monad.IO.Class              (liftIO)
@@ -27,34 +18,131 @@ import Data.Password.Instances
 import Data.Text.Internal
 import System.IO.Unsafe (unsafePerformIO)
 import Control.Monad.Trans.Resource (runResourceT, ResourceT)
+import Data.Time
+import Constant 
 
-share
-  [mkPersist sqlSettings, mkMigrate "migrateAll"]
+share  
+  [mkPersist sqlSettings, mkMigrate "migrateAll"] 
   [persistLowerCase|
 User
     uuid String
     email String
     password String
+    createTime UTCTime default=CURRENT_TIMESTAMP
+    updateTime UTCTime Maybe
+    state Int 
+    deriving Show
+Puzzle
+    uuid String
+    title String
+    createTime UTCTime default=CURRENT_TIMESTAMP
+    createBy String 
+    updateBy String Maybe
+    updateTime UTCTime Maybe
+    inputDescription String
+    outputDescription String
+    constraints String
+    state Int 
+    deriving Show
+Solution
+    uuid String
+    language String
+    code String
+    puzzleId String
+    updateTime UTCTime Maybe
+    updateBy String Maybe
+    createTime UTCTime default=CURRENT_TIMESTAMP
+    createBy String
+    unsolve String
+    state Int 
+    deriving Show
+Languages
+    uuid String
+    langeuage String
+    createBy String
+    createTime UTCTime default=CURRENT_TIMESTAMP
+    updateBy String Maybe
+    updateTime UTCTime Maybe
+    state Int 
+    deriving Show
+Validation
+    uuid String
+    puzzleId String
+    input String
+    output String 
+    category Int 
+    orders Int 
+    state Int 
     deriving Show
 |]
--- 
+
+-- 共用mysql数据库连接信息
 inBackend :: ReaderT SqlBackend (NoLoggingT (ResourceT IO)) a-> IO a
 inBackend action = runStderrLoggingT $ withMySQLPool conInfo 5 $ \pool -> liftIO $ do
-  flip runSqlPersistMPool pool $ do
-    runMigration migrateAll
-    action
+    flip runSqlPersistMPool pool $ do
+        runMigration migrateAll
+        action
+
+{- 
+? puzzle crud
+-}    
+
+insertPuzzle ::Puzzle->IO ()
+insertPuzzle = undefined
+
+selectPuzzleByUUID::String->IO [Entity Puzzle]
+selectPuzzleByUUID=undefined
+
+updatePuzzle :: Puzzle->IO ()
+updatePuzzle = undefined
+{- 
+? solution crud
+-}
+insertSolutionWithPuzzleId::Solution->String->IO()
+insertSolutionWithPuzzleId=undefined
+
+updateSolution ::Solution->IO ()
+updateSolution=undefined
+{- 
+? validation crud
+-}
+insertValidationWithPuzzleId::Validation->String->IO()
+insertValidationWithPuzzleId=undefined
+
+deleteSolutionByUUID::String->IO ()
+deleteSolutionByUUID=undefined
+
+updateValidation::Solution->IO ()
+updateValidation=undefined
+{- 
+? languages crud
+-}
+insertLanguage::Languages->IO ()
+insertLanguage =undefined
 
 
+insertAllLanguage::IO ()
+insertAllLanguage =
+    inBackend $ do
+        now <- liftIO getCurrentTime
+        mapM_ (\x->insert_ $ Languages (snd x) (fst x) Constant.admin now (Just Constant.admin) (Just now) Constant.normalState) languages
+
+queryAllLanguage::IO [Entity Languages]
+queryAllLanguage = undefined
+
+updateLanguage::Languages->IO ()
+updateLanguage=undefined
+
+{- 
+* user表的增删改查
+-}
 -- 插入用户
-insertUser :: String -> String -> IO ()
-insertUser email pwd= 
-  let uuid=unsafePerformIO UV.nextRandom
-  in
-    inBackend . insert_ $ User (DU.toString uuid) email $ getStrictPwd pwd
-    -- return ()
-
-originalsalt = "hnbrina2019XN9dUU8uhnbrina2019bQSkvEZIRhnbrina2019UWr9UVWCjzOLsU=hnbrina2019LbmItlhltyIHhnbrina20194Nro2YyMFeCCKwtV0=hnbrina2019"
-
+insertUser :: User -> IO ()
+insertUser (User _ email pwd _ _ _)= 
+  inBackend $ do
+    let uuid=unsafePerformIO UV.nextRandom
+    now <- liftIO getCurrentTime
+    insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) now Nothing 0
 -- 对密码进行加密
 getStrictPwd :: String -> String
 getStrictPwd password=
@@ -66,31 +154,31 @@ getStrictPwd password=
             unpack $ unPassHash hashedPassword
 
 -- 根据uuid查询用户
-selectByUUID ::String->IO [Entity User]
-selectByUUID uuid =inBackend . 
+selectUserByUUID ::String->IO [Entity User]
+selectUserByUUID uuid =inBackend . 
     E.select $
     E.from $ \p -> do
     E.where_ (p ^. UserUuid E.==. val uuid)
     return p
 
 -- select via email
-selectByEmail ::String->IO [Entity User]
-selectByEmail email =inBackend .
+selectUserByEmail ::String->IO [Entity User]
+selectUserByEmail email =inBackend .
     E.select $
     E.from $ \p -> do
     E.where_ (p ^. UserEmail E.==. val email)
     return p
 
 -- update email  via uuid
-updateEmailByUUID :: [Char] -> [Char] -> IO ()
-updateEmailByUUID uuid email =inBackend .
+updateUserEmailByUUID :: [Char] -> [Char] -> IO ()
+updateUserEmailByUUID uuid email =inBackend .
     E.update $ \p -> do
     E.set p [UserEmail E.=. val email]
     E.where_ (p ^. UserUuid E.==. val uuid) 
 
 --update pwd by uuid
-updatePwdByUUID :: [Char] -> [Char] -> IO ()
-updatePwdByUUID uuid pwd =inBackend .
+updateUserPwdByUUID :: [Char] -> [Char] -> IO ()
+updateUserPwdByUUID uuid pwd =inBackend .
     E.update $ \p -> do 
     E.set p [UserPassword E.=. val pwd]
     E.where_ (p ^. UserUuid E.==. val uuid)
@@ -105,11 +193,11 @@ login email pass =
 -- mysql 数据库连接
 conInfo :: ConnectInfo
 conInfo = ConnectInfo{ 
-      connectHost = "localhost"
-    , connectPort = 3306
-    , connectUser = "root"
-    , connectPassword = "1"
-    , connectDatabase = "test"
+      connectHost = Constant.dpip
+    , connectPort = Constant.dbport
+    , connectUser = Constant.dpuser
+    , connectPassword = Constant.dppwd
+    , connectDatabase = Constant.dbbase
     , connectOptions = []
     , connectPath = ""
     , connectSSL = Nothing

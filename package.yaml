@@ -52,6 +52,8 @@ dependencies:
 - safe-exceptions
 - cookie
 - time-lens
+- time
+
 default-extensions:
 - NoImplicitPrelude
 - OverloadedStrings  
@@ -66,6 +68,7 @@ default-extensions:
 - TypeSynonymInstances
 - DeriveGeneric
 - ConstraintKinds  
+
 library:
   source-dirs: src
 
