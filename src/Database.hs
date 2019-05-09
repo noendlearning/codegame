@@ -15,6 +15,8 @@ module Database
   , updateUserEmailByUUID
   , updateUserPwdByUUID
   , insertUser
+  , insertAllLanguage
+--   , getUUIDs
   ) where
 
 import           Control.Monad.IO.Class              (liftIO)
@@ -48,6 +50,7 @@ User
     password String
     createTime UTCTime default=CURRENT_TIMESTAMP
     updateTime UTCTime Maybe
+    state Int 
     deriving Show
 Puzzle
     uuid String
@@ -59,6 +62,7 @@ Puzzle
     inputDescription String
     outputDescription String
     constraints String
+    state Int 
     deriving Show
 Solution
     uuid String
@@ -70,6 +74,7 @@ Solution
     createTime UTCTime default=CURRENT_TIMESTAMP
     createBy String
     unsolve String
+    state Int 
     deriving Show
 Languages
     uuid String
@@ -78,6 +83,7 @@ Languages
     createTime UTCTime default=CURRENT_TIMESTAMP
     updateBy String Maybe
     updateTime UTCTime Maybe
+    state Int 
     deriving Show
 Validation
     uuid String
@@ -86,15 +92,16 @@ Validation
     output String 
     category Int 
     orders Int 
+    state Int 
     deriving Show
 |]
 
 -- 共用mysql数据库连接信息
 inBackend :: ReaderT SqlBackend (NoLoggingT (ResourceT IO)) a-> IO a
 inBackend action = runStderrLoggingT $ withMySQLPool conInfo 5 $ \pool -> liftIO $ do
-  flip runSqlPersistMPool pool $ do
-    runMigration migrateAll
-    action
+    flip runSqlPersistMPool pool $ do
+        runMigration migrateAll
+        action
 
 {- 
 ? puzzle crud
@@ -131,22 +138,34 @@ updateValidation=undefined
 ? languages crud
 -}
 insertLanguage::Languages->IO ()
-insertLanguage=undefined
+insertLanguage =undefined
+
+
+insertAllLanguage::IO ()
+insertAllLanguage =
+    inBackend $ do
+        now <- liftIO getCurrentTime
+        mapM_ (\x->insert_ $ Languages (snd x) (fst x) Constant.admin now (Just Constant.admin) (Just now) Constant.normalState) languages
 
 queryAllLanguage::IO [Entity Languages]
 queryAllLanguage = undefined
+
+updateLanguage::Languages->IO ()
+updateLanguage=undefined
+
+-- getUUIDs::[UUID]
+-- getUUIDs =mapM (\x->[(x,unsafePerformIO UV.nextRandom)])  languages
 
 {- 
 * user表的增删改查
 -}
 -- 插入用户
 insertUser :: User -> IO ()
-insertUser (User _ email pwd _ _)= 
+insertUser (User _ email pwd _ _ _)= 
   inBackend $ do
     let uuid=unsafePerformIO UV.nextRandom
     now <- liftIO getCurrentTime
-    insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) now Nothing
-
+    insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) now Nothing 0
 -- 对密码进行加密
 getStrictPwd :: String -> String
 getStrictPwd password=
@@ -190,11 +209,11 @@ updateUserPwdByUUID uuid pwd =inBackend .
 -- mysql 数据库连接
 conInfo :: ConnectInfo
 conInfo = ConnectInfo{ 
-      connectHost = dpip
-    , connectPort = dbport
-    , connectUser = dpuser
-    , connectPassword = dppwd
-    , connectDatabase = dbbase
+      connectHost = Constant.dpip
+    , connectPort = Constant.dbport
+    , connectUser = Constant.dpuser
+    , connectPassword = Constant.dppwd
+    , connectDatabase = Constant.dbbase
     , connectOptions = []
     , connectPath = ""
     , connectSSL = Nothing
