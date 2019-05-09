@@ -19,7 +19,7 @@ import Data.Text.Internal
 import System.IO.Unsafe (unsafePerformIO)
 import Control.Monad.Trans.Resource (runResourceT, ResourceT)
 import Data.Time
-import Constant 
+import qualified Tool.Constant as Constant
 
 share  
   [mkPersist sqlSettings, mkMigrate "migrateAll"] 
@@ -27,10 +27,10 @@ share
 User
     uuid String
     email String
-    password String
-    createTime UTCTime default=CURRENT_TIMESTAMP
+    password String 
+    createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     updateTime UTCTime Maybe
-    state Int 
+    state Int Maybe
     deriving Show
 Puzzle
     uuid String
@@ -125,7 +125,7 @@ insertAllLanguage::IO ()
 insertAllLanguage =
     inBackend $ do
         now <- liftIO getCurrentTime
-        mapM_ (\x->insert_ $ Languages (snd x) (fst x) Constant.admin now (Just Constant.admin) (Just now) Constant.normalState) languages
+        mapM_ (\x->insert_ $ Languages (snd x) (fst x) Constant.admin now (Just Constant.admin) (Just now) Constant.normalState) Constant.languages
 
 queryAllLanguage::IO [Entity Languages]
 queryAllLanguage = undefined
@@ -142,13 +142,13 @@ insertUser (User _ email pwd _ _ _)=
   inBackend $ do
     let uuid=unsafePerformIO UV.nextRandom
     now <- liftIO getCurrentTime
-    insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) now Nothing 0
+    insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) (Just now) Nothing (Just 0)
 -- 对密码进行加密
 getStrictPwd :: String -> String
 getStrictPwd password=
         let
             pwd =Pass $ pack password
-            salt = Salt originalsalt
+            salt = Salt Constant.originalsalt
             hashedPassword=hashPassWithSalt pwd salt
         in
             unpack $ unPassHash hashedPassword
