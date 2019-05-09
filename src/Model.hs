@@ -51,17 +51,3 @@ data StandCase = StandCase{
 } deriving (Generic,Show)
 instance ToJSON StandCase
 instance FromJSON StandCase
-{- instance ToJSON CodeOutput where
-    -- this generates a Value
-    toJSON (CodeOutput code output) =
-        object ["code" .= code, "output" .= output]
-
-    -- this encodes directly to a bytestring Builder
-    toEncoding (CodeOutput code output) =
-        pairs ("code" .= code <> "output" .= output)
-
-instance FromJSON CodeOutput where
-    parseJSON = withObject "CodeOutput" $ \v -> CodeOutput
-        <$> v .: "code"
-        <*> v .: "output" -}
-
