@@ -26,7 +26,9 @@ share
   [persistLowerCase|
 User
     uuid String
+    UniqueUserUuid uuid
     email String
+    UniqueUserEmail email
     password String 
     createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     updateTime UTCTime Maybe
@@ -34,6 +36,7 @@ User
     deriving Show
 Puzzle
     uuid String
+    UniquePuzzleUuid uuid
     title String
     createTime UTCTime default=CURRENT_TIMESTAMP
     createBy String 
@@ -46,6 +49,7 @@ Puzzle
     deriving Show
 Solution
     uuid String
+    UniqueSolutionUuid uuid
     language String
     code String
     puzzleId String
@@ -58,7 +62,9 @@ Solution
     deriving Show
 Languages
     uuid String
-    langeuage String
+    UniqueLanguagesUuid uuid
+    UniqueLanguagesLanguage language
+    language String
     createBy String
     createTime UTCTime default=CURRENT_TIMESTAMP
     updateBy String Maybe
@@ -67,6 +73,7 @@ Languages
     deriving Show
 Validation
     uuid String
+    UniqueValidationUuid uuid
     puzzleId String
     input String
     output String 
@@ -98,25 +105,28 @@ updatePuzzle = undefined
 {- 
 ? solution crud
 -}
+-- todo
 insertSolutionWithPuzzleId::Solution->String->IO()
 insertSolutionWithPuzzleId=undefined
-
+-- todo
 updateSolution ::Solution->IO ()
 updateSolution=undefined
 {- 
 ? validation crud
 -}
+-- todo
 insertValidationWithPuzzleId::Validation->String->IO()
 insertValidationWithPuzzleId=undefined
-
+-- todo
 deleteSolutionByUUID::String->IO ()
 deleteSolutionByUUID=undefined
-
+-- todo
 updateValidation::Solution->IO ()
 updateValidation=undefined
 {- 
 ? languages crud
 -}
+-- todo
 insertLanguage::Languages->IO ()
 insertLanguage =undefined
 
@@ -127,32 +137,50 @@ insertAllLanguage =
         now <- liftIO getCurrentTime
         mapM_ (\x->insert_ $ Languages (snd x) (fst x) Constant.admin now (Just Constant.admin) (Just now) Constant.normalState) Constant.languages
 
-queryAllLanguage::IO [Entity Languages]
-queryAllLanguage = undefined
+{- 
+该方法返回一个列表，包含所有的编程语言：
+["Bash","C","C#","C++","Clojure","Dart","F#","Go",
+"Groovy","Haskell","Java","Javascript Kotlin","Lua",
+"Objective OCaml","Pascal","Perl","PHP",
+"Python","Python3 ","Ruby","Rust","Scala","Swift","VB.NET"]
+-}
 
+queryAllLanguageWithNormalState::IO [String]
+queryAllLanguageWithNormalState = 
+    inBackend $ do
+        languages<- E.select $ 
+                    E.from $ \l->do
+                    E.where_ (l ^. LanguagesState E.==. E.val Constant.normalState)
+                    return l
+        liftIO $ mapM (return . languagesLanguage . entityVal) (languages::[Entity Languages])
+
+-- todo
 updateLanguage::Languages->IO ()
 updateLanguage=undefined
 
 {- 
 * user表的增删改查
+* email
+*
 -}
 -- 插入用户
 insertUser :: User -> IO ()
 insertUser (User _ email pwd _ _ _)= 
-  inBackend $ do
-    let uuid=unsafePerformIO UV.nextRandom
-    now <- liftIO getCurrentTime
-    insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) (Just now) Nothing (Just 0)
+    inBackend $ do
+        let uuid=unsafePerformIO UV.nextRandom
+        now <- liftIO getCurrentTime
+        insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) (Just now) Nothing (Just 0)
 -- 对密码进行加密
 getStrictPwd :: String -> String
 getStrictPwd password=
-        let
-            pwd =Pass $ pack password
-            salt = Salt Constant.originalsalt
-            hashedPassword=hashPassWithSalt pwd salt
-        in
-            unpack $ unPassHash hashedPassword
+    let
+        pwd =Pass $ pack password
+        salt = Salt Constant.originalsalt
+        hashedPassword=hashPassWithSalt pwd salt
+    in
+        unpack $ unPassHash hashedPassword
 
+-- getBySpjValue :: MonadIO m => ReaderT SqlBackend m (Maybe (Entity User)) getBySpjValue = getByValue $ User SPJ 999
 -- 根据uuid查询用户
 selectUserByUUID ::String->IO [Entity User]
 selectUserByUUID uuid =inBackend . 
@@ -160,8 +188,21 @@ selectUserByUUID uuid =inBackend .
     E.from $ \p -> do
     E.where_ (p ^. UserUuid E.==. val uuid)
     return p
+-- fixme
 
+-- selectUserByUUID ::String->IO (Maybe User)
+-- selectUserByUUID uuid = 
+--     inBackend $ do
+--         p<- E.select $
+--             E.from $ \p -> do
+--             E.where_ (p ^. UserUuid E.==. val uuid)
+--             return p
+--         liftIO $ mapM_ (return . head . entityVal) (p::[Entity User])
+-- PersistEntity a => SqlSelect (SqlExpr (Maybe (Entity a))) (Maybe (Entity a))Source#	
+-- You may return a possibly-NULL Entity from a select query
 -- select via email
+
+-- fixme
 selectUserByEmail ::String->IO [Entity User]
 selectUserByEmail email =inBackend .
     E.select $
