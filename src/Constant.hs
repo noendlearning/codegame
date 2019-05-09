@@ -47,32 +47,6 @@ normalState=0::Int
 
 abnormalState=1::Int 
 
--- languages=[
---     "Bash",
---     "C",
---     "C#",
---     "C++",
---     "Clojure",
---     "Dart",
---     "F#",
---     "Go",
---     "Groovy",
---     "Haskell",
---     "Java",
---     "Javascript Kotlin",
---     "Lua",
---     "Objective OCaml",
---     "Pascal",
---     "Perl",
---     "PHP",
---     "Python",
---     "Python3 ",
---     "Ruby",
---     "Rust",
---     "Scala",
---     "Swift",
---     "VB.NET"
---     ]
 
 languages=[
     ("Bash","7c16c986-4dea-4322-8e04-2c49801ac43e"),

@@ -16,7 +16,6 @@ module Database
   , updateUserPwdByUUID
   , insertUser
   , insertAllLanguage
---   , getUUIDs
   ) where
 
 import           Control.Monad.IO.Class              (liftIO)
@@ -152,9 +151,6 @@ queryAllLanguage = undefined
 
 updateLanguage::Languages->IO ()
 updateLanguage=undefined
-
--- getUUIDs::[UUID]
--- getUUIDs =mapM (\x->[(x,unsafePerformIO UV.nextRandom)])  languages
 
 {- 
 * user表的增删改查
