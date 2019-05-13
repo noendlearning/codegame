@@ -20,6 +20,7 @@ import System.IO.Unsafe (unsafePerformIO)
 import Control.Monad.Trans.Resource (runResourceT, ResourceT)
 import Data.Time
 import qualified Tool.Constant as Constant
+import Types
 
 share  
   [mkPersist sqlSettings, mkMigrate "migrateAll"] 
@@ -32,7 +33,7 @@ User
     password String 
     createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     updateTime UTCTime Maybe
-    state Int Maybe
+    state MyState
     deriving Show
 Puzzle
     uuid String
@@ -45,7 +46,10 @@ Puzzle
     inputDescription String
     outputDescription String
     constraints String
-    state Int 
+    star Star
+    exp Exp
+    picture String
+    state PuzzleState
     deriving Show
 Solution
     uuid String
@@ -58,7 +62,7 @@ Solution
     createTime UTCTime default=CURRENT_TIMESTAMP
     createBy String
     unsolve String
-    state Int 
+    state MyState 
     deriving Show
 Languages
     uuid String
@@ -69,7 +73,7 @@ Languages
     createTime UTCTime default=CURRENT_TIMESTAMP
     updateBy String Maybe
     updateTime UTCTime Maybe
-    state Int 
+    state MyState
     deriving Show
 Validation
     uuid String
@@ -77,9 +81,9 @@ Validation
     puzzleId String
     input String
     output String 
-    category Int 
+    category Category 
     orders Int 
-    state Int 
+    state MyState
     deriving Show
 |]
 
