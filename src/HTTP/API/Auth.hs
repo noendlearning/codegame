@@ -22,7 +22,7 @@ import qualified HTTP.SetCookie as Cookie
 -- 获取初始化代码
 initCode ::Request ->IO Response
 initCode req = do
-    M.insertUser $ M.User "" "test@test" "1" Nothing Nothing Nothing
+    -- M.insertUser $ M.User "" "test@test" "1" Nothing Nothing Nothing
     (params, _) <- parseRequestBody lbsBackEnd req
     let paramsMap = mapFromList params :: Map ByteString ByteString
     let language =(paramsMap MAP.! "language")

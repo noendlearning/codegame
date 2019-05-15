@@ -11,9 +11,9 @@ data Star =One | Two | Three | Four | Five
     deriving (Show,Read,Eq)
 derivePersistField "Star"    
 
-data Exp = 50xp | 75xp | 100xp
-    deriving (Show,Read,Eq)
-derivePersistField "Exp" 
+-- data Exp = Fifty | SeventyFive | Hundred
+--     deriving (Show,Read,Eq)
+-- derivePersistField "Exp" 
 
 data PuzzleState=Private | Public | Failure
     deriving (Show,Read,Eq)

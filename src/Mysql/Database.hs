@@ -20,7 +20,7 @@ import System.IO.Unsafe (unsafePerformIO)
 import Control.Monad.Trans.Resource (runResourceT, ResourceT)
 import Data.Time
 import qualified Tool.Constant as Constant
-import Types
+import Tool.Types
 
 share  
   [mkPersist sqlSettings, mkMigrate "migrateAll"] 
@@ -47,7 +47,7 @@ Puzzle
     outputDescription String
     constraints String
     star Star
-    exp Exp
+    -- exp Exp
     picture String
     state PuzzleState
     deriving Show
@@ -139,7 +139,7 @@ insertAllLanguage::IO ()
 insertAllLanguage =
     inBackend $ do
         now <- liftIO getCurrentTime
-        mapM_ (\x->insert_ $ Languages (snd x) (fst x) Constant.admin now (Just Constant.admin) (Just now) Constant.normalState) Constant.languages
+        mapM_ (\x->insert_ $ Languages (snd x) (fst x) Constant.admin now (Just Constant.admin) (Just now) Normal) Constant.languages
 
 {- 
 该方法返回一个列表，包含所有的编程语言：
@@ -154,7 +154,7 @@ queryAllLanguageWithNormalState =
     inBackend $ do
         languages<- E.select $ 
                     E.from $ \l->do
-                    E.where_ (l ^. LanguagesState E.==. E.val Constant.normalState)
+                    E.where_ (l ^. LanguagesState E.==. E.val Normal)
                     return l
         liftIO $ mapM (return . languagesLanguage . entityVal) (languages::[Entity Languages])
 
@@ -173,7 +173,7 @@ insertUser (User _ email pwd _ _ _)=
     inBackend $ do
         let uuid=unsafePerformIO UV.nextRandom
         now <- liftIO getCurrentTime
-        insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) (Just now) Nothing (Just 0)
+        insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) (Just now) Nothing Normal
 -- 对密码进行加密
 getStrictPwd :: String -> String
 getStrictPwd password=
