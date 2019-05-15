@@ -3,16 +3,20 @@ module Mysql.Database   where
 import ClassyPrelude
 import           Control.Monad.IO.Class              (liftIO)
 import           Control.Monad.Trans.Reader
-import           Database.Persist
-import           Database.Persist.MySQL
-import           Database.Persist.TH
+
+import           Database.Persist   --
+import           Database.Persist.MySQL  --
+import           Database.Persist.TH   --
+
 import Database.Persist.Class (PersistField(toPersistValue))
 import           Control.Monad.IO.Class
 import           Control.Monad.Logger
 import           Control.Monad.Trans.Reader
 import qualified Data.UUID                           as DU (UUID, toString)
 import qualified Data.UUID.V4                        as UV (nextRandom)
-import           Database.Esqueleto                  as E
+
+import           Database.Esqueleto                  as E    --
+
 import           Database.Persist.Sql.Types.Internal
 import Data.Password.Instances
 import Data.Text.Internal
@@ -37,7 +41,7 @@ User
 Puzzle
     author String
     uuid String
-    UniquePuzzleUuid uuid
+    UniquePuzzleUuid uuid  
     title String
     createTime UTCTime default=CURRENT_TIMESTAMP
     createBy String 
@@ -46,13 +50,13 @@ Puzzle
     inputDescription String
     outputDescription String
     constraints String
-    category Int
+    category String
     state Int 
     deriving Show
 Solution
     uuid String
-    UniqueSolutionUuid uuid
-    language String
+    UniqueSolutionUuid uuid   --Unique：唯一
+    language String  
     code String
     puzzleId String
     updateTime UTCTime Maybe
@@ -81,6 +85,10 @@ Validation
     output String 
     category Int 
     orders Int 
+    createBy String
+    createTime UTCTime Maybe default=CURRENT_TIMESTAMP
+    updateBy String Maybe
+    updateTime UTCTime Maybe
     state Int 
     deriving Show
 |]
@@ -175,16 +183,64 @@ updateSolution ::Solution->IO ()
 updateSolution=undefined
 
 
-
-{- 
+{- 我写
 ? validation crud
 -}
 -- todo
-insertValidationWithPuzzleId::Validation->IO()
-insertValidationWithPuzzleId=undefined
+insertValidationWithPuzzleId::Validation -> IO()
+insertValidationWithPuzzleId (Validation _ puzzleid input output category orders createBy _ updateBy _ _) =
+    inBackend $ do
+        let uuid=unsafePerformIO UV.nextRandom
+        now <- liftIO getCurrentTime
+        --getCurrentTime：从系统时间获取当前utctime
+        insert_ $ Validation (DU.toString uuid) puzzleid "a" "a" 0 1 createBy  (Just now)  updateBy  (Just now)  0
+--类别：1 2 3 4 简单 中等 困难 专家
+--      insert_ $ Validation (DU.toString uuid) puzzleId input output category orders createBy createTime updateBy updateTime (Just 0)
+--                              uuid            迷题uuid 输入   输出   类别     序号  创建人    创建时间   更新人   更新时间   state
+
+--获取Puzzle，根据创建人的uuid获取Puzzle表的uuid
+selectPuzzleuuidByUserUuid :: String -> IO [String]
+selectPuzzleuuidByUserUuid uuid=
+    inBackend $ do
+        puzzle<- E.select $ 
+                 E.from $ \p->do
+                 E.where_ (p ^. PuzzleCreateBy E.==. E.val uuid)
+                 return p
+        liftIO $ mapM (return . puzzleUuid . entityVal) (puzzle::[Entity Puzzle])
+
+--获取Puzzle，根据创建人的uuid获取Puzzle所有内容
+selectPuzzleByUserUuid :: String -> IO [Puzzle]
+selectPuzzleByUserUuid uuid=
+    inBackend $ do
+        puzzle<- E.select $ 
+                 E.from $ \p->do
+                 E.where_ (p ^. PuzzleCreateBy E.==. E.val uuid)
+                 return p
+        liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])        
+
+--通过email查找用户uuid        
+selectUserUuidByUserEmail :: String -> IO [String]
+selectUserUuidByUserEmail email=
+    inBackend $ do
+        user<- E.select $ 
+                 E.from $ \u->do
+                 E.where_ (u ^. UserEmail E.==. E.val email)
+                 return u
+        liftIO $ mapM (return . userUuid . entityVal) (user::[Entity User])
+        
+
+--通过email查找用户       
+selectUserByUserEmail :: String -> IO [User]
+selectUserByUserEmail email=
+    inBackend $ do
+        user<- E.select $ 
+                 E.from $ \u->do
+                 E.where_ (u ^. UserEmail E.==. E.val email)
+                 return u
+        liftIO $ mapM (return . entityVal) (user :: [Entity User])        
 -- todo
 deleteSolutionByUUID::String->IO ()
-deleteSolutionByUUID=undefined
+deleteSolutionByUUID =undefined
 -- todo
 updateValidation::Solution->IO ()
 updateValidation=undefined
@@ -232,8 +288,12 @@ insertUser :: User -> IO ()
 insertUser (User _ email pwd _ _ _)= 
     inBackend $ do
         let uuid=unsafePerformIO UV.nextRandom
+        --UV.nextRandom:生成随机的uuid
         now <- liftIO getCurrentTime
-        insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) (Just now)  Nothing  (Just 0)
+        --getCurrentTime：从系统时间获取当前utctime
+        insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) (Just now) Nothing (Just 0)
+    
+
 -- 对密码进行加密
 getStrictPwd :: String -> String
 getStrictPwd password=
@@ -307,3 +367,33 @@ conInfo = ConnectInfo{
     , connectPath = ""
     , connectSSL = Nothing
     }
+
+
+--根据难度级别(category)和条数查询puzzle表
+selectPuzzleByCategory :: String -> Int -> IO [Puzzle]
+selectPuzzleByCategory category number =
+    inBackend $ do
+        puzzle<- E.select $ 
+                 E.from $ \p->do
+                 E.where_ (p ^. PuzzleCategory E.==. E.val category)
+                 return p
+        fmap (take number) $ liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
+
+selectUser1 :: IO [User]
+selectUser1 =
+    inBackend $ do
+        user<- E.select $ 
+               E.from $ \u->do
+               return u
+        liftIO $  mapM (return . entityVal) (user :: [Entity User]) 
+
+selectUser2 :: Int ->IO [User]
+selectUser2 number =
+    inBackend $ do
+        user<- E.select $ 
+               E.from $ \u->do
+               return u
+        fmap (take number) $ liftIO $  mapM (return . entityVal) (user :: [Entity User])      
+
+
+ 
