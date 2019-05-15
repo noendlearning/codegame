@@ -125,25 +125,29 @@ update msg model =
                     , body =
                         Http.jsonBody
                             (Encode.object
-                                [ ( "title", Encode.string model.title )
-                                , ( "statement", Encode.string model.statement )
-                                , ( "inputDescription", Encode.string model.inputDescription )
-                                , ( "outputDescription", Encode.string model.outputDescription )
-                                , ( "constraints", Encode.string model.constraints )
-                                , ( "testCases"
+                                [ ( "test"
                                   , Encode.object
-                                        [ ( "testName", Encode.string model.testCases.testName )
-                                        , ( "validator", Encode.string model.testCases.validator )
-                                        , ( "test"
+                                        [ ( "title", Encode.string model.title )
+                                        , ( "statement", Encode.string model.statement )
+                                        , ( "inputDescription", Encode.string model.inputDescription )
+                                        , ( "outputDescription", Encode.string model.outputDescription )
+                                        , ( "constraints", Encode.string model.constraints )
+                                        , ( "testCases"
                                           , Encode.object
-                                                [ ( "input", Encode.string model.testCases.test.input )
-                                                , ( "output", Encode.string model.testCases.test.output )
-                                                ]
-                                          )
-                                        , ( "validater"
-                                          , Encode.object
-                                                [ ( "input", Encode.string model.testCases.validater.input )
-                                                , ( "output", Encode.string model.testCases.validater.output )
+                                                [ ( "testName", Encode.string model.testCases.testName )
+                                                , ( "validator", Encode.string model.testCases.validator )
+                                                , ( "test"
+                                                  , Encode.object
+                                                        [ ( "input", Encode.string model.testCases.test.input )
+                                                        , ( "output", Encode.string model.testCases.test.output )
+                                                        ]
+                                                  )
+                                                , ( "validater"
+                                                  , Encode.object
+                                                        [ ( "input", Encode.string model.testCases.validater.input )
+                                                        , ( "output", Encode.string model.testCases.validater.output )
+                                                        ]
+                                                  )
                                                 ]
                                           )
                                         ]
