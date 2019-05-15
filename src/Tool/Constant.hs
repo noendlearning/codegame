@@ -32,9 +32,9 @@ dppwd="1"
 
 dbbase = "test"
 
-normalState=0::Int
+-- normalState=0::Int
 
-abnormalState=1::Int 
+-- abnormalState=1::Int 
 
 
 languages=[

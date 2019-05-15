@@ -24,6 +24,7 @@ import System.IO.Unsafe (unsafePerformIO)
 import Control.Monad.Trans.Resource (runResourceT, ResourceT)
 import Data.Time
 import qualified Tool.Constant as Constant
+import Tool.Types
 
 share  
   [mkPersist sqlSettings, mkMigrate "migrateAll"] 
@@ -36,7 +37,7 @@ User
     password String 
     createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     updateTime UTCTime Maybe
-    state Int Maybe
+    state MyState
     deriving Show
 Puzzle
     author String
@@ -51,7 +52,10 @@ Puzzle
     outputDescription String
     constraints String
     category String
-    state Int 
+    star Star
+    -- exp Exp
+    picture String
+    state PuzzleState
     deriving Show
 Solution
     uuid String
@@ -64,7 +68,7 @@ Solution
     createTime UTCTime default=CURRENT_TIMESTAMP
     createBy String
     unsolve String
-    state Int 
+    state MyState 
     deriving Show
 Languages
     uuid String
@@ -75,7 +79,7 @@ Languages
     createTime UTCTime default=CURRENT_TIMESTAMP
     updateBy String Maybe
     updateTime UTCTime Maybe
-    state Int 
+    state MyState
     deriving Show
 Validation
     uuid String
@@ -83,13 +87,13 @@ Validation
     puzzleId String
     input String
     output String 
-    category Int 
+    category Category 
     orders Int 
     createBy String
     createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     updateBy String Maybe
     updateTime UTCTime Maybe
-    state Int 
+    state MyState
     deriving Show
 |]
 
@@ -153,12 +157,12 @@ updatePuzzle = undefined
 -}
 -- todo
 insertSolutionWithPuzzleId::Solution->IO()
-insertSolutionWithPuzzleId (Solution _ languagesUuid _ puzzleId _ _ _ userUuid _ _) =
+insertSolutionWithPuzzleId (Solution _ languagesUuid code puzzleId _ _ _ userUuid unsolve _) =
     inBackend  $ do
         let uuid=unsafePerformIO UV.nextRandom
         now <- liftIO getCurrentTime
         do
-            insert_ $ Solution ( DU.toString uuid ) languagesUuid "ssss" puzzleId  (Just now)  Nothing   now  userUuid  "bbb"   0
+            insert_ $ Solution ( DU.toString uuid ) languagesUuid code puzzleId  (Just now)  Nothing   now  userUuid  unsolve   Normal
 --      insert_ $ Solution (DU.toString uuid) (getLanguage uuid) (code) (getPuzzleId uuid) () () () () (unsolve)   0
 --获取 Soultion表中puzzleId
 getPuzzleId :: String -> IO [String]
@@ -175,7 +179,7 @@ getLanguage state =
     inBackend $ do 
         language <- E.select $ 
                     E.from $ \l -> do
-                    E.where_ (l ^. LanguagesState E.==. E.val Constant.normalState)
+                    E.where_ (l ^. LanguagesState E.==. E.val Normal)
                     return l
         liftIO $ mapM (return . languagesUuid . entityVal)  (language :: [Entity Languages] )           
 -- todo
@@ -193,7 +197,7 @@ insertValidationWithPuzzleId (Validation _ puzzleid input output category orders
         let uuid=unsafePerformIO UV.nextRandom
         now <- liftIO getCurrentTime
         --getCurrentTime：从系统时间获取当前utctime
-        insert_ $ Validation (DU.toString uuid) puzzleid "a" "a" 0 1 createBy  (Just now)  updateBy  (Just now)  0
+        insert_ $ Validation (DU.toString uuid) puzzleid input output category orders createBy  (Just now)  updateBy  (Just now)  Normal
 --类别：1 2 3 4 简单 中等 困难 专家
 --      insert_ $ Validation (DU.toString uuid) puzzleId input output category orders createBy createTime updateBy updateTime (Just 0)
 --                              uuid            迷题uuid 输入   输出   类别     序号  创建人    创建时间   更新人   更新时间   state
@@ -256,7 +260,7 @@ insertAllLanguage::IO ()
 insertAllLanguage =
     inBackend $ do
         now <- liftIO getCurrentTime
-        mapM_ (\x->insert_ $ Languages (snd x) (fst x) Constant.admin now (Just Constant.admin) (Just now) Constant.normalState) Constant.languages
+        mapM_ (\x->insert_ $ Languages (snd x) (fst x) Constant.admin now (Just Constant.admin) (Just now) Normal) Constant.languages
 
 {- 
 该方法返回一个列表，包含所有的编程语言：
@@ -270,7 +274,7 @@ queryAllLanguageWithNormalState =
     inBackend $ do
         languages<- E.select $ 
                     E.from $ \l->do
-                    E.where_ (l ^. LanguagesState E.==. E.val Constant.normalState)
+                    E.where_ (l ^. LanguagesState E.==. E.val Normal)
                     return l
         liftIO $ mapM (return . languagesLanguage . entityVal) (languages::[Entity Languages])
 
@@ -291,9 +295,8 @@ insertUser (User _ email pwd _ _ _)=
         --UV.nextRandom:生成随机的uuid
         now <- liftIO getCurrentTime
         --getCurrentTime：从系统时间获取当前utctime
-        insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) (Just now) Nothing (Just 0)
-    
-
+        -- insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) (Just now) Nothing (Just 0)
+        insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) (Just now) Nothing Normal
 -- 对密码进行加密
 getStrictPwd :: String -> String
 getStrictPwd password=
