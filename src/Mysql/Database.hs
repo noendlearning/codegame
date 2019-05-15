@@ -35,6 +35,7 @@ User
     state Int Maybe
     deriving Show
 Puzzle
+    author String
     uuid String
     UniquePuzzleUuid uuid
     title String
@@ -45,6 +46,7 @@ Puzzle
     inputDescription String
     outputDescription String
     constraints String
+    category Int
     state Int 
     deriving Show
 Solution
@@ -97,8 +99,44 @@ inBackend action = runStderrLoggingT $ withMySQLPool conInfo 5 $ \pool -> liftIO
 insertPuzzle ::Puzzle->IO ()
 insertPuzzle = undefined
 
-selectPuzzleByUUID::String->IO [Entity Puzzle]
-selectPuzzleByUUID=undefined
+
+--通过PuzzleUuid 查询所有Puzzle相关内容 包含Puzzle,Validation,Solution三张表
+queryAllPuzzlesByUuid :: String -> IO [String]
+queryAllPuzzlesByUuid uuid = undefined
+ --           let puzzle = selectPuzzleByUUID uuid
+ --               valida = selectValidationByUUID uuid
+ --               solution = selectSolutionByUUID uuid
+ 
+
+--通过Puzzle表的uuid 查询Puzzle表内容
+selectPuzzleByUUID::String->IO [Puzzle]
+selectPuzzleByUUID uuid=
+    inBackend  $ do
+        puzzle <- E.select $
+                  E.from $ \p -> do
+                  E.where_ (p ^. PuzzleUuid E.==. E.val uuid)
+                  return p
+        liftIO $ mapM (return . entityVal) (puzzle :: [Entity Puzzle])
+
+--通过Puzzle表的uuid 查询Validateion表内容
+selectValidationByUUID :: String -> IO [Validation]
+selectValidationByUUID uuid = 
+    inBackend  $ do
+        valida <-   E.select $
+                    E.from $ \p -> do
+                    E.where_ (p ^. ValidationPuzzleId E.==. E.val uuid)
+                    return p
+        liftIO $ mapM (return .entityVal) (valida :: [Entity Validation])
+
+--通过Puzzle表的uuid 查询Solution表内容
+selectSolutionByUUID :: String -> IO [Solution]
+selectSolutionByUUID uuid = 
+    inBackend $ do
+        solution  <- E.select $
+                     E.from $ \p -> do
+                     E.where_ (p ^. SolutionPuzzleId E.==. E.val uuid)
+                     return p
+        liftIO $ mapM (return .entityVal) (solution :: [Entity Solution])                
 
 updatePuzzle :: Puzzle->IO ()
 updatePuzzle = undefined
@@ -106,16 +144,43 @@ updatePuzzle = undefined
 ? solution crud
 -}
 -- todo
-insertSolutionWithPuzzleId::Solution->String->IO()
-insertSolutionWithPuzzleId=undefined
+insertSolutionWithPuzzleId::Solution->IO()
+insertSolutionWithPuzzleId (Solution _ languagesUuid _ puzzleId _ _ _ userUuid _ _) =
+    inBackend  $ do
+        let uuid=unsafePerformIO UV.nextRandom
+        now <- liftIO getCurrentTime
+        do
+            insert_ $ Solution ( DU.toString uuid ) languagesUuid "ssss" puzzleId  (Just now)  Nothing   now  userUuid  "bbb"   0
+--      insert_ $ Solution (DU.toString uuid) (getLanguage uuid) (code) (getPuzzleId uuid) () () () () (unsolve)   0
+--获取 Soultion表中puzzleId
+getPuzzleId :: String -> IO [String]
+getPuzzleId uuid =
+    inBackend $ do
+        puzzleId <- E.select $
+                    E.from $ \p  -> do
+                    E.where_ ( p^. PuzzleAuthor  E.==. E.val uuid)
+                    return p
+        liftIO $ mapM (return . puzzleUuid . entityVal) (puzzleId :: [Entity Puzzle] )          
+--获取 Soultion表中language
+getLanguage :: String -> IO [String]
+getLanguage state =
+    inBackend $ do 
+        language <- E.select $ 
+                    E.from $ \l -> do
+                    E.where_ (l ^. LanguagesState E.==. E.val Constant.normalState)
+                    return l
+        liftIO $ mapM (return . languagesUuid . entityVal)  (language :: [Entity Languages] )           
 -- todo
 updateSolution ::Solution->IO ()
 updateSolution=undefined
+
+
+
 {- 
 ? validation crud
 -}
 -- todo
-insertValidationWithPuzzleId::Validation->String->IO()
+insertValidationWithPuzzleId::Validation->IO()
 insertValidationWithPuzzleId=undefined
 -- todo
 deleteSolutionByUUID::String->IO ()
@@ -144,7 +209,6 @@ insertAllLanguage =
 "Objective OCaml","Pascal","Perl","PHP",
 "Python","Python3 ","Ruby","Rust","Scala","Swift","VB.NET"]
 -}
-
 queryAllLanguageWithNormalState::IO [String]
 queryAllLanguageWithNormalState = 
     inBackend $ do
@@ -169,7 +233,7 @@ insertUser (User _ email pwd _ _ _)=
     inBackend $ do
         let uuid=unsafePerformIO UV.nextRandom
         now <- liftIO getCurrentTime
-        insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) (Just now) Nothing (Just 0)
+        insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) (Just now)  Nothing  (Just 0)
 -- 对密码进行加密
 getStrictPwd :: String -> String
 getStrictPwd password=
@@ -237,7 +301,7 @@ conInfo = ConnectInfo{
       connectHost = Constant.dpip
     , connectPort = Constant.dbport
     , connectUser = Constant.dpuser
-    , connectPassword = Constant.dppwd
+    , connectPassword = "123456"
     , connectDatabase = Constant.dbbase
     , connectOptions = []
     , connectPath = ""
