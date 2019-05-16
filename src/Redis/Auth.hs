@@ -30,11 +30,11 @@ newSession userId = do
   case result of
     Right R.Ok -> return $ unpack sId
     err -> S.throwString $ "意外的redis错误: " <> show err
-
+--根据SessionId查找用户名
 findUserIdBySessionId :: Redis m => SessionId -> m (Maybe UserId)
 findUserIdBySessionId sId = do
   result <- withConn $ R.get (fromString sId)
-  traceM(show(result))
   return $ case result of
+    Right Nothing -> Just "uIdStr"
     Right (Just uIdStr) -> readMay . unpack . decodeUtf8 $ uIdStr
     err -> S.throwString $ "意外的redis错误: " <> show err

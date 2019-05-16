@@ -24,10 +24,10 @@ getCookie cookies key  = do
 setSessionIdInCookie :: MonadIO m => SessionId -> m ByteString
 setSessionIdInCookie sId = do
   curTime <- liftIO getCurrentTime
-  evaluate $ toStrict . toLazyByteString . renderSetCookie $ def{ setCookieName = "sessionId",
-                                                                  setCookieMaxAge = Just (86400000000000000*30),
-                                                                  setCookieValue = fromString sId , 
-                                                                  setCookieExpires = Just $ modL month (+1) curTime}
+  evaluate $ toStrict . toLazyByteString . renderSetCookie $ def{ setCookieName = "sessionId", -- cookie的key
+                                                                  setCookieMaxAge = Just (60*60*24*7), --保留cookie的最长时间，以秒为单位。
+                                                                  setCookieValue = fromString sId ,  -- cookie的值
+                                                                  setCookieExpires = Just $ modL month (+1) curTime} -- Cookie过期的时间 设置的一个月后过期
 
 {- getCurrentUserId :: (SessionRepo m, ScottyError e) => ActionT e m (Maybe UserId)
 getCurrentUserId = do

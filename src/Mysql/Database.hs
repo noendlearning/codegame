@@ -95,6 +95,16 @@ Validation
     updateTime UTCTime Maybe
     state MyState
     deriving Show
+Code
+    uuid String
+    UniqueCodeUuid uuid
+    userId String
+    puzzleId String
+    languagesId String
+    userCode String 
+    createTime UTCTime Maybe default=CURRENT_TIMESTAMP
+    updateTime UTCTime Maybe
+    deriving Show
 |]
 
 -- 共用mysql数据库连接信息
@@ -103,6 +113,30 @@ inBackend action = runStderrLoggingT $ withMySQLPool conInfo 5 $ \pool -> liftIO
     flip runSqlPersistMPool pool $ do
         runMigration migrateAll
         action
+
+
+
+--对code表的操作
+
+insertCode :: Code -> IO ()
+insertCode (Code _ userId puzzleId languagesId userCode _ _) =
+    inBackend  $ do
+        let uuid=unsafePerformIO UV.nextRandom
+        now <- liftIO getCurrentTime
+        do
+            insert_ $ Code ( DU.toString uuid ) userId puzzleId languagesId userCode  (Just now)  Nothing
+
+
+updateCode :: Code -> IO ()
+updateCode (Code _ userId puzzleId languagesId userCode _ _)  = do
+    now <- liftIO getCurrentTime
+    inBackend .
+        E.update $ \p -> do 
+        E.set p [CodeUserCode E.=. val userCode, CodeUpdateTime E.=. val (Just now)]
+        E.where_ (p ^. CodeUserId E.==. val userId &&. p ^. CodePuzzleId E.==. val puzzleId &&. p ^. CodeLanguagesId E.==. val languagesId)
+
+
+
 
 {- 
 ? puzzle crud
@@ -139,7 +173,17 @@ selectValidationByUUID uuid =
                     E.where_ (p ^. ValidationPuzzleId E.==. E.val uuid)
                     return p
         liftIO $ mapM (return .entityVal) (valida :: [Entity Validation])
-
+--根据题目的ID和题目的序号查询Validateion表中的输入参数和正确答案
+selectValidationByPuzzleId :: String -> Int -> IO [Validation]
+selectValidationByPuzzleId uuid orders = 
+    inBackend  $ do
+        valida <-   E.select $
+                    E.from $ \p -> do
+                    E.where_ (p ^. ValidationPuzzleId E.==. E.val uuid &&. p ^. ValidationOrders E.==. E.val orders )
+                    return p
+        liftIO $ mapM (return .entityVal) (valida :: [Entity Validation])
+        
+  
 --通过Puzzle表的uuid 查询Solution表内容
 selectSolutionByUUID :: String -> IO [Solution]
 selectSolutionByUUID uuid = 

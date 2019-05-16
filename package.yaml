@@ -53,7 +53,7 @@ dependencies:
 - cookie
 - time-lens
 - time
-
+- directory
 default-extensions:
 - NoImplicitPrelude
 - OverloadedStrings  
