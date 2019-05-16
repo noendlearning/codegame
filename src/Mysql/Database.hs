@@ -51,7 +51,7 @@ Puzzle
     inputDescription String
     outputDescription String
     constraints String
-    category String
+    category PCategory
     star Star
     -- exp Exp
     picture String
@@ -373,7 +373,7 @@ conInfo = ConnectInfo{
 
 
 --根据难度级别(category)和条数查询puzzle表
-selectPuzzleByCategory :: String -> Int -> IO [Puzzle]
+selectPuzzleByCategory :: PCategory -> Int -> IO [Puzzle]
 selectPuzzleByCategory category number =
     inBackend $ do
         puzzle<- E.select $ 

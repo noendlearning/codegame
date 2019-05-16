@@ -34,3 +34,7 @@ derivePersistField "Category"
 data MyState = Normal | Abnormal
     deriving (Show,Read,Eq)
 derivePersistField "MyState"    
+
+data PCategory=Easy | Medium | Hard | Professional
+    deriving (Show,Read,Eq)
+derivePersistField "PCategory"    
