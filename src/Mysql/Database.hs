@@ -40,7 +40,7 @@ User
     state MyState
     deriving Show
 Puzzle
-    author String
+    --author String
     uuid String
     UniquePuzzleUuid uuid  
     title String
@@ -65,7 +65,7 @@ Solution
     puzzleId String
     updateTime UTCTime Maybe
     updateBy String Maybe
-    createTime UTCTime default=CURRENT_TIMESTAMP
+    createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     createBy String
     unsolve String
     state MyState 
@@ -76,7 +76,7 @@ Languages
     UniqueLanguagesLanguage language
     language String
     createBy String
-    createTime UTCTime default=CURRENT_TIMESTAMP
+    createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     updateBy String Maybe
     updateTime UTCTime Maybe
     state MyState
@@ -201,12 +201,12 @@ updatePuzzle = undefined
 -}
 -- todo
 insertSolutionWithPuzzleId::Solution->IO()
-insertSolutionWithPuzzleId (Solution _ languagesUuid code puzzleId _ _ _ userUuid unsolve _) =
+insertSolutionWithPuzzleId (Solution _ languagesUuid code puzzleId _ _ _ userUuid unsolve state) =
     inBackend  $ do
         let uuid=unsafePerformIO UV.nextRandom
         now <- liftIO getCurrentTime
         do
-            insert_ $ Solution ( DU.toString uuid ) languagesUuid code puzzleId  (Just now)  Nothing   now  userUuid  unsolve   Normal
+            insert_ $ Solution ( DU.toString uuid ) languagesUuid code puzzleId  (Just now)  Nothing  (Just now)  userUuid  unsolve  state
 --      insert_ $ Solution (DU.toString uuid) (getLanguage uuid) (code) (getPuzzleId uuid) () () () () (unsolve)   0
 --获取 Soultion表中puzzleId
 getPuzzleId :: String -> IO [String]
@@ -214,7 +214,7 @@ getPuzzleId uuid =
     inBackend $ do
         puzzleId <- E.select $
                     E.from $ \p  -> do
-                    E.where_ ( p^. PuzzleAuthor  E.==. E.val uuid)
+                    E.where_ ( p^. PuzzleCreateBy E.==. E.val uuid)
                     return p
         liftIO $ mapM (return . puzzleUuid . entityVal) (puzzleId :: [Entity Puzzle] )          
 --获取 Soultion表中language
@@ -231,17 +231,17 @@ updateSolution ::Solution->IO ()
 updateSolution=undefined
 
 
-{- 我写
+{- 
 ? validation crud
 -}
 -- todo
 insertValidationWithPuzzleId::Validation -> IO()
-insertValidationWithPuzzleId (Validation _ puzzleid input output category orders createBy _ updateBy _ _) =
+insertValidationWithPuzzleId (Validation _ puzzleid input output category orders createBy _ updateBy _ state) =
     inBackend $ do
         let uuid=unsafePerformIO UV.nextRandom
         now <- liftIO getCurrentTime
         --getCurrentTime：从系统时间获取当前utctime
-        insert_ $ Validation (DU.toString uuid) puzzleid input output category orders createBy  (Just now)  updateBy  (Just now)  Normal
+        insert_ $ Validation (DU.toString uuid) puzzleid input output category orders createBy  (Just now)  updateBy  (Just now)  state
 --类别：1 2 3 4 简单 中等 困难 专家
 --      insert_ $ Validation (DU.toString uuid) puzzleId input output category orders createBy createTime updateBy updateTime (Just 0)
 --                              uuid            迷题uuid 输入   输出   类别     序号  创建人    创建时间   更新人   更新时间   state
@@ -304,7 +304,7 @@ insertAllLanguage::IO ()
 insertAllLanguage =
     inBackend $ do
         now <- liftIO getCurrentTime
-        mapM_ (\x->insert_ $ Languages (snd x) (fst x) Constant.admin now (Just Constant.admin) (Just now) Normal) Constant.languages
+        mapM_ (\x->insert_ $ Languages (snd x) (fst x) Constant.admin (Just now) (Just Constant.admin) (Just now) Normal) Constant.languages
 
 {- 
 该方法返回一个列表，包含所有的编程语言：
@@ -415,30 +415,70 @@ conInfo = ConnectInfo{
 
 
 --根据难度级别(category)和条数查询puzzle表
-selectPuzzleByCategory :: PCategory -> Int -> IO [Puzzle]
+selectPuzzleByCategory :: PCategory -> Int64 -> IO [Puzzle]
 selectPuzzleByCategory category number =
     inBackend $ do
         puzzle<- E.select $ 
                  E.from $ \p->do
                  E.where_ (p ^. PuzzleCategory E.==. E.val category)
+                 E.limit number
                  return p
-        fmap (take number) $ liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
+        liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
+--fmap (take number) $ liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
 
-selectUser1 :: IO [User]
-selectUser1 =
+--上面方法的第二种实现，不过上面number为0时，会显示所有。这个则是一个都不显示
+-- selectPuzzleByCategory :: PCategory -> Int -> IO [Puzzle]
+-- selectPuzzleByCategory category number =
+--     inBackend $ do
+--         puzzle<- E.select $ 
+--                  E.from $ \p->do
+--                  E.where_ (p ^. PuzzleCategory E.==. E.val category)
+--                  return p
+--         fmap (take number) $ liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
+
+--查询user表所有内容
+selectUser :: Int ->IO [User]
+selectUser number=
     inBackend $ do
         user<- E.select $ 
                E.from $ \u->do
                return u
         liftIO $  mapM (return . entityVal) (user :: [Entity User]) 
 
-selectUser2 :: Int ->IO [User]
-selectUser2 number =
+--查询Validation表中所有内容
+selectValidation :: IO [Validation]
+selectValidation  =
     inBackend $ do
-        user<- E.select $ 
-               E.from $ \u->do
-               return u
-        fmap (take number) $ liftIO $  mapM (return . entityVal) (user :: [Entity User])      
+        validation<- E.select $ 
+               E.from $ \v->do
+               return v
+        liftIO $  mapM (return . entityVal) (validation :: [Entity Validation])      
 
 
- 
+--接受puzzle validation solution表的对象，来进行更新三张表（通过puzziduuid进行更新）
+updatePuzzleAllByPuzzleUuid :: Puzzle -> Validation -> Solution -> IO()
+updatePuzzleAllByPuzzleUuid (Puzzle uuid title _ _ updateByP _ inputDescription outputDescription constraints categoryP star picture stateP) (Validation _ puzzleIdV input output categoryV orders _ _ updateByV _ stateV) (Solution _ language code puzzleIdS _ updateByS _ _ unsolve stateS) =
+                inBackend $ do
+                        updateTime <- liftIO getCurrentTime  
+                        E.update $ \p -> do  
+                            E.set p  [PuzzleTitle E.=.E.val title , PuzzleUpdateBy E.=.E.val updateByP , PuzzleUpdateTime E.=. E.just(E.val updateTime) , PuzzleInputDescription E.=.E.val inputDescription , 
+                                      PuzzleOutputDescription E.=.E.val outputDescription , PuzzleConstraints E.=.E.val constraints , PuzzleCategory E.=.E.val categoryP , PuzzleStar E.=.E.val star , 
+                                      PuzzlePicture E.=.E.val picture , PuzzleState E.=.E.val stateP ]
+                            E.where_ (p ^. PuzzleUuid E.==. val uuid)
+                        E.update $ \p -> do  
+                            E.set p  [ValidationInput E.=.E.val input , ValidationOutput E.=.E.val output , ValidationCategory E.=.E.val categoryV ,
+                                        ValidationOrders E.=.E.val orders , ValidationUpdateBy E.=.E.val updateByV , ValidationUpdateTime E.=. E.just(E.val updateTime) ,
+                                        ValidationState E.=.E.val stateV ]
+                            E.where_ (p ^. ValidationPuzzleId E.==. val puzzleIdV)   
+                        E.update $ \p -> do  
+                            E.set p  [SolutionLanguage E.=.E.val language , SolutionCode E.=.E.val code , SolutionUpdateTime E.=. E.just(E.val updateTime),
+                                        SolutionUpdateBy E.=.E.val updateByS , SolutionUnsolve E.=.E.val unsolve , SolutionState E.=. E.val stateS ]
+                            E.where_ (p ^. SolutionPuzzleId E.==. val puzzleIdS)                                        
+
+
+--根据email删除user表
+deleteUser :: String -> IO()
+deleteUser email = inBackend .
+        E.delete $ 
+        E.from $ \p -> do
+        E.where_ (p ^. UserEmail E.==. E.val email)
