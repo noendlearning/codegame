@@ -78,6 +78,10 @@ registerUser req = do
 -- 提交代码验证是否正确
 testParam ::Request ->IO Response
 testParam req = do
+    let reqHeaders = requestHeaders req
+            --把请求头变成Map
+    let reqMap = MAP.fromList reqHeaders
+    ClassyPrelude.print reqMap
     (params, _) <- parseRequestBody lbsBackEnd req
     sessionId <- getCookie req "sessionId"
     email <- R.findUserIdBySessionId sessionId
@@ -140,6 +144,14 @@ testParam req = do
             return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ codeOutput  
 
 
+hasCookieInfo::Request ->IO (Maybe ByteString)
+hasCookieInfo req=do
+  let reqHeaders = requestHeaders req
+  --把请求头变成Map
+  let reqMap = MAP.fromList reqHeaders
+      --获取具体的请求头的value
+  return $ reqMap MAP.!? (fromString "Cookie")
+      
 
 --解析Cookie 参数cokieKey是，请求头中的cookie里面key.返回key对应的value值
 getCookie :: Request -> String -> IO String
@@ -152,4 +164,4 @@ getCookie req cokieKey= do
   sesso <- Cookie.getCookie headerMess cokieKey
   case sesso of
     Just realityMess -> return $ realityMess
-    Nothing -> return $ "以" <> cokieKey <> "为key没有对应的value值 "
+    Nothing -> return $ "根据这个" <> cokieKey <> "为key没有对应的value " 
