@@ -17,22 +17,32 @@ main port = do
 
    
 app :: Application
-app req respond = respond $ 
-    case pathInfo req of
-      ["loginUser"] -> 
-        unsafePerformIO $ Api.loginUser req 
-      ["registerUser"] -> 
-        unsafePerformIO $ Api.registerUser req   
-      ["play"] -> 
-            -- unsafePerformIO 函数是取出IO中的 Response
-            unsafePerformIO $ Api.testParam req   
-      ["init"] -> 
-        unsafePerformIO $ Api.initCode req 
-      ["static", subDir, fileName] -> 
-            serveStatic subDir fileName  
-      [] -> 
-        resFile "text/html" "static/index.html"  
-      _ -> res404      
+app req respond =  do
+  res <- Api.hasCookieInfo req
+  traceM(show(res))
+  case res of
+    Nothing->
+      -- fixme: 转发到index请求
+      respond $ resFile "text/html" "static/index.html"  
+    Just a->  
+      respond $ 
+        case pathInfo req of
+          ["loginUser"] -> 
+            unsafePerformIO $ Api.loginUser req 
+          ["registerUser"] -> 
+            unsafePerformIO $ Api.registerUser req   
+          ["play"] -> 
+                -- unsafePerformIO 函数是取出IO中的 Response
+                unsafePerformIO $ Api.testParam req   
+          ["init"] -> 
+            unsafePerformIO $ Api.initCode req 
+          ["static", subDir, fileName] -> 
+                serveStatic subDir fileName  
+          [] -> 
+            resFile "text/html" "static/index.html"  
+          ["index"] -> 
+            resFile "text/html" "static/index.html"  
+          _ -> res404      
 
 
 resFile :: ByteString -> FilePath -> Response
