@@ -291,12 +291,10 @@ updateLanguage=undefined
 insertUser :: User -> IO ()
 insertUser (User _ email pwd _ _ _)= 
     inBackend $ do
-        let uuid=unsafePerformIO UV.nextRandom
-        --UV.nextRandom:生成随机的uuid
+        let uuid=DU.toString . unsafePerformIO $ UV.nextRandom
         now <- liftIO getCurrentTime
-        --getCurrentTime：从系统时间获取当前utctime
-        -- insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) (Just now) Nothing (Just 0)
-        insert_ $ User (DU.toString uuid) email (getStrictPwd pwd) (Just now) Nothing Normal
+        insert_ $ User uuid email (getStrictPwd pwd) (Just now) Nothing Normal
+ 
 -- 对密码进行加密
 getStrictPwd :: String -> String
 getStrictPwd password=

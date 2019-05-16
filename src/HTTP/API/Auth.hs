@@ -19,10 +19,11 @@ import qualified System.IO.Strict as IS (hGetContents)
 import qualified Data.List as LIST
 import System.IO as IO
 import qualified HTTP.SetCookie as Cookie
+import Tool.Types
+
 -- 获取初始化代码
 initCode ::Request ->IO Response
 initCode req = do
-    -- M.insertUser $ M.User "" "test@test" "1" Nothing Nothing Nothing
     (params, _) <- parseRequestBody lbsBackEnd req
     let paramsMap = mapFromList params :: Map ByteString ByteString
     let language =(paramsMap MAP.! "language")
@@ -52,7 +53,18 @@ loginUser req = do
             cookies <- Cookie.setSessionIdInCookie sessionId
             return $ responseBuilder status200 [("Content-Type","application/json"),("Cookie",cookies)] $ lazyByteString $ encode (CodeOutput {output= "欢迎登录", message="", found="", expected="", errMessage=""})
 
-
+-- test: register user
+registerUser::Request->IO Response
+registerUser req=do
+  (params, _) <- parseRequestBody lbsBackEnd req
+  let paramsMap = mapFromList params :: Map ByteString ByteString
+  let email=((unpack . decodeUtf8) $ paramsMap MAP.! "email")
+  let pwd=(unpack . decodeUtf8) $ paramsMap MAP.! "passw"
+  M.insertUser $ M.User "" email pwd Nothing Nothing Normal
+  sessionId <- liftIO $ R.newSession ((unpack . decodeUtf8) $ paramsMap MAP.! "email")
+  cookies <- Cookie.setSessionIdInCookie sessionId
+  return $ responseBuilder status200 [("Content-Type","application/json"),("Cookie",cookies)] $ lazyByteString $ encode (CodeOutput {output= "欢迎登录", message="", found="", expected="", errMessage=""})
+  
 -- 提交代码验证是否正确
 testParam ::Request ->IO Response
 testParam req = do

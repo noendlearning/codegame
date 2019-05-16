@@ -11,6 +11,7 @@ import Network.HTTP.Types (status200, unauthorized401, status404)
 
 main ::Int -> IO ()
 main port = do
+  -- fixme: parse request header ,get cookie , get sessionId then check sessionId 
   run port app
 
    
