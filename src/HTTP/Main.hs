@@ -11,7 +11,8 @@ import Network.HTTP.Types (status200, unauthorized401, status404)
 
 main ::Int -> IO ()
 main port = do
-  -- fixme: parse request header ,get cookie , get sessionId then check sessionId 
+  putStrLn "open port:"
+  print port
   run port app
 
    
@@ -20,6 +21,8 @@ app req respond = respond $
     case pathInfo req of
       ["loginUser"] -> 
         unsafePerformIO $ Api.loginUser req 
+      ["registerUser"] -> 
+        unsafePerformIO $ Api.registerUser req   
       ["play"] -> 
             -- unsafePerformIO 函数是取出IO中的 Response
             unsafePerformIO $ Api.testParam req   
