@@ -144,6 +144,44 @@ testParam req = do
             return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ codeOutput  
 
 
+
+getPuzzleInput :: String ->IO PuzzleInput
+getPuzzleInput puzzleInput = do
+     case decode $ fromString puzzleInput :: Maybe PuzzleInput of
+       Just puzzle -> return puzzle
+getTestCase :: String ->IO TestCase
+getTestCase testCase = do
+     case decode $ fromString testCase :: Maybe TestCase of
+       Just testcase -> return testcase
+getStandCase :: String ->IO StandCase
+getStandCase standCase = do
+     case decode $ fromString standCase :: Maybe StandCase of
+       Just standcase -> return standcase      
+
+resData ::Request ->IO Response
+resData req = do
+    (params, _) <- parseRequestBody lbsBackEnd req 
+    let paramsMap = mapFromList params :: Map ByteString ByteString
+    a <-getPuzzleInput $ (unpack . decodeUtf8) (paramsMap MAP.! "puzzle-one")  
+    b <-getTestCase $ (unpack . decodeUtf8) (paramsMap MAP.! "puzzle-two") 
+    c <-getStandCase $ (unpack . decodeUtf8)  (paramsMap MAP.! "puzzle-three")  
+    let title'=title a
+        statement'=statement a
+        inputDescription'=inputDescription a
+        outputDescription'=outputDescription a
+        constraints'=constraints a
+    let testName'=testName b
+        validator'=validator b
+    let input'=input c
+        oput'=oput c    
+    traceM(show(a,b,c))
+    outh <- IO.openFile "./static/code/User.txt" WriteMode
+    hPutStrLn outh (show $ title'<>statement'<>inputDescription'<>outputDescription'<>constraints')
+    hPutStrLn outh (testName'<>validator')
+    hPutStrLn outh (input'<>oput')
+    IO.hClose outh 
+    return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ " "
+
 hasCookieInfo::Request ->IO (Maybe ByteString)
 hasCookieInfo req=do
   let reqHeaders = requestHeaders req

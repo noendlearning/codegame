@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Model where
 
 import Data.Aeson
@@ -29,19 +31,14 @@ data PuzzleInput = PuzzleInput{
     statement :: Text,
     inputDescription::Text,
     outputDescription::Text,
-    constraints::Text,
-    -- gameModes:
-    testCases :: [TestCase]
-
+    constraints::Text
 }deriving (Generic,Show)
 instance ToJSON PuzzleInput
-instance FromJSON PuzzleInput
+instance FromJSON PuzzleInput 
 
 data TestCase = TestCase{
     testName::String,
-    validator::String,
-    test::StandCase,
-    validater::StandCase
+    validator::String
 } deriving (Generic,Show)
 instance ToJSON TestCase
 instance FromJSON TestCase

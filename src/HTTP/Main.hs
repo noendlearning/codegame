@@ -50,6 +50,8 @@ module HTTP.Main where
               resFile "text/html" "static/index.html"  
             ["index"] -> 
               resFile "text/html" "static/index.html"  
+            ["code"] ->
+                unsafePerformIO $ Api.resData req   
             _ -> res404      
   
   
