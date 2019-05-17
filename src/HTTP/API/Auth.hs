@@ -65,8 +65,8 @@ registerUser::Request->IO Response
 registerUser req = do
   (params, _) <- parseRequestBody lbsBackEnd req
   let paramsMap = mapFromList params :: Map ByteString ByteString
-  let email=((unpack . decodeUtf8) $ paramsMap MAP.! "email")
-  let pwd=(unpack . decodeUtf8) $ paramsMap MAP.! "passw"
+      email=((unpack . decodeUtf8) $ paramsMap MAP.! "email")
+      pwd=(unpack . decodeUtf8) $ paramsMap MAP.! "passw"
   --根据email 查找 userId
   user <- M.selectUserByUserEmail email
   case user of
