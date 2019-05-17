@@ -40,11 +40,10 @@ User
     state MyState
     deriving Show
 Puzzle
-    --author String
     uuid String
     UniquePuzzleUuid uuid  
     title String
-    createTime UTCTime default=CURRENT_TIMESTAMP
+    createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     createBy String 
     updateBy String Maybe
     updateTime UTCTime Maybe
@@ -141,9 +140,17 @@ updateCode (Code _ userId puzzleId languagesId userCode _ _)  = do
 {- 
 ? puzzle crud
 -}    
-
-insertPuzzle ::Puzzle->IO ()
-insertPuzzle = undefined
+--向Puzzle插入数据 涉及 Puzzle  Solution  Validation 三张表
+insertPuzzle ::Puzzle->Solution->Validation->IO ()
+insertPuzzle (Puzzle _ title  _ createBy  updateBy _  inputDescription outputDescription constraints categor star picture pstate) (Solution _ language code _ _  update _ create unsolve  sstate)(Validation _ _ input output category orders  createB  _  updateB  _  vstate)= 
+    inBackend  $ do
+        let puuid=unsafePerformIO UV.nextRandom
+            suuid=unsafePerformIO UV.nextRandom
+            vuuid=unsafePerformIO UV.nextRandom
+        now <- liftIO getCurrentTime
+        insert_ $ Puzzle  (DU.toString puuid)   title   (Just now)   createBy  updateBy  (Just now)  inputDescription  outputDescription  constraints    categor    star  picture  pstate
+        insert_ $ Solution ( DU.toString suuid ) language code (DU.toString puuid)  (Just now)  update   (Just now)  create  unsolve   sstate
+        insert_ $ Validation (DU.toString vuuid)  (DU.toString puuid) input output category orders createB  (Just now)  updateB  (Just now)  vstate
 
 
 --通过PuzzleUuid 查询所有Puzzle相关内容 包含Puzzle,Validation,Solution三张表
@@ -196,19 +203,23 @@ selectSolutionByUUID uuid =
 
 updatePuzzle :: Puzzle->IO ()
 updatePuzzle = undefined
+
+
 {- 
 ? solution crud
 -}
 -- todo
 insertSolutionWithPuzzleId::Solution->IO()
-insertSolutionWithPuzzleId (Solution _ languagesUuid code puzzleId _ _ _ userUuid unsolve state) =
+insertSolutionWithPuzzleId (Solution _ language code puzzleId _ updateBy _ createBy unsolve _) =
     inBackend  $ do
         let uuid=unsafePerformIO UV.nextRandom
         now <- liftIO getCurrentTime
         do
-            insert_ $ Solution ( DU.toString uuid ) languagesUuid code puzzleId  (Just now)  Nothing  (Just now)  userUuid  unsolve  state
---      insert_ $ Solution (DU.toString uuid) (getLanguage uuid) (code) (getPuzzleId uuid) () () () () (unsolve)   0
---获取 Soultion表中puzzleId
+            insert_ $ Solution ( DU.toString uuid ) language  code  puzzleId  (Just now)  Nothing   (Just now)  createBy  unsolve   Normal
+--          insert_ $ Solution uuid  language   code   puzzleId   updateTime   updateBy   createTime   createBy   unsolve    state
+
+
+--根据UserUUID获取 Soultion表中puzzleId
 getPuzzleId :: String -> IO [String]
 getPuzzleId uuid =
     inBackend $ do
@@ -216,8 +227,10 @@ getPuzzleId uuid =
                     E.from $ \p  -> do
                     E.where_ ( p^. PuzzleCreateBy E.==. E.val uuid)
                     return p
-        liftIO $ mapM (return . puzzleUuid . entityVal) (puzzleId :: [Entity Puzzle] )          
---获取 Soultion表中language
+        liftIO $ mapM (return . puzzleUuid . entityVal) (puzzleId :: [Entity Puzzle] )
+        
+        
+--根据State获取 Soultion表中language
 getLanguage :: String -> IO [String]
 getLanguage state =
     inBackend $ do 
@@ -225,7 +238,9 @@ getLanguage state =
                     E.from $ \l -> do
                     E.where_ (l ^. LanguagesState E.==. E.val Normal)
                     return l
-        liftIO $ mapM (return . languagesUuid . entityVal)  (language :: [Entity Languages] )           
+        liftIO $ mapM (return . languagesUuid . entityVal)  (language :: [Entity Languages] )
+        
+        
 -- todo
 updateSolution ::Solution->IO ()
 updateSolution=undefined
@@ -285,7 +300,9 @@ selectUserByUserEmail email=
                  E.from $ \u->do
                  E.where_ (u ^. UserEmail E.==. E.val email)
                  return u
-        liftIO $ mapM (return . entityVal) (user :: [Entity User])        
+        liftIO $ mapM (return . entityVal) (user :: [Entity User]) 
+        
+        
 -- todo
 deleteSolutionByUUID::String->IO ()
 deleteSolutionByUUID =undefined
@@ -424,7 +441,6 @@ selectPuzzleByCategory category number =
                  E.limit number
                  return p
         liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
---fmap (take number) $ liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
 
 --上面方法的第二种实现，不过上面number为0时，会显示所有。这个则是一个都不显示
 -- selectPuzzleByCategory :: PCategory -> Int -> IO [Puzzle]
