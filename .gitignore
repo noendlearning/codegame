@@ -15,4 +15,5 @@ src/Database.o
 static/elm/Route.elm
 static/elm/Session.elm
 static/js/index1.js
+.history/
 
