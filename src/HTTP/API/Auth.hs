@@ -30,7 +30,7 @@ import Data.Sequence as Seq
 initCode ::Request ->IO Response
 initCode req = do
     {- M.insertValidationWithPuzzleId $ M.Validation ""  "1" "4\n5\nE\n #  ##   ## ##  ### ### ##  # # ###  ## # # #   # # ###  #  ##   #  ##  ##  ### # # # # # # # # # # ### ### \n# # # # #   # # #   #   #   # #  #    # # # #   ### # # # # # # # # # # #    #  # # # # # # # # # #   #   # \n### ##  #   # # ##  ##  # # ###  #    # ##  #   ### # # # # ##  # # ##   #   #  # # # # ###  #   #   #   ## \n# # # # #   # # #   #   # # # #  #  # # # # #   # # # # # # #    ## # #   #  #  # # # # ### # #  #  #       \n# # ##   ## ##  ### #   ##  # # ###  #  # # ### # # # #  #  #     # # # ##   #  ###  #  # # # #  #  ###  #  "
-        "### \n#   \n##  \n#   \n### " Major 1 "createBy" Nothing (Just "updateBy")  Nothing Normal -}
+        "### \n#   \n##  \n#   \n### " Major 1 "createBy" Nothing (Just "updateBy")  Nothing Normal "" -}
     (params, _) <- parseRequestBody lbsBackEnd req
     let paramsMap = mapFromList params :: Map ByteString ByteString
     let language =(paramsMap MAP.! "language")
@@ -122,12 +122,11 @@ testParam cookieMess req = do
         IO.hClose outh
         -- 查询数据库中的正确答案和题目需要的参数
         puzzle <- M.selectValidationByPuzzleId puzzleId (read $ (unpack . decodeUtf8) (paramsMap MAP.! "testIndex") :: Int)
-        traceM(show(puzzle)) 
         let input = M.validationInput $ List.head puzzle
         --把查询出来的题目参数写入文件
-        outh <- IO.openFile (userFolder ++ "/factor.txt") WriteMode
-        hPutStrLn outh input
-        IO.hClose outh
+        out <- IO.openFile (userFolder ++ "/factor.txt") WriteMode
+        hPutStrLn out input
+        IO.hClose out
         inh <- openFile (userFolder ++ "/factor.txt") ReadMode
         -- 用shell命令去给定位置找到文件运行脚本。得到输出的句柄。（输入句柄，输出句柄，错误句柄，不详）
         (_,Just hout,Just err,_) <- createProcess (shell (List.last languageSetting)){cwd=Just userFolder,std_in = UseHandle inh,std_out=CreatePipe,std_err=CreatePipe}
@@ -135,9 +134,9 @@ testParam cookieMess req = do
         -- 获取文件运行的结果
         content <- timeout 2000000 (IS.hGetContents hout)
         errMessage <- IS.hGetContents err
-        
+
         --删除文件夹及其内容和子目录
-        --Dir.removeDirectoryRecursive userFolder
+        Dir.removeDirectoryRecursive userFolder
         case content of
           Nothing  -> 
             return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= fromString "Timeout: your program did not provide an input in due time.", message="Failure", found="", expected="", errMessage= fromString errMessage})
@@ -146,6 +145,7 @@ testParam cookieMess req = do
             --从数据库中获取正确的答案
             let output = M.validationOutput $ List.head puzzle
             let inpStrs = List.lines output
+
             let codeOutput =  if contents == inpStrs
                               then 
                                 encode (CodeOutput {output=fromString value, message="Success", found="", expected="", errMessage= fromString errMessage})
