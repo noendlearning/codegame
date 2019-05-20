@@ -27,6 +27,9 @@ import Control.Monad.Trans.Resource (runResourceT, ResourceT)
 import Data.Time
 import qualified Tool.Constant as Constant
 import Tool.Types
+import GHC.Generics
+import Data.Aeson
+
 
 share  
   [mkPersist sqlSettings, mkMigrate "migrateAll"] 
@@ -40,7 +43,7 @@ User
     createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     updateTime UTCTime Maybe
     state MyState
-    deriving Show
+    deriving Show Generic
 Puzzle
     uuid String
     UniquePuzzleUuid uuid  
@@ -57,7 +60,7 @@ Puzzle
     -- exp Exp
     picture String
     state PuzzleState
-    deriving Show
+    deriving Show Generic
 Solution
     uuid String
     UniqueSolutionUuid uuid   --Unique：唯一
@@ -70,7 +73,7 @@ Solution
     createBy String
     unsolve String
     state MyState 
-    deriving Show
+    deriving Show Generic
 Languages
     uuid String
     UniqueLanguagesUuid uuid
@@ -81,7 +84,7 @@ Languages
     updateBy String Maybe
     updateTime UTCTime Maybe default=CURRENT_TIMESTAMP
     state MyState
-    deriving Show
+    deriving Show Generic
 Validation
     uuid String
     UniqueValidationUuid uuid
@@ -96,7 +99,7 @@ Validation
     updateTime UTCTime Maybe default=CURRENT_TIMESTAMP
     state MyState
     title String
-    deriving Show
+    deriving Show Generic
 Code
     uuid String
     UniqueCodeUuid uuid
@@ -106,8 +109,26 @@ Code
     userCode String 
     createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     updateTime UTCTime Maybe default=CURRENT_TIMESTAMP
-    deriving Show
+    deriving Show Generic
 |]
+
+instance ToJSON Puzzle 
+instance FromJSON  Puzzle
+
+instance ToJSON User 
+instance FromJSON  User
+
+instance ToJSON Solution 
+instance FromJSON  Solution
+
+instance ToJSON Languages 
+instance FromJSON  Languages
+
+instance ToJSON Validation 
+instance FromJSON  Validation
+
+instance ToJSON Code 
+instance FromJSON  Code
 
 -- 共用mysql数据库连接信息
 inBackend :: ReaderT SqlBackend (NoLoggingT (ResourceT IO)) a-> IO a
@@ -453,3 +474,13 @@ deleteUser email = inBackend .
         E.delete $ 
         E.from $ \p -> do
         E.where_ (p ^. UserEmail E.==. E.val email)
+
+-- data JPuzzle=JPuzzle{
+--     jtitle::String
+--     }  deriving (Show,Generic)
+-- instance ToJSON JPuzzle 
+-- instance FromJSON JPuzzle    
+    
+-- toJPuzzles::[M.Puzzle]->[JPuzzle]
+-- toJPuzzles arr=
+--     foldr (\x->JPuzzle $ puzzleTitle . entityVal $ x) [] arr         

@@ -15,7 +15,6 @@ main port = do
   print port
   run port app
 
-    
 app :: Application
 app req respond =  do
   res <- Api.hasCookieInfo req
@@ -25,7 +24,6 @@ app req respond =  do
       respond $ 
       case pathInfo req of
       -- fixme: 转发到index请求
-
         ["loginUser"] -> 
           unsafePerformIO $ Api.loginUser req 
         ["registerUser"] -> 
@@ -37,16 +35,17 @@ app req respond =  do
     Just cookieMess->  
       respond $ 
         case pathInfo req of
+          ["quitUser"] -> 
+              unsafePerformIO $ Api.quitUser cookieMess req 
+          ["loginUser"] -> 
+              unsafePerformIO $ Api.loginUser req 
+          ["registerUser"] -> 
+              unsafePerformIO $ Api.registerUser req   
           ["play"] -> 
                 -- unsafePerformIO 函数是取出IO中的 Response
                 unsafePerformIO $ Api.testParam cookieMess req
           ["init"] -> 
             unsafePerformIO $ Api.initCode req 
-        -- fixme: 转发到index请求
-          ["loginUser"] -> 
-            unsafePerformIO $ Api.loginUser req 
-          ["registerUser"] -> 
-              unsafePerformIO $ Api.registerUser req
           ["static", subDir, fileName] -> 
                 serveStatic subDir fileName  
           [] -> 
@@ -55,9 +54,8 @@ app req respond =  do
             resFile "text/html" "static/index.html"  
           ["code"] ->
               unsafePerformIO $ Api.resData req   
-          _ -> res404      
-
-
+          _ -> res404    
+            
 resFile :: ByteString -> FilePath -> Response
 resFile contentType filename = responseFile status200 [("Content-Type", contentType)] filename Nothing    
 
