@@ -154,15 +154,6 @@ insertPuzzle (Puzzle _ title  _ createBy  updateBy _  inputDescription outputDes
         insert_ $ Solution ( DU.toString suuid ) language code (DU.toString puuid)  (Just now)  update   (Just now)  create  unsolve   sstate
         insert_ $ Validation (DU.toString vuuid)  (DU.toString puuid) input output category orders createB  (Just now)  updateB  (Just now)  vstate vtitle
 
-
---通过PuzzleUuid 查询所有Puzzle相关内容 包含Puzzle,Validation,Solution三张表
-queryAllPuzzlesByUuid :: String -> IO [String]
-queryAllPuzzlesByUuid uuid = undefined
- --           let puzzle = selectPuzzleByUUID uuid
- --               valida = selectValidationByUUID uuid
- --               solution = selectSolutionByUUID uuid
- 
-
 --通过Puzzle表的uuid 查询Puzzle表内容
 selectPuzzleByUUID::String->IO [Puzzle]
 selectPuzzleByUUID uuid=
@@ -203,10 +194,6 @@ selectSolutionByUUID uuid =
                      return p
         liftIO $ mapM (return .entityVal) (solution :: [Entity Solution])                
 
-updatePuzzle :: Puzzle->IO ()
-updatePuzzle = undefined
-
-
 {- 
 ? solution crud
 -}
@@ -241,12 +228,6 @@ getLanguage state =
                     E.where_ (l ^. LanguagesState E.==. E.val Normal)
                     return l
         liftIO $ mapM (return . languagesUuid . entityVal)  (language :: [Entity Languages] )
-        
-        
--- todo
-updateSolution ::Solution->IO ()
-updateSolution=undefined
-
 
 {- 
 ? validation crud
@@ -304,25 +285,9 @@ selectUserByUserEmail email=
                  return u
         liftIO $ mapM (return . entityVal) (user :: [Entity User]) 
         
-myuuid::IO ()
-myuuid = do
-    uuid<-UV.nextRandom
-    print uuid
-
--- todo
-deleteSolutionByUUID::String->IO ()
-deleteSolutionByUUID =undefined
--- todo
-updateValidation::Solution->IO ()
-updateValidation=undefined
 {- 
 ? languages crud
 -}
--- todo
-insertLanguage::Languages->IO ()
-insertLanguage =undefined
-
-
 insertAllLanguage::IO ()
 insertAllLanguage =
     inBackend $ do
@@ -344,10 +309,6 @@ queryAllLanguageWithNormalState =
                     E.where_ (l ^. LanguagesState E.==. E.val Normal)
                     return l
         liftIO $ mapM (return . languagesLanguage . entityVal) (languages::[Entity Languages])
-
--- todo
-updateLanguage::Languages->IO ()
-updateLanguage=undefined
 
 {- 
 * user表的增删改查
@@ -380,19 +341,6 @@ selectUserByUUID uuid =inBackend .
     E.from $ \p -> do
     E.where_ (p ^. UserUuid E.==. val uuid)
     return p
--- fixme
-
--- selectUserByUUID ::String->IO (Maybe User)
--- selectUserByUUID uuid = 
---     inBackend $ do
---         p<- E.select $
---             E.from $ \p -> do
---             E.where_ (p ^. UserUuid E.==. val uuid)
---             return p
---         liftIO $ mapM_ (return . head . entityVal) (p::[Entity User])
--- PersistEntity a => SqlSelect (SqlExpr (Maybe (Entity a))) (Maybe (Entity a))Source#	
--- You may return a possibly-NULL Entity from a select query
--- select via email
 
 -- fixme
 selectUserByEmail ::String->IO [Entity User]
