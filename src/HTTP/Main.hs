@@ -25,22 +25,28 @@ app req respond =  do
       respond $ 
       case pathInfo req of
       -- fixme: 转发到index请求
+
+        ["loginUser"] -> 
+          unsafePerformIO $ Api.loginUser req 
+        ["registerUser"] -> 
+          unsafePerformIO $ Api.registerUser req   
         ["static", subDir, fileName] -> 
           serveStatic subDir fileName  
         _-> 
           resFile "text/html" "static/index.html"  
-    Just a->  
+    Just cookieMess->  
       respond $ 
         case pathInfo req of
+          ["play"] -> 
+                -- unsafePerformIO 函数是取出IO中的 Response
+                unsafePerformIO $ Api.testParam cookieMess req
+          ["init"] -> 
+            unsafePerformIO $ Api.initCode req 
+        -- fixme: 转发到index请求
           ["loginUser"] -> 
             unsafePerformIO $ Api.loginUser req 
           ["registerUser"] -> 
-            unsafePerformIO $ Api.registerUser req   
-          ["play"] -> 
-                -- unsafePerformIO 函数是取出IO中的 Response
-                unsafePerformIO $ Api.testParam req   
-          ["init"] -> 
-            unsafePerformIO $ Api.initCode req 
+              unsafePerformIO $ Api.registerUser req
           ["static", subDir, fileName] -> 
                 serveStatic subDir fileName  
           [] -> 
@@ -66,4 +72,4 @@ serveStatic subDir fName =
         sub = unpack subDir
 
 res404 :: Response
-res404 = responseLBS status404 [] $ fromString "Not Found"                
+res404 = responseLBS status404 [] $ fromString "Not Found"

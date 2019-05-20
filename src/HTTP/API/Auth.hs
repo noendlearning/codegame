@@ -52,6 +52,8 @@ loginUser req = do
     let paramsMap = mapFromList params :: Map ByteString ByteString
     -- 用户登录
     result <-M.login ((unpack . decodeUtf8) $ paramsMap MAP.! "email") $ (unpack . decodeUtf8) $ paramsMap MAP.! "passw"
+
+    traceM(show(result))
     case result of
         [] -> return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= "用户不存在", message="", found="", expected="", errMessage=""})
         [_] ->  do
@@ -63,9 +65,9 @@ loginUser req = do
 
 
 --退出登录
-quitUser :: Request ->IO Response
-quitUser req = do
-      sessionId <- getCookie req "sessionId"
+quitUser ::ByteString ->  Request ->IO Response
+quitUser cookieMess req = do
+      sessionId <- getCookie cookieMess "sessionId"
       number <- R.deleteUserIdBySessionId sessionId 
       case number of
         0 -> return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= "无用户", message="", found="", expected="", errMessage=""})
@@ -90,14 +92,10 @@ registerUser req = do
       return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= "注册成功", message="", found="", expected="", errMessage=""})
 
 -- 提交代码验证是否正确
-testParam ::Request ->IO Response
-testParam req = do
-    let reqHeaders = requestHeaders req
-            --把请求头变成Map
-    let reqMap = MAP.fromList reqHeaders
-    ClassyPrelude.print reqMap
+testParam ::ByteString -> Request ->IO Response
+testParam cookieMess req = do
     (params, _) <- parseRequestBody lbsBackEnd req
-    sessionId <- getCookie req "sessionId"
+    sessionId <- getCookie cookieMess "sessionId"
     email <- R.findUserIdBySessionId sessionId
     case email of
       Nothing -> do
@@ -107,6 +105,7 @@ testParam req = do
         let userFolder = "./static/"++ email
         --新建文件夹
         Dir.createDirectory userFolder
+
         --返回代码写入文件的路径和shell脚本在哪个路径下运行的命令
         let paramsMap = mapFromList params :: Map ByteString ByteString
             language = (unpack . decodeUtf8) (paramsMap MAP.! "language")
@@ -115,12 +114,14 @@ testParam req = do
             puzzleId = (unpack . decodeUtf8) (paramsMap MAP.! "puzzleId")
             languagesId = (unpack . decodeUtf8) (paramsMap MAP.! "languagesId")
             languageSetting = Tool.getLanguageSetting  language code userFolder
+        
         -- 写入文件文件名不存在的时候会新建，每次都会重新写入
         outh <- IO.openFile (List.head languageSetting) WriteMode
         hPutStrLn outh (languageSetting List.!! 1)
         IO.hClose outh
         -- 查询数据库中的正确答案和题目需要的参数
-        puzzle <- M.selectValidationByPuzzleId "1" (read $ (unpack . decodeUtf8) (paramsMap MAP.! "testIndex") :: Int)
+        puzzle <- M.selectValidationByPuzzleId puzzleId (read $ (unpack . decodeUtf8) (paramsMap MAP.! "testIndex") :: Int)
+        traceM(show(puzzle)) 
         let input = M.validationInput $ List.head puzzle
         --把查询出来的题目参数写入文件
         outh <- IO.openFile (userFolder ++ "/factor.txt") WriteMode
@@ -135,7 +136,7 @@ testParam req = do
         errMessage <- IS.hGetContents err
         
         --删除文件夹及其内容和子目录
-        Dir.removeDirectoryRecursive userFolder
+        --Dir.removeDirectoryRecursive userFolder
         case content of
           Nothing  -> 
             return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= fromString "Timeout: your program did not provide an input in due time.", message="Failure", found="", expected="", errMessage= fromString errMessage})
@@ -154,7 +155,7 @@ testParam req = do
             --根据email 查找 userId
             user <- M.selectUserByUserEmail email
             --更新用户提交的代码
-            M.updateCode $ M.Code "" (M.userEmail $ List.head user) puzzleId languagesId code Nothing Nothing
+            --M.updateCode $ M.Code "" (M.userEmail $ List.head user) puzzleId languagesId code Nothing Nothing
             return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ codeOutput  
 
 
@@ -206,17 +207,9 @@ hasCookieInfo req=do
       
 
 --解析Cookie 参数cokieKey是，请求头中的cookie里面key.返回key对应的value值
-getCookie :: Request -> String -> IO String
-getCookie req cokieKey= do
-  let reqHeaders = requestHeaders req
-      --把请求头变成Map
-      reqMap = MAP.fromList reqHeaders
-      --获取具体的请求头的value
-  
-  traceM(show(reqMap))    
-  let headerMess = reqMap MAP.! (fromString "Cookie")
-  
-  sesso <- Cookie.getCookie headerMess cokieKey
+getCookie :: ByteString -> String -> IO String
+getCookie cookieMess cokieKey= do
+  sesso <- Cookie.getCookie cookieMess cokieKey
   case sesso of
     Just realityMess -> return $ realityMess
     Nothing -> return $ "根据这个" <> cokieKey <> "为key没有对应的value " 

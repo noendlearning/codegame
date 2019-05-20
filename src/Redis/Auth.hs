@@ -26,7 +26,7 @@ newSession userId = do
   --生成UUID
   uuid <- liftIO $ UV.nextRandom
   let sId  = DU.toString uuid
-  result <- withConn $ R.set (fromString sId) (fromString userId) 
+  result <- withConn $ R.setex (fromString sId) (3600*3) (fromString userId)
   case result of
     Right R.Ok -> return $ unpack sId
     err -> S.throwString $ "意外的redis错误: " <> show err
@@ -35,10 +35,13 @@ newSession userId = do
 --根据SessionId查找用户名
 findUserIdBySessionId :: Redis m => SessionId -> m (Maybe UserId)
 findUserIdBySessionId sId = do
+
   result <- withConn $ R.get (fromString sId)
+
+  traceM(show(result))
   return $ case result of
     Right Nothing -> Just "uIdStr"
-    Right (Just uIdStr) -> readMay . unpack . decodeUtf8 $ uIdStr
+    Right (Just uIdStr) ->  return $ unpack . decodeUtf8 $ uIdStr
     err -> S.throwString $ "意外的redis错误: " <> show err
 
 
@@ -48,4 +51,4 @@ deleteUserIdBySessionId sId = do
   result <- withConn $ R.del [(fromString sId)]
   case result of
     Right number -> return $ number
-    err -> S.throwString $ "意外的redis错误: " <> show err    
+    err -> S.throwString $ "意外的redis错误: " <> show err
