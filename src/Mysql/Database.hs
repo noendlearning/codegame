@@ -46,7 +46,7 @@ Puzzle
     createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     createBy String 
     updateBy String Maybe
-    updateTime UTCTime Maybe
+    updateTime UTCTime Maybe default=CURRENT_TIMESTAMP
     inputDescription String
     outputDescription String
     constraints String
@@ -62,7 +62,7 @@ Solution
     language String  
     code String
     puzzleId String
-    updateTime UTCTime Maybe
+    updateTime UTCTime Maybe default=CURRENT_TIMESTAMP
     updateBy String Maybe
     createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     createBy String
@@ -77,7 +77,7 @@ Languages
     createBy String
     createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     updateBy String Maybe
-    updateTime UTCTime Maybe
+    updateTime UTCTime Maybe default=CURRENT_TIMESTAMP
     state MyState
     deriving Show
 Validation
@@ -91,8 +91,10 @@ Validation
     createBy String
     createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     updateBy String Maybe
-    updateTime UTCTime Maybe
+    updateTime UTCTime Maybe default=CURRENT_TIMESTAMP
     state MyState
+    title String
+    UniqueValidationTitle title
     deriving Show
 Code
     uuid String
@@ -102,7 +104,7 @@ Code
     languagesId String
     userCode String 
     createTime UTCTime Maybe default=CURRENT_TIMESTAMP
-    updateTime UTCTime Maybe
+    updateTime UTCTime Maybe default=CURRENT_TIMESTAMP
     deriving Show
 |]
 
@@ -142,7 +144,7 @@ updateCode (Code _ userId puzzleId languagesId userCode _ _)  = do
 -}    
 --向Puzzle插入数据 涉及 Puzzle  Solution  Validation 三张表
 insertPuzzle ::Puzzle->Solution->Validation->IO ()
-insertPuzzle (Puzzle _ title  _ createBy  updateBy _  inputDescription outputDescription constraints categor star picture pstate) (Solution _ language code _ _  update _ create unsolve  sstate)(Validation _ _ input output category orders  createB  _  updateB  _  vstate)= 
+insertPuzzle (Puzzle _ title  _ createBy  updateBy _  inputDescription outputDescription constraints categor star picture pstate) (Solution _ language code _ _  update _ create unsolve  sstate)(Validation _ _ input output category orders  createB  _  updateB  _  vstate vtitle)= 
     inBackend  $ do
         let puuid=unsafePerformIO UV.nextRandom
             suuid=unsafePerformIO UV.nextRandom
@@ -150,7 +152,7 @@ insertPuzzle (Puzzle _ title  _ createBy  updateBy _  inputDescription outputDes
         now <- liftIO getCurrentTime
         insert_ $ Puzzle  (DU.toString puuid)   title   (Just now)   createBy  updateBy  (Just now)  inputDescription  outputDescription  constraints    categor    star  picture  pstate
         insert_ $ Solution ( DU.toString suuid ) language code (DU.toString puuid)  (Just now)  update   (Just now)  create  unsolve   sstate
-        insert_ $ Validation (DU.toString vuuid)  (DU.toString puuid) input output category orders createB  (Just now)  updateB  (Just now)  vstate
+        insert_ $ Validation (DU.toString vuuid)  (DU.toString puuid) input output category orders createB  (Just now)  updateB  (Just now)  vstate vtitle
 
 
 --通过PuzzleUuid 查询所有Puzzle相关内容 包含Puzzle,Validation,Solution三张表
@@ -251,12 +253,12 @@ updateSolution=undefined
 -}
 -- todo
 insertValidationWithPuzzleId::Validation -> IO()
-insertValidationWithPuzzleId (Validation _ puzzleid input output category orders createBy _ updateBy _ state) =
+insertValidationWithPuzzleId (Validation _ puzzleid input output category orders createBy _ updateBy _ state title) =
     inBackend $ do
         let uuid=unsafePerformIO UV.nextRandom
         now <- liftIO getCurrentTime
         --getCurrentTime：从系统时间获取当前utctime
-        insert_ $ Validation (DU.toString uuid) puzzleid input output category orders createBy  (Just now)  updateBy  (Just now)  state
+        insert_ $ Validation (DU.toString uuid) puzzleid input output category orders createBy  (Just now)  updateBy  (Just now)  state title
 --类别：1 2 3 4 简单 中等 困难 专家
 --      insert_ $ Validation (DU.toString uuid) puzzleId input output category orders createBy createTime updateBy updateTime (Just 0)
 --                              uuid            迷题uuid 输入   输出   类别     序号  创建人    创建时间   更新人   更新时间   state
@@ -302,7 +304,11 @@ selectUserByUserEmail email=
                  return u
         liftIO $ mapM (return . entityVal) (user :: [Entity User]) 
         
-        
+myuuid::IO ()
+myuuid = do
+    uuid<-UV.nextRandom
+    print uuid
+
 -- todo
 deleteSolutionByUUID::String->IO ()
 deleteSolutionByUUID =undefined
@@ -473,7 +479,7 @@ selectValidation  =
 
 --接受puzzle validation solution表的对象，来进行更新三张表（通过puzziduuid进行更新）
 updatePuzzleAllByPuzzleUuid :: Puzzle -> Validation -> Solution -> IO()
-updatePuzzleAllByPuzzleUuid (Puzzle uuid title _ _ updateByP _ inputDescription outputDescription constraints categoryP star picture stateP) (Validation _ puzzleIdV input output categoryV orders _ _ updateByV _ stateV) (Solution _ language code puzzleIdS _ updateByS _ _ unsolve stateS) =
+updatePuzzleAllByPuzzleUuid (Puzzle uuid title _ _ updateByP _ inputDescription outputDescription constraints categoryP star picture stateP) (Validation _ puzzleIdV input output categoryV orders _ _ updateByV _ stateV tit) (Solution _ language code puzzleIdS _ updateByS _ _ unsolve stateS) =
                 inBackend $ do
                         updateTime <- liftIO getCurrentTime  
                         E.update $ \p -> do  
@@ -484,7 +490,7 @@ updatePuzzleAllByPuzzleUuid (Puzzle uuid title _ _ updateByP _ inputDescription 
                         E.update $ \p -> do  
                             E.set p  [ValidationInput E.=.E.val input , ValidationOutput E.=.E.val output , ValidationCategory E.=.E.val categoryV ,
                                         ValidationOrders E.=.E.val orders , ValidationUpdateBy E.=.E.val updateByV , ValidationUpdateTime E.=. E.just(E.val updateTime) ,
-                                        ValidationState E.=.E.val stateV ]
+                                        ValidationState E.=.E.val stateV ,ValidationTitle E.=.E.val tit]
                             E.where_ (p ^. ValidationPuzzleId E.==. val puzzleIdV)   
                         E.update $ \p -> do  
                             E.set p  [SolutionLanguage E.=.E.val language , SolutionCode E.=.E.val code , SolutionUpdateTime E.=. E.just(E.val updateTime),

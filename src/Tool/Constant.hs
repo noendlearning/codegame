@@ -24,8 +24,8 @@ originalsalt = "hnbrina2019XN9dUU8uhnbrina2019bQSkvEZIRhnbrina2019UWr9UVWCjzOLsU
 -}
 dbport=3306::Word16
 
---dpip="192.168.0.134"
-dpip="localhost"
+dpip="192.168.0.134"
+-- dpip="localhost"
 
 dpuser="root"
 
