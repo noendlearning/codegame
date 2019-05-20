@@ -60,6 +60,20 @@ loginUser req = do
             -- 把上一步返回的sessionId为设置cookie里面
             cookies <- Cookie.setSessionIdInCookie sessionId
             return $ responseBuilder status200 [("Content-Type","application/json"),("Cookie",cookies)] $ lazyByteString $ encode (CodeOutput {output= "欢迎登录", message="", found="", expected="", errMessage=""})
+
+
+--退出登录
+quitUser :: Request ->IO Response
+quitUser req = do
+      sessionId <- getCookie req "sessionId"
+      number <- R.deleteUserIdBySessionId sessionId 
+      case number of
+        0 -> return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= "无用户", message="", found="", expected="", errMessage=""})
+        1 ->  do
+            return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= "欢迎下次登录", message="", found="", expected="", errMessage=""})
+
+
+
 -- 用户注册
 registerUser::Request->IO Response
 registerUser req = do
@@ -198,7 +212,10 @@ getCookie req cokieKey= do
       --把请求头变成Map
       reqMap = MAP.fromList reqHeaders
       --获取具体的请求头的value
-      headerMess = reqMap MAP.! (fromString "Cookie")
+  
+  traceM(show(reqMap))    
+  let headerMess = reqMap MAP.! (fromString "Cookie")
+  
   sesso <- Cookie.getCookie headerMess cokieKey
   case sesso of
     Just realityMess -> return $ realityMess
