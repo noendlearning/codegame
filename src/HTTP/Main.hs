@@ -32,6 +32,8 @@ app req respond =  do
     Just a->  
       respond $ 
         case pathInfo req of
+          ["quitUser"] -> 
+            unsafePerformIO $ Api.quitUser req 
           ["loginUser"] -> 
             unsafePerformIO $ Api.loginUser req 
           ["registerUser"] -> 
