@@ -65,7 +65,17 @@ type alias Model =
     , testCases2 : TestCases
     , testCases3 : TestCases
     , testCases4 : TestCases
+    , testCases5 : TestCases
     , radioValue : String --用于构建单选框
+    , dataJave : String --用于更改选框中的语言的时候储存文本框中的String
+    , dataPython : String
+    , dataHaskell : String
+    , dataJave_ : String --用于更改选框中的语言的时候储存文本框中的String
+    , dataPython_ : String
+    , dataHaskell_ : String
+    , selectJava : String
+    , selectPython : String
+    , selectHaskell : String
     }
 
 
@@ -77,8 +87,8 @@ init _ =
       , outputDescription = ""
       , constraints = ""
       , testCases1 =
-            { testName = "test1"
-            , validator = "validator1"
+            { testName = ""
+            , validator = ""
             , test =
                 { input = ""
                 , output = ""
@@ -89,8 +99,8 @@ init _ =
                 }
             }
       , testCases2 =
-            { testName = "test2"
-            , validator = "validator2"
+            { testName = ""
+            , validator = ""
             , test =
                 { input = ""
                 , output = ""
@@ -101,8 +111,8 @@ init _ =
                 }
             }
       , testCases3 =
-            { testName = "test3"
-            , validator = "validator3"
+            { testName = ""
+            , validator = ""
             , test =
                 { input = ""
                 , output = ""
@@ -113,8 +123,8 @@ init _ =
                 }
             }
       , testCases4 =
-            { testName = "test4"
-            , validator = "validator4"
+            { testName = ""
+            , validator = ""
             , test =
                 { input = ""
                 , output = ""
@@ -124,7 +134,28 @@ init _ =
                 , output = ""
                 }
             }
-      , radioValue = "简单"
+      , testCases5 =
+            { testName = ""
+            , validator = ""
+            , test =
+                { input = ""
+                , output = ""
+                }
+            , validater =
+                { input = ""
+                , output = ""
+                }
+            }
+      , radioValue = "Easy"
+      , dataJave = ""
+      , dataPython = ""
+      , dataHaskell = ""
+      , dataJave_ = ""
+      , dataPython_ = ""
+      , dataHaskell_ = ""
+      , selectJava = "Java"
+      , selectPython = "Python"
+      , selectHaskell = "Haskell"
       }
     , Cmd.none
     )
@@ -138,8 +169,16 @@ type Msg
     | ChangeInputDescription String
     | ChangeOutputDescription String
     | ChangeConstraints String
-    | ChangeTestCasesTestName String
-    | ChangeTestCasesValidator String
+    | ChangeTestCasesTestName1 String
+    | ChangeTestCasesValidator1 String
+    | ChangeTestCasesTestName2 String
+    | ChangeTestCasesValidator2 String
+    | ChangeTestCasesTestName3 String
+    | ChangeTestCasesValidator3 String
+    | ChangeTestCasesTestName4 String
+    | ChangeTestCasesValidator4 String
+    | ChangeTestCasesTestName5 String
+    | ChangeTestCasesValidator5 String
     | ChangeTestCasesTestInput1 String
     | ChangeTestCasesTestOutput1 String
     | ChangeTestCasesValidaterInput1 String
@@ -156,8 +195,19 @@ type Msg
     | ChangeTestCasesTestOutput4 String
     | ChangeTestCasesValidaterInput4 String
     | ChangeTestCasesValidaterOutput4 String
+    | ChangeTestCasesTestInput5 String
+    | ChangeTestCasesTestOutput5 String
+    | ChangeTestCasesValidaterInput5 String
+    | ChangeTestCasesValidaterOutput5 String
     | ChangeTestCases TestCases
     | TranRadio String
+    | StorageInputJ String --储存解决方案
+    | StorageInputJ_ String
+    | StorageInputP String
+    | StorageInputP_ String
+    | StorageInputH String
+    | StorageInputH_ String
+
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -186,6 +236,7 @@ update msg model =
                                         , ( "inputDescription", Encode.string model.inputDescription )
                                         , ( "outputDescription", Encode.string model.outputDescription )
                                         , ( "constraints", Encode.string model.constraints )
+                                        , ( "game_difficulty", Encode.string model.radioValue)
                                         , ( "testCases1"
                                           , Encode.object
                                                 [ ( "testName1", Encode.string model.testCases1.testName )
@@ -258,6 +309,33 @@ update msg model =
                                                   )
                                                 ]
                                           )
+                                        , ( "testCases5"
+                                          , Encode.object
+                                              [ ( "testName5", Encode.string model.testCases5.testName )
+                                              , ( "validator5", Encode.string model.testCases5.validator )
+                                              , ( "test5"
+                                                , Encode.object
+                                                      [ ( "input", Encode.string model.testCases5.test.input )
+                                                      , ( "output", Encode.string model.testCases5.test.output )
+                                                      ]
+                                                )
+                                              , ( "validater5"
+                                                , Encode.object
+                                                      [ ( "input", Encode.string model.testCases5.validater.input )
+                                                      , ( "output", Encode.string model.testCases5.validater.output )
+                                                      ]
+                                                )
+                                              ]
+                                         )
+                                      , ( "Solution_language_Java",Encode.string model.selectJava)
+                                      , ( "Solution_Java",Encode.string model.dataJave)
+                                      , ( "Unresolved_Java",Encode.string model.dataJave_)
+                                      , ( "Solution_language_Python",Encode.string model.selectPython)
+                                      , ( "Solution_Python",Encode.string model.dataPython)
+                                      , ( "Unresolved_Python",Encode.string model.dataPython_)
+                                      , ( "Solution_language_Haskell",Encode.string model.selectHaskell)
+                                      , ( "Solution_Haskell",Encode.string model.dataHaskell)
+                                      , ( "Unresolved_Haskell",Encode.string model.dataHaskell_)
                                         ]
                                     )
                                 )
@@ -281,11 +359,35 @@ update msg model =
         ChangeConstraints newConstraints ->
             ( { model | constraints = newConstraints }, Cmd.none )
 
-        ChangeTestCasesTestName newTestCasesTestName ->
-            updateTestName (\testCases -> { testCases | testName = newTestCasesTestName }) model
+        ChangeTestCasesTestName1 newTestCasesTestName ->
+            updateTestName1 (\testCases -> { testCases | testName = newTestCasesTestName }) model
 
-        ChangeTestCasesValidator newTestCasesValidator ->
-            updateTestName (\testCases -> { testCases | validator = newTestCasesValidator }) model
+        ChangeTestCasesValidator1 newTestCasesValidator ->
+            updateTestName1 (\testCases -> { testCases | validator = newTestCasesValidator }) model
+
+        ChangeTestCasesTestName2 newTestCasesTestName ->
+            updateTestName2 (\testCases -> { testCases | testName = newTestCasesTestName }) model
+
+        ChangeTestCasesValidator2 newTestCasesValidator ->
+            updateTestName2 (\testCases -> { testCases | validator = newTestCasesValidator }) model
+
+        ChangeTestCasesTestName3 newTestCasesTestName ->
+            updateTestName3 (\testCases -> { testCases | testName = newTestCasesTestName }) model
+
+        ChangeTestCasesValidator3 newTestCasesValidator ->
+            updateTestName3 (\testCases -> { testCases | validator = newTestCasesValidator }) model
+
+        ChangeTestCasesTestName4 newTestCasesTestName ->
+            updateTestName4 (\testCases -> { testCases | testName = newTestCasesTestName }) model
+
+        ChangeTestCasesValidator4 newTestCasesValidator ->
+            updateTestName4 (\testCases -> { testCases | validator = newTestCasesValidator }) model
+
+        ChangeTestCasesTestName5 newTestCasesTestName ->
+            updateTestName5 (\testCases -> { testCases | testName = newTestCasesTestName }) model
+
+        ChangeTestCasesValidator5 newTestCasesValidator ->
+            updateTestName5 (\testCases -> { testCases | validator = newTestCasesValidator }) model
 
         ChangeTestCasesTestInput1 newTestCasesTestInput ->
             updateTestCasesTestInput1 (\test -> { test | input = newTestCasesTestInput }) model.testCases1 model
@@ -335,16 +437,64 @@ update msg model =
         ChangeTestCasesValidaterOutput4 newTestCasesValidaterOutput ->
             updateTestCasesValidater4 (\validater -> { validater | output = newTestCasesValidaterOutput }) model.testCases4 model
 
+        ChangeTestCasesTestInput5 newTestCasesTestInput ->
+            updateTestCasesTestInput5 (\test -> { test | input = newTestCasesTestInput }) model.testCases5 model
+
+        ChangeTestCasesTestOutput5 newTestCasesTestOutput ->
+            updateTestCasesTestInput5 (\test -> { test | output = newTestCasesTestOutput }) model.testCases5 model
+
+        ChangeTestCasesValidaterInput5 newTestCasesValidaterInput ->
+            updateTestCasesValidater5 (\validater -> { validater | input = newTestCasesValidaterInput }) model.testCases5 model
+
+        ChangeTestCasesValidaterOutput5 newTestCasesValidaterOutput ->
+            updateTestCasesValidater5 (\validater -> { validater | output = newTestCasesValidaterOutput }) model.testCases5 model
+
         ChangeTestCases newTestCases ->
             ( model, Cmd.none )
 
         TranRadio value ->
             ( { model | radioValue = value }, Cmd.none )
 
+        StorageInputJ inputData ->
+          ({model | dataJave = inputData},Cmd.none)
 
-updateTestName : (TestCases -> TestCases) -> Model -> ( Model, Cmd Msg )
-updateTestName transform model =
+        StorageInputJ_ inputData ->
+          ({model | dataJave_ = inputData},Cmd.none)
+
+        StorageInputP inputData ->
+          ({model | dataPython = inputData},Cmd.none)
+
+        StorageInputP_ inputData ->
+          ({model | dataPython_ = inputData},Cmd.none)
+
+        StorageInputH inputData ->
+          ({model | dataHaskell = inputData},Cmd.none)
+
+        StorageInputH_ inputData ->
+          ({model | dataHaskell_ = inputData},Cmd.none)
+
+
+
+
+updateTestName1 : (TestCases -> TestCases) -> Model -> ( Model, Cmd Msg )
+updateTestName1 transform model =
     ( { model | testCases1 = transform model.testCases1 }, Cmd.none )
+
+updateTestName2 : (TestCases -> TestCases) -> Model -> ( Model, Cmd Msg )
+updateTestName2 transform model =
+    ( { model | testCases2 = transform model.testCases2 }, Cmd.none )
+
+updateTestName3 : (TestCases -> TestCases) -> Model -> ( Model, Cmd Msg )
+updateTestName3 transform model =
+    ( { model | testCases3 = transform model.testCases3 }, Cmd.none )
+
+updateTestName4 : (TestCases -> TestCases) -> Model -> ( Model, Cmd Msg )
+updateTestName4 transform model =
+    ( { model | testCases4 = transform model.testCases4 }, Cmd.none )
+
+updateTestName5 : (TestCases -> TestCases) -> Model -> ( Model, Cmd Msg )
+updateTestName5 transform model =
+    ( { model | testCases5 = transform model.testCases5 }, Cmd.none )
 
 --像json中低层级的key中添加值的一组方法
 updateTestCasesTestInput1 : (TestCases_Test -> TestCases_Test) -> TestCases -> Model -> ( Model, Cmd Msg )
@@ -363,6 +513,10 @@ updateTestCasesTestInput4 : (TestCases_Test -> TestCases_Test) -> TestCases -> M
 updateTestCasesTestInput4 transdate testCases4 model =
     ( { model | testCases4 = { testCases4 | test = transdate model.testCases4.test } }, Cmd.none )
 
+updateTestCasesTestInput5 : (TestCases_Test -> TestCases_Test) -> TestCases -> Model -> ( Model, Cmd Msg )
+updateTestCasesTestInput5 transdate testCases5 model =
+    ( { model | testCases5 = { testCases5 | test = transdate model.testCases5.test } }, Cmd.none )
+
 
 updateTestCasesValidater1 : (TestCases_Validater -> TestCases_Validater) -> TestCases -> Model -> ( Model, Cmd Msg )
 updateTestCasesValidater1 transdate testCases1 model =
@@ -380,19 +534,23 @@ updateTestCasesValidater4 : (TestCases_Validater -> TestCases_Validater) -> Test
 updateTestCasesValidater4 transdate testCases4 model =
     ( { model | testCases4 = { testCases4 | validater = transdate model.testCases4.validater } }, Cmd.none )
 
+updateTestCasesValidater5 : (TestCases_Validater -> TestCases_Validater) -> TestCases -> Model -> ( Model, Cmd Msg )
+updateTestCasesValidater5 transdate testCases5 model =
+    ( { model | testCases5 = { testCases5 | validater = transdate model.testCases5.validater } }, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
     div
         [ style "background-color" "#454c55"
         , style "width" "100%"
-        , style "height" "3500px"
+        , style "height" "4500px"
         ]
         [ div
             [ style "position" "absolute"
             , style "top" "50%"
             , style "left" "50%"
-            , style "height" "3300px"
+            , style "height" "4300px"
             , style "width" "50%"
             , style "margin" "-15% 0 0 -25%"
             , style "border" "1px solid #aaaaaa"
@@ -461,22 +619,27 @@ view model =
                     ]
                     []
                 , div
-                    --Game modes
+                    --Game modes 已转变成游戏难度
                     [ style "width" "100%"
                     , style "height" "120px"
                     ]
                     [ p [] [ text "游戏难度" ]
-                    , label [] [ input [ type_ "radio", value "简单", checked (model.radioValue == "简单"), onClick (TranRadio "简单") ] [], text "简单" ]
-                    , label [] [ input [ type_ "radio", value "中等", checked (model.radioValue == "中等"), onClick (TranRadio "中等") ] [], text "中等" ]
-                    , label [] [ input [ type_ "radio", value "困难", checked (model.radioValue == "困难"), onClick (TranRadio "困难") ] [], text "困难" ]
-                    , label [] [ input [ type_ "radio", value "专家", checked (model.radioValue == "专家"), onClick (TranRadio "专家") ] [], text "专家" ]
+                    , label [] [ input [ type_ "radio", value "Easy", checked (model.radioValue == "Easy"), onClick (TranRadio "Easy") ] [], text "简单" ]
+                    , label [] [ input [ type_ "radio", value "Medium", checked (model.radioValue == "Medium"), onClick (TranRadio "Medium") ] [], text "中等" ]
+                    , label [] [ input [ type_ "radio", value "Difficult", checked (model.radioValue == "Difficult"), onClick (TranRadio "Difficult") ] [], text "困难" ]
+                    , label [] [ input [ type_ "radio", value "Expert", checked (model.radioValue == "Expert"), onClick (TranRadio "Expert") ] [], text "专家" ]
                     ]
                 , div
                     --Test cases
                     [ style "width" "100%"
                     ]
                     [ text "测试用例"
-                    , p [ style "color" "#838891" ] [ text "测试1" ]
+                    , input [ style "color" "#838891"
+                            , placeholder "测试1"
+                            , style "display" "block"
+                            , style "margin-bottom" "10px"
+                            , value model.testCases1.testName
+                            , onInput ChangeTestCasesTestName1 ] []
                     , textarea
                         [ placeholder "输入"
                         , style "width" "45%"
@@ -494,7 +657,12 @@ view model =
                         , onInput ChangeTestCasesTestOutput1
                         ]
                         []
-                    , p [ style "color" "#838891" ] [ text "验证器1" ]
+                    , input [ style "color" "#838891"
+                              , placeholder "验证1"
+                              , style "display" "block"
+                              , style "margin-bottom" "10px"
+                              , value model.testCases1.validator
+                              , onInput ChangeTestCasesValidator1 ] []
                     , textarea
                         [ placeholder "输入"
                         , style "width" "45%"
@@ -513,12 +681,17 @@ view model =
                         ]
                         []
                     , div
-                        --分割线
+                        --分割线 测试和验证2
                         [ style "border" "1px solid #bbbbbb"
                         , style "margin-top" "20px"
                         ]
                         []
-                    , p [ style "color" "#838891" ] [ text "测试2" ]
+                    , input [ style "color" "#838891"
+                            , placeholder "测试2"
+                            , style "display" "block"
+                            , style "margin-bottom" "10px"
+                            , value model.testCases2.testName
+                            , onInput ChangeTestCasesTestName2 ] []
                     , textarea
                         [ placeholder "输入"
                         , style "width" "45%"
@@ -536,7 +709,12 @@ view model =
                         , onInput ChangeTestCasesTestOutput2
                         ]
                         []
-                    , p [ style "color" "#838891" ] [ text "验证器2" ]
+                    , input [ style "color" "#838891"
+                            , placeholder "验证2"
+                            , style "display" "block"
+                            , style "margin-bottom" "10px"
+                            , value model.testCases2.validator
+                            , onInput ChangeTestCasesValidator2 ] []
                     , textarea
                         [ placeholder "输入"
                         , style "width" "45%"
@@ -555,12 +733,17 @@ view model =
                         ]
                         []
                     , div
-                        --分割线
+                        --分割线 测试和验证3
                         [ style "border" "1px solid #bbbbbb"
                         , style "margin-top" "20px"
                         ]
                         []
-                    , p [ style "color" "#838891" ] [ text "测试3" ]
+                    , input [ style "color" "#838891"
+                            , placeholder "测试3"
+                            , style "display" "block"
+                            , style "margin-bottom" "10px"
+                            , value model.testCases3.testName
+                            , onInput ChangeTestCasesTestName3 ] []
                     , textarea
                         [ placeholder "输入"
                         , style "width" "45%"
@@ -578,7 +761,12 @@ view model =
                         , onInput ChangeTestCasesTestOutput3
                         ]
                         []
-                    , p [ style "color" "#838891" ] [ text "验证3" ]
+                    , input [ style "color" "#838891"
+                            , placeholder "验证3"
+                            , style "display" "block"
+                            , style "margin-bottom" "10px"
+                            , value model.testCases3.validator
+                            , onInput ChangeTestCasesValidator3 ] []
                     , textarea
                         [ placeholder "输入"
                         , style "width" "45%"
@@ -597,12 +785,17 @@ view model =
                         ]
                         []
                     , div
-                        --分割线
+                        --分割线 测试和验证4
                         [ style "border" "1px solid #bbbbbb"
                         , style "margin-top" "20px"
                         ]
                         []
-                    , p [ style "color" "#838891" ] [ text "测试4" ]
+                    , input [ style "color" "#838891"
+                            , placeholder "测试4"
+                            , style "display" "block"
+                            , style "margin-bottom" "10px"
+                            , value model.testCases4.testName
+                            , onInput ChangeTestCasesTestName4 ] []
                     , textarea
                         [ placeholder "输入"
                         , style "width" "45%"
@@ -620,7 +813,12 @@ view model =
                         , onInput ChangeTestCasesTestOutput4
                         ]
                         []
-                    , p [ style "color" "#838891" ] [ text "验证4" ]
+                    , input [ style "color" "#838891"
+                            , placeholder "验证4"
+                            , style "display" "block"
+                            , style "margin-bottom" "10px"
+                            , value model.testCases4.validator
+                            , onInput ChangeTestCasesValidator4 ] []
                     , textarea
                         [ placeholder "输入"
                         , style "width" "45%"
@@ -638,7 +836,59 @@ view model =
                         , onInput ChangeTestCasesValidaterOutput4
                         ]
                         []
-                    , button
+                    , div
+                        --分割线 测试和验证5
+                        [ style "border" "1px solid #bbbbbb"
+                        , style "margin-top" "20px"
+                        ]
+                        []
+                    , input [ style "color" "#838891"
+                            , placeholder "测试5"
+                            , style "display" "block"
+                            , style "margin-bottom" "10px"
+                            , value model.testCases5.testName
+                            , onInput ChangeTestCasesTestName5 ] []
+                    , textarea
+                        [ placeholder "输入"
+                        , style "width" "45%"
+                        , style "height" "80px"
+                        , value model.testCases5.validater.input
+                        , onInput ChangeTestCasesTestInput5
+                        ]
+                        []
+                    , textarea
+                        [ placeholder "输出"
+                        , style "width" "45%"
+                        , style "height" "80px"
+                        , style "margin-left" "20px"
+                        , value model.testCases5.validater.output
+                        , onInput ChangeTestCasesTestOutput5
+                        ]
+                        []
+                    , input [ style "color" "#838891"
+                            , placeholder "验证5"
+                            , style "display" "block"
+                            , style "margin-bottom" "10px"
+                            , value model.testCases5.validator
+                            , onInput ChangeTestCasesValidator5 ] []
+                    , textarea
+                        [ placeholder "输入"
+                        , style "width" "45%"
+                        , style "height" "80px"
+                        , value model.testCases5.validater.input
+                        , onInput ChangeTestCasesValidaterInput5
+                        ]
+                        []
+                    , textarea
+                        [ placeholder "输出"
+                        , style "width" "45%"
+                        , style "height" "80px"
+                        , style "margin-left" "20px"
+                        , value model.testCases5.validater.output
+                        , onInput ChangeTestCasesValidaterOutput5
+                        ]
+                        []
+                    , div
                         [ style "width" "150px"
                         , style "height" "30px"
                         , style "background-color" "rgba(69,76,85,0.15)"
@@ -651,14 +901,7 @@ view model =
                     , style "margin-top" "20px"
                     ]
                     [ p [] [ text "解决语言" ]
-                    , select
-                        [ style "width" "100px"
-                        , style "height" "30px"
-                        ]
-                        [ option [] [ text "Java" ]
-                        , option [] [ text "Python" ]
-                        , option [] [ text "Haskell" ]
-                        ]
+                    , p [] [text "Java"]
                     ]
                 , div []
                     --
@@ -666,6 +909,8 @@ view model =
                     , textarea
                         [ style "width" "100%"
                         , style "height" "200px"
+                        , value model.dataJave
+                        , onInput StorageInputJ
                         ]
                         []
                     ]
@@ -675,10 +920,76 @@ view model =
                     , textarea
                         [ style "width" "100%"
                         , style "height" "200px"
+                        , value model.dataJave_
+                        , onInput StorageInputJ_
                         ]
                         []
                     ]
-
+                , div
+                    [ style "width" "100%"
+                    , style "margin-top" "20px"
+                    ]
+                    [ p [] [ text "解决语言" ]
+                    , p [] [text "Python"]
+                    ]
+                , div []
+                    --
+                    [ p [] [ text "解决方案" ]
+                    , textarea
+                        [ style "width" "100%"
+                        , style "height" "200px"
+                        , value model.dataPython
+                        , onInput StorageInputP
+                        ]
+                        []
+                    ]
+                , div []
+                    --Stub generator input
+                    [ p [] [ text "未解决方案" ]
+                    , textarea
+                        [ style "width" "100%"
+                        , style "height" "200px"
+                        , value model.dataPython_
+                        , onInput StorageInputP_
+                        ]
+                        []
+                    ]
+                , div
+                    [ style "width" "100%"
+                    , style "margin-top" "20px"
+                    ]
+                    [ p [] [ text "解决语言" ]
+                    , p [] [text "Haske"]
+                    ]
+                , div []
+                    --
+                    [ p [] [ text "解决方案" ]
+                    , textarea
+                        [ style "width" "100%"
+                        , style "height" "200px"
+                        , value model.dataHaskell
+                        , onInput StorageInputH
+                        ]
+                        []
+                    ]
+                , div []
+                    --Stub generator input
+                    [ p [] [ text "未解决方案" ]
+                    , textarea
+                        [ style "width" "100%"
+                        , style "height" "200px"
+                        , value model.dataHaskell_
+                        , onInput StorageInputH_
+                        ]
+                        []
+                    ]
+                , div [
+                      style "display" "inline-block"
+                    , style "width" "100%"
+                    , style "height" "50px"
+                    , style "background-color" "rgba(242,187,19,0.7)"
+                    , style "margin-bottom" "20px"
+                ] [text "提交方案"]
 
                 , div []
                     [

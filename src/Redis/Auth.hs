@@ -30,6 +30,8 @@ newSession userId = do
   case result of
     Right R.Ok -> return $ unpack sId
     err -> S.throwString $ "意外的redis错误: " <> show err
+
+    
 --根据SessionId查找用户名
 findUserIdBySessionId :: Redis m => SessionId -> m (Maybe UserId)
 findUserIdBySessionId sId = do
@@ -38,3 +40,12 @@ findUserIdBySessionId sId = do
     Right Nothing -> Just "uIdStr"
     Right (Just uIdStr) -> readMay . unpack . decodeUtf8 $ uIdStr
     err -> S.throwString $ "意外的redis错误: " <> show err
+
+
+--根据SessionId删除用户
+deleteUserIdBySessionId :: Redis m => SessionId ->  m Integer
+deleteUserIdBySessionId sId = do
+  result <- withConn $ R.del [(fromString sId)]
+  case result of
+    Right number -> return $ number
+    err -> S.throwString $ "意外的redis错误: " <> show err    
