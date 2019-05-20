@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Mysql.Database   where
 
 import ClassyPrelude
@@ -94,7 +96,6 @@ Validation
     updateTime UTCTime Maybe default=CURRENT_TIMESTAMP
     state MyState
     title String
-    UniqueValidationTitle title
     deriving Show
 Code
     uuid String
