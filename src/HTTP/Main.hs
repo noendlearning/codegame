@@ -15,7 +15,6 @@ main port = do
   print port
   run port app
 
-    
 app :: Application
 app req respond =  do
   res <- Api.hasCookieInfo req
@@ -51,9 +50,8 @@ app req respond =  do
             resFile "text/html" "static/index.html"  
           ["code"] ->
               unsafePerformIO $ Api.resData req   
-          _ -> res404      
-
-
+          _ -> res404    
+            
 resFile :: ByteString -> FilePath -> Response
 resFile contentType filename = responseFile status200 [("Content-Type", contentType)] filename Nothing    
 

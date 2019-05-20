@@ -13,7 +13,7 @@ import qualified Data.Map.Lazy as MAP
 --import Domain.Auth
 import Model
 import qualified HTTP.API.Tool as Tool
-import Data.Aeson (encode,decode)
+import Data.Aeson
 import System.Process
 import qualified System.IO.Strict as IS (hGetContents)
 import qualified Data.List as List
@@ -24,6 +24,7 @@ import qualified System.Directory as Dir
 import Tool.Types
 import Text.Read
 import Control.Exception
+import Data.Sequence as Seq
 
 -- 获取初始化代码
 initCode ::Request ->IO Response
@@ -196,6 +197,7 @@ resData req = do
     IO.hClose outh 
     return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ " "
 
+-- 请求里是否携带cookie信息
 hasCookieInfo::Request ->IO (Maybe ByteString)
 hasCookieInfo req=do
   let reqHeaders = requestHeaders req
@@ -220,3 +222,14 @@ getCookie req cokieKey= do
   case sesso of
     Just realityMess -> return $ realityMess
     Nothing -> return $ "根据这个" <> cokieKey <> "为key没有对应的value " 
+
+listAll::Request ->IO Response
+listAll req=do
+  puzzles<-M.selectPuzzleByCategory Easy 0
+  do
+    ClassyPrelude.print . encode $ puzzles 
+  case puzzles of
+    []->
+      return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ "数据库查询出错"
+    _->  
+      return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode puzzles
