@@ -27,8 +27,8 @@ app req respond = respond $
             unsafePerformIO $ Api.testParam req   
       ["init"] -> 
         unsafePerformIO $ Api.initCode req 
-      -- ["list"]->
-      --   unsafePerformIO $ Api.listAll req  
+      ["list"]->
+        unsafePerformIO $ Api.listAll req  
       ["static", subDir, fileName] -> 
             serveStatic subDir fileName  
       [] -> 
