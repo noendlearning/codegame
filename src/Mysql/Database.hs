@@ -474,13 +474,3 @@ deleteUser email = inBackend .
         E.delete $ 
         E.from $ \p -> do
         E.where_ (p ^. UserEmail E.==. E.val email)
-
--- data JPuzzle=JPuzzle{
---     jtitle::String
---     }  deriving (Show,Generic)
--- instance ToJSON JPuzzle 
--- instance FromJSON JPuzzle    
-    
--- toJPuzzles::[M.Puzzle]->[JPuzzle]
--- toJPuzzles arr=
---     foldr (\x->JPuzzle $ puzzleTitle . entityVal $ x) [] arr         
