@@ -42,6 +42,8 @@ app req respond =  do
                 unsafePerformIO $ Api.testParam req   
           ["init"] -> 
             unsafePerformIO $ Api.initCode req 
+          ["list"]->
+            unsafePerformIO $ Api.listAll req  
           ["static", subDir, fileName] -> 
                 serveStatic subDir fileName  
           [] -> 
@@ -52,6 +54,25 @@ app req respond =  do
               unsafePerformIO $ Api.resData req   
           _ -> res404    
             
+-- app req respond = respond $ 
+--     case pathInfo req of
+--       ["loginUser"] -> 
+--         unsafePerformIO $ Api.loginUser req 
+--       ["registerUser"] -> 
+--         unsafePerformIO $ Api.registerUser req   
+--       ["play"] -> 
+--             -- unsafePerformIO 函数是取出IO中的 Response
+--             unsafePerformIO $ Api.testParam req   
+--       ["init"] -> 
+--         unsafePerformIO $ Api.initCode req 
+--       ["list"]->
+--         unsafePerformIO $ Api.listAll req  
+--       ["static", subDir, fileName] -> 
+--             serveStatic subDir fileName  
+--       [] -> 
+--         resFile "text/html" "static/index.html"  
+--       _ -> res404       
+
 resFile :: ByteString -> FilePath -> Response
 resFile contentType filename = responseFile status200 [("Content-Type", contentType)] filename Nothing    
 
