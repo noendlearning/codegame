@@ -218,3 +218,16 @@ listAll req=do
       return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ "数据库查询出错"
     _->  
       return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode puzzles
+      
+{- 
+根据类别查询puzzles，
+easy medium hard professional
+-}
+easyPuzzles::PCategory->Request->IO Response
+easyPuzzles p req=do
+    puzzles<-M.selectPuzzleByCategory  p 0   
+    case puzzles of
+      []->
+        return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ "数据库查询出错"
+      _->
+        return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode puzzles
