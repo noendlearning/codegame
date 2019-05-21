@@ -206,13 +206,13 @@ selectValidationByPuzzleId uuid orders =
         liftIO $ mapM (return .entityVal) (valida :: [Entity Validation])
         
   
---通过Puzzle表的uuid 查询Solution表内容
-selectSolutionByUUID :: String -> IO [Solution]
-selectSolutionByUUID uuid = 
+--通过Puzzle表的uuid 和 language表的uuid 查询Solution表内容
+selectSolutionByUUID :: String -> String -> IO [Solution]
+selectSolutionByUUID puzzleId languageId= 
     inBackend $ do
         solution  <- E.select $
                      E.from $ \p -> do
-                     E.where_ (p ^. SolutionPuzzleId E.==. E.val uuid)
+                     E.where_ (p ^. SolutionPuzzleId E.==. E.val puzzleId &&. p ^. SolutionLanguage E.==. E.val languageId)
                      return p
         liftIO $ mapM (return .entityVal) (solution :: [Entity Solution])                
 
