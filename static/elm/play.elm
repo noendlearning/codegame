@@ -285,10 +285,10 @@ view model =
                                             [ text "Java" ]
                                         , option
                                             [ case model.language of 
-                                            "python" ->selected True 
+                                            "python3" ->selected True 
                                             _->selected False
-                                            ,onClick (CheckLanguage "python")]
-                                            [ text "Python" ]
+                                            ,onClick (CheckLanguage "python3")]
+                                            [ text "Python3" ]
 
                                         -- , option
                                         --     []
@@ -459,7 +459,7 @@ init _ =
       , errMessage = ""
       , codeState = Loading
       , testIndex = 0 
-      , language = "python"
+      , language = "python3"
       , batchSubmit=False
       }
     , --Cmd.none
@@ -476,7 +476,7 @@ initCode language=
         , body =
             multipartBody
             -- FIXME 初始默认是python
-                [ stringPart "language" ( if (String.isEmpty language) then "python" else language)
+                [ stringPart "language" ( if (String.isEmpty language) then "python3" else language)
                 ]
         , expect = Http.expectString GotText
         }

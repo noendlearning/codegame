@@ -40,7 +40,7 @@ findUserIdBySessionId sId = do
 
   traceM(show(result))
   return $ case result of
-    Right Nothing -> Just "uIdStr"
+    --Right Nothing -> Just "uIdStr"
     Right (Just uIdStr) ->  return $ unpack . decodeUtf8 $ uIdStr
     err -> S.throwString $ "意外的redis错误: " <> show err
 

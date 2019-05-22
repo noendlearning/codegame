@@ -33,16 +33,9 @@ initCode req = do
         "### \n#   \n##  \n#   \n### " Major 1 "createBy" Nothing (Just "updateBy")  Nothing Normal "" -}
     (params, _) <- parseRequestBody lbsBackEnd req
     let paramsMap = mapFromList params :: Map ByteString ByteString
-    let language =(paramsMap MAP.! "language")
-    -- FIXME 文件名
-    let pathName = "./static/init/"++ case language of
-                                          -- "python"->"python.py" 
-                                          "java"->"Solution.java"
-                                          "haskell"->"haskell.hs"
-                                          _->"python.py"
-    inpStr <- IO.readFile pathName
-    -- ,language=if language == "" then "python" else language
-    let codeList= encode (CodeList {codeList = inpStr})
+    solution <- M.selectSolutionByUUID ((unpack . decodeUtf8) $ paramsMap MAP.! "puzzleId") $ (unpack . decodeUtf8) $ paramsMap MAP.! "languageId"
+    let code = M.solutionCode $ List.head solution
+        codeList= encode (CodeList {codeList = code})
     return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ codeList
 
 --用户登录
@@ -100,7 +93,7 @@ testParam cookieMess req = do
     email <- R.findUserIdBySessionId sessionId
     case email of
       Nothing -> do
-        return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= fromString "请先登录在提交代码", message="", found="", expected="", errMessage= ""})  
+        return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= fromString "cookie失效，请先登录在提交代码", message="", found="", expected="", errMessage= ""})  
       Just email -> do
         -- 为每个用户新建一个文件夹，这个是文件夹的路径。使用完之后删除
         let userFolder = "./static/"++ email
@@ -144,9 +137,8 @@ testParam cookieMess req = do
             let contents = List.lines value
             --从数据库中获取正确的答案
             let output = M.validationOutput $ List.head puzzle
-            let inpStrs = List.lines output
-
-            let codeOutput =  if contents == inpStrs
+                inpStrs = List.lines output
+                codeOutput =  if contents == inpStrs
                               then 
                                 encode (CodeOutput {output=fromString value, message="Success", found="", expected="", errMessage= fromString errMessage})
                               else encode (CodeOutput {output=fromString value, message="Failure", found=List.head contents, expected=List.head inpStrs, errMessage= fromString errMessage})      

@@ -38,37 +38,37 @@ view model =
             [ a
                 [ href "#" ]
                 [ img
-                    [ src "static/images/head.png" ]
+                    [ src "/static/images/head.png" ]
                     []
                 ]
             , a
                 [ href "#" ]
                 [ img
-                    [ src "static/images/level.png" ]
+                    [ src "/static/images/level.png" ]
                     []
                 ]
             , a
                 [ href "#" ]
                 [ img
-                    [ src "static/images/btn1.png" ]
+                    [ src "/static/images/btn1.png" ]
                     []
                 ]
             , a
                 [ href "#" ]
                 [ img
-                    [ src "static/images/btn2.png" ]
+                    [ src "/static/images/btn2.png" ]
                     []
                 ]
             , a
                 [ href "#" ]
                 [ img
-                    [ src "static/images/btn3.png" ]
+                    [ src "/static/images/btn3.png" ]
                     []
                 ]
             , a
                 [ href "#" ]
                 [ img
-                    [ src "static/images/btn4.png" ]
+                    [ src "/static/images/btn4.png" ]
                     []
                 ]
             , div
@@ -76,7 +76,7 @@ view model =
                 [ a
                     [ href "#" ]
                     [ img
-                        [ src "static/images/friends.png" ]
+                        [ src "/static/images/friends.png" ]
                         []
                     ]
                 ]
@@ -150,7 +150,7 @@ view model =
                                 , div
                                     [ class "img_one" ]
                                     [ img
-                                        [ src "static/images/menu.png" ]
+                                        [ src "/static/images/menu.png" ]
                                         []
                                     ]
                                 ]
@@ -167,7 +167,7 @@ view model =
                                     , span
                                         [ class "img_0" ]
                                         [ img
-                                            [ src "static/images/01.png" ]
+                                            [ src "/static/images/01.png" ]
                                             []
                                         ]
                                     , div
@@ -185,7 +185,7 @@ view model =
                                     , span
                                         [ class "img_0" ]
                                         [ img
-                                            [ src "static/images/02.png" ]
+                                            [ src "/static/images/02.png" ]
                                             []
                                         ]
                                     , div
@@ -203,7 +203,7 @@ view model =
                                     , span
                                         [ class "img_0" ]
                                         [ img
-                                            [ src "static/images/03.png" ]
+                                            [ src "/static/images/03.png" ]
                                             []
                                         ]
                                     , div
@@ -221,7 +221,7 @@ view model =
                                     , span
                                         [ class "img_0" ]
                                         [ img
-                                            [ src "static/images/04.png" ]
+                                            [ src "/static/images/04.png" ]
                                             []
                                         ]
                                     , div
@@ -239,7 +239,7 @@ view model =
                                     , span
                                         [ class "img_0" ]
                                         [ img
-                                            [ src "static/images/05.png" ]
+                                            [ src "/static/images/05.png" ]
                                             []
                                         ]
                                     , div
