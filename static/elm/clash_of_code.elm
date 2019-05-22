@@ -959,7 +959,7 @@ view model =
                     , style "margin-top" "20px"
                     ]
                     [ p [] [ text "解决语言" ]
-                    , p [] [text "Haske"]
+                    , p [] [text "Haskell"]
                     ]
                 , div []
                     --

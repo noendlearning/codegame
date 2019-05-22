@@ -32,6 +32,8 @@ app req respond =  do
           serveStatic subDir fileName  
         ["toplay"]->
           resFile "text/html" "static/play.html"  
+        ["addpuzzle"]->
+          resFile "text/html" "static/addpuzzle.html"  
         _-> 
           resFile "text/html" "static/index.html"  
     Just cookieMess->  
@@ -58,6 +60,8 @@ app req respond =  do
             resFile "text/html" "static/index.html"  
           ["index"] -> 
             resFile "text/html" "static/index.html"  
+          ["addpuzzle"] -> 
+            resFile "text/html" "static/addpuzzle.html"  
           ["code"] ->
               unsafePerformIO $ Api.resData req   
           _ -> res404    
