@@ -290,7 +290,7 @@ selectPuzzleByUserUuid uuid=
 selectUserUuidByUserEmail :: String -> IO [String]
 selectUserUuidByUserEmail email=
     inBackend $ do
-        user<- E.select $ 
+        user<-   E.select $ 
                  E.from $ \u->do
                  E.where_ (u ^. UserEmail E.==. E.val email)
                  return u
@@ -331,6 +331,19 @@ queryAllLanguageWithNormalState =
                     E.where_ (l ^. LanguagesState E.==. E.val Normal)
                     return l
         liftIO $ mapM (return . languagesLanguage . entityVal) (languages::[Entity Languages])
+
+
+--通过language查询Language表的uuid
+selectLanguagesUuidByLanguage :: String -> IO [String]
+selectLanguagesUuidByLanguage language =
+    inBackend $ do 
+        uuid <-  E.select $
+                 E.from $ \l -> do
+                 E.where_ (l ^. LanguagesLanguage E.==. E.val language)
+                 return l
+        liftIO $ mapM (return . languagesUuid . entityVal) (uuid :: [Entity Languages])
+
+
 
 {- 
 * user表的增删改查
