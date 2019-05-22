@@ -5,7 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick,onInput)
 import Http exposing (..)
-
+import Browser.Navigation as Nav
 
 -- main =
 --     Browser.sandbox { init = init, update = update, view = view }
@@ -67,7 +67,7 @@ type Msg
     | SingupSubmit                            --注册提交
     -- | NoExpect (Result Http.Error String)
     | GotText (Result Http.Error String)
-    | NoNeeResult (Result Http.Error String)
+    -- | NoNeeResult (Result Http.Error String)
     | ChangeEmail String
     | ChangePwd String
 
@@ -104,13 +104,13 @@ registerUser singup=
         , expect = Http.expectString GotText
         }
 
-gohome:Cmd Msg
-gohome=
-    Http.get
-        {
-            url="/gohome",
-            expect=Http.expectString NoNeeResult
-        }
+-- gohome:Cmd Msg
+-- gohome=
+--     Http.get
+--         {
+--             url="/toplay",
+--             expect=Http.expectString NoNeeResult
+--         }
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -123,10 +123,13 @@ update msg model =
             let login=model.form
             in
                 (model,registerUser login)
-        GotText _ ->
-            Debug.log "2" (model,gohome)
-        NoNeeResult _ ->
-            Debug.log "1" (model,Cmd.none)
+        GotText result->
+            -- Debug.log "2" (model,gohome)
+             case result of
+                Ok _ ->
+                    ( model, Nav.load "/toplay")
+                Err _ ->
+                    (model,Cmd.none)
         ChangeEmail str->
             updateForm (\form -> { form | email = str }) model
         ChangePwd str->

@@ -7,7 +7,7 @@ import Network.Wai
 import Network.Wai.Handler.Warp
 import System.IO.Unsafe (unsafePerformIO)
 import qualified HTTP.API.Auth as Api
-import Network.HTTP.Types (status200, unauthorized401, status404)
+import Network.HTTP.Types (status200, unauthorized401, status404,status302,movedPermanently301,status301)
 
 main ::Int -> IO ()
 main port = do
@@ -55,30 +55,30 @@ app req respond =  do
           ["init"] -> 
             unsafePerformIO $ Api.initCode req 
           ["list"]->
-            unsafePerformIO $ Api.listAll req  
-          ["static", subDir, fileName] -> 
-                serveStatic subDir fileName  
+            unsafePerformIO $ Api.listAll req
+          ["static", subDir, fileName] ->
+                serveStatic subDir fileName
           [] -> 
-            resFile "text/html" "static/index.html"  
+            resFile "text/html" "static/index.html"
           ["index"] -> 
-            resFile "text/html" "static/index.html"  
+            resFile "text/html" "static/index.html"
           ["gohome"] -> 
-            resFile "text/html" "static/home.html"  
+            resFile "text/html" "static/home.html"
           ["addpuzzle"] -> 
-            resFile "text/html" "static/addpuzzle.html"  
+            resFile "text/html" "static/addpuzzle.html"
           ["code"] ->
-              unsafePerformIO $ Api.resData req   
-          _ -> res404    
+              unsafePerformIO $ Api.resData req
+          _ -> res404
             
 -- app req respond = respond $ 
 --     case pathInfo req of
 --       ["loginUser"] -> 
 --         unsafePerformIO $ Api.loginUser req 
 --       ["registerUser"] -> 
---         unsafePerformIO $ Api.registerUser req   
+--         unsafePerformIO $ Api.registerUser req
 --       ["play"] -> 
 --             -- unsafePerformIO 函数是取出IO中的 Response
---             unsafePerformIO $ Api.testParam req   
+--             unsafePerformIO $ Api.testParam req
 --       ["init"] -> 
 --         unsafePerformIO $ Api.initCode req 
 --       ["list"]->
@@ -91,6 +91,9 @@ app req respond =  do
 
 resFile :: ByteString -> FilePath -> Response
 resFile contentType filename = responseFile status200 [("Content-Type", contentType)] filename Nothing    
+
+-- resFile' :: ByteString -> FilePath -> Response
+-- resFile' contentType filename = responseFile movedPermanently301 [("Content-Type", contentType)] filename Nothing    
 
 serveStatic :: Text -> Text -> Response
 serveStatic subDir fName = 
