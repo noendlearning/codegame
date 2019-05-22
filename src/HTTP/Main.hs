@@ -30,11 +30,15 @@ app req respond =  do
           unsafePerformIO $ Api.registerUser req   
         ["static", subDir, fileName] -> 
           serveStatic subDir fileName  
+        ["toplay"]->
+          resFile "text/html" "static/play.html"  
         _-> 
           resFile "text/html" "static/index.html"  
     Just cookieMess->  
       respond $ 
         case pathInfo req of
+          ["toplay"]->
+            resFile "text/html" "static/html/play.html"  
           ["quitUser"] -> 
               unsafePerformIO $ Api.quitUser cookieMess req 
           ["loginUser"] -> 
