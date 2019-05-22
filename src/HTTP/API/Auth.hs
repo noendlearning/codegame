@@ -74,6 +74,7 @@ quitUser cookieMess req = do
 registerUser::Request->IO Response
 registerUser req = do
   (params, _) <- parseRequestBody lbsBackEnd req
+  traceM(show(params))
   let paramsMap = mapFromList params :: Map ByteString ByteString
       email=((unpack . decodeUtf8) $ paramsMap MAP.! "email")
       pwd=(unpack . decodeUtf8) $ paramsMap MAP.! "passw"

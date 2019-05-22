@@ -18,7 +18,7 @@ main port = do
 app :: Application
 app req respond =  do
   res <- Api.hasCookieInfo req
-  traceM(show(res))
+  -- traceM(show(res))
   case res of
     Nothing->
       respond $ 
@@ -34,6 +34,8 @@ app req respond =  do
           resFile "text/html" "static/play.html"  
         ["addpuzzle"]->
           resFile "text/html" "static/addpuzzle.html"  
+        ["gohome"]->
+          resFile "text/html" "static/home.html"  
         _-> 
           resFile "text/html" "static/index.html"  
     Just cookieMess->  
@@ -60,6 +62,8 @@ app req respond =  do
             resFile "text/html" "static/index.html"  
           ["index"] -> 
             resFile "text/html" "static/index.html"  
+          ["gohome"] -> 
+            resFile "text/html" "static/home.html"  
           ["addpuzzle"] -> 
             resFile "text/html" "static/addpuzzle.html"  
           ["code"] ->
