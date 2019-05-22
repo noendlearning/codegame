@@ -5873,6 +5873,18 @@ var author$project$Main$loginUser = function (login) {
 			url: '/loginUser'
 		});
 };
+var author$project$Main$Output = F2(
+	function (msg, state) {
+		return {msg: msg, state: state};
+	});
+var elm$json$Json$Decode$field = _Json_decodeField;
+var elm$json$Json$Decode$map2 = _Json_map2;
+var elm$json$Json$Decode$string = _Json_decodeString;
+var author$project$Main$outputDecoder = A3(
+	elm$json$Json$Decode$map2,
+	author$project$Main$Output,
+	A2(elm$json$Json$Decode$field, 'msg', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'state', elm$json$Json$Decode$string));
 var author$project$Main$registerUser = function (singup) {
 	return elm$http$Http$post(
 		{
@@ -5983,7 +5995,6 @@ var elm$core$Task$perform = F2(
 				A2(elm$core$Task$map, toMessage, task)));
 	});
 var elm$json$Json$Decode$map = _Json_map1;
-var elm$json$Json$Decode$map2 = _Json_map2;
 var elm$json$Json$Decode$succeed = _Json_succeed;
 var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	switch (handler.$) {
@@ -6127,6 +6138,7 @@ var elm$url$Url$fromString = function (str) {
 		A2(elm$core$String$dropLeft, 8, str)) : elm$core$Maybe$Nothing);
 };
 var elm$browser$Browser$Navigation$load = _Browser_load;
+var elm$json$Json$Decode$decodeString = _Json_runOnString;
 var author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -6143,9 +6155,16 @@ var author$project$Main$update = F2(
 			case 'GotText':
 				var result = msg.a;
 				if (result.$ === 'Ok') {
-					return _Utils_Tuple2(
-						model,
-						elm$browser$Browser$Navigation$load('/toplay'));
+					var fullText = result.a;
+					var _n2 = A2(elm$json$Json$Decode$decodeString, author$project$Main$outputDecoder, fullText);
+					if (_n2.$ === 'Ok') {
+						var output = _n2.a;
+						return (output.state === '1') ? _Utils_Tuple2(model, elm$core$Platform$Cmd$none) : (((output.state === '2') || (output.state === '5')) ? _Utils_Tuple2(
+							model,
+							elm$browser$Browser$Navigation$load('/toplay')) : _Utils_Tuple2(model, elm$core$Platform$Cmd$none));
+					} else {
+						return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+					}
 				} else {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 				}
@@ -6241,12 +6260,10 @@ var elm$html$Html$Events$stopPropagationOn = F2(
 			event,
 			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
 	});
-var elm$json$Json$Decode$field = _Json_decodeField;
 var elm$json$Json$Decode$at = F2(
 	function (fields, decoder) {
 		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
 	});
-var elm$json$Json$Decode$string = _Json_decodeString;
 var elm$html$Html$Events$targetValue = A2(
 	elm$json$Json$Decode$at,
 	_List_fromArray(

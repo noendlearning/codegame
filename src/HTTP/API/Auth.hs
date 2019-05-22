@@ -42,21 +42,18 @@ initCode req = do
 loginUser :: Request ->IO Response
 loginUser req = do
     (params, _) <- parseRequestBody lbsBackEnd req
-    
     let paramsMap = mapFromList params :: Map ByteString ByteString
     -- 用户登录
     result <-M.login ((unpack . decodeUtf8) $ paramsMap MAP.! "email") $ (unpack . decodeUtf8) $ paramsMap MAP.! "passw"
-
     traceM(show(result))
     case result of
-        [] -> return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= "用户不存在", message="", found="", expected="", errMessage=""})
+        [] -> return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (Output {msg= "用户不存在", state="3"})
         [_] ->  do
             --用户登录成功后新建一个 session ,session里面存的是用户邮箱
             sessionId <- liftIO $ R.newSession ((unpack . decodeUtf8) $ paramsMap MAP.! "email")
             -- 把上一步返回的sessionId为设置cookie里面
             cookies <- Cookie.setSessionIdInCookie sessionId
-            return $ responseBuilder status200 [("Content-Type","application/json"),("Cookie",cookies)] $ lazyByteString $ encode (CodeOutput {output= "欢迎登录", message="", found="", expected="", errMessage=""})
-
+            return $ responseBuilder status200 [("Content-Type","application/json"),("Cookie",cookies)] $ lazyByteString $ encode (Output {msg= "欢迎登录", state="5"})
 
 --退出登录
 quitUser ::ByteString ->  Request ->IO Response
@@ -64,11 +61,9 @@ quitUser cookieMess req = do
       sessionId <- getCookie cookieMess "sessionId"
       number <- R.deleteUserIdBySessionId sessionId 
       case number of
-        0 -> return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= "无用户", message="", found="", expected="", errMessage=""})
+        0 -> return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (Output {msg= "用户不存在",state="3"})
         1 ->  do
-            return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= "欢迎下次登录", message="", found="", expected="", errMessage=""})
-
-
+            return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (Output {msg= "欢迎下次登录",state="4"})
 
 -- 用户注册
 registerUser::Request->IO Response
@@ -81,10 +76,10 @@ registerUser req = do
   --根据email 查找 userId
   user <- M.selectUserByUserEmail email
   case user of
-    [_] ->  return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= "该Email已经注册", message="", found="", expected="", errMessage=""})
+    [_] ->  return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (Output {msg= "该Email已经注册", state="1"})
     [] -> do
       M.insertUser $ M.User "" email pwd Nothing Nothing Normal
-      return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= "注册成功", message="", found="", expected="", errMessage=""})
+      return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (Output {msg= "注册成功", state="2"})
 
 -- 提交代码验证是否正确
 testParam ::ByteString -> Request ->IO Response
@@ -100,7 +95,6 @@ testParam cookieMess req = do
         let userFolder = "./static/"++ email
         --新建文件夹
         Dir.createDirectory userFolder
-
         --返回代码写入文件的路径和shell脚本在哪个路径下运行的命令
         let paramsMap = mapFromList params :: Map ByteString ByteString
             language = (unpack . decodeUtf8) (paramsMap MAP.! "language")
@@ -128,7 +122,6 @@ testParam cookieMess req = do
         -- 获取文件运行的结果
         content <- timeout 2000000 (IS.hGetContents hout)
         errMessage <- IS.hGetContents err
-
         --删除文件夹及其内容和子目录
         Dir.removeDirectoryRecursive userFolder
         case content of
@@ -143,7 +136,6 @@ testParam cookieMess req = do
                               then 
                                 encode (CodeOutput {output=fromString value, message="Success", found="", expected="", errMessage= fromString errMessage})
                               else encode (CodeOutput {output=fromString value, message="Failure", found=List.head contents, expected=List.head inpStrs, errMessage= fromString errMessage})      
-            
             --保存用户提交的代码
             --M.insertCode $ M.Code "" userId "1" "python" code Nothing Nothing
             --根据email 查找 userId
@@ -151,8 +143,6 @@ testParam cookieMess req = do
             --更新用户提交的代码
             --M.updateCode $ M.Code "" (M.userEmail $ List.head user) puzzleId languagesId code Nothing Nothing
             return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ codeOutput  
-
-
 
 getPuzzleInput :: String ->IO PuzzleInput
 getPuzzleInput puzzleInput = do
@@ -200,7 +190,6 @@ hasCookieInfo req=do
       --获取具体的请求头的value
   return $ reqMap MAP.!? (fromString "Cookie")
       
-
 --解析Cookie 参数cokieKey是，请求头中的cookie里面key.返回key对应的value值
 getCookie :: ByteString -> String -> IO String
 getCookie cookieMess cokieKey= do

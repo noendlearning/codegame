@@ -6,9 +6,8 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick,onInput)
 import Http exposing (..)
 import Browser.Navigation as Nav
+import Json.Decode as Decode exposing (..)
 
--- main =
---     Browser.sandbox { init = init, update = update, view = view }
 
 main =
     Browser.element
@@ -29,18 +28,11 @@ type alias Model =
     , emailState : Int
     , pwdState : Int
     }
--- 0未填写 默认
--- 1 填写正确
--- 2 填写错误
 
 type alias Form =
     { email : String
     , password : String
     }
--- type alias Singup =
---     { email : String
---     , password : String
---     }
 
 init : () -> (Model, Cmd Msg)
 init _ =
@@ -55,8 +47,6 @@ init _ =
         ,Cmd.none
         )
 
-
-
 type StateModel
   = Fail
   | Loading
@@ -65,16 +55,9 @@ type StateModel
 type Msg
     = LoginSubmit                            --登录提交
     | SingupSubmit                            --注册提交
-    -- | NoExpect (Result Http.Error String)
     | GotText (Result Http.Error String)
-    -- | NoNeeResult (Result Http.Error String)
     | ChangeEmail String
     | ChangePwd String
-
-    -- | CheckEmail String --验证邮箱
-    -- | CheckPwd String --验证密码
-    
-
 
 loginUser : Form-> Cmd Msg
 loginUser login=
@@ -104,14 +87,6 @@ registerUser singup=
         , expect = Http.expectString GotText
         }
 
--- gohome:Cmd Msg
--- gohome=
---     Http.get
---         {
---             url="/toplay",
---             expect=Http.expectString NoNeeResult
---         }
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -124,20 +99,39 @@ update msg model =
             in
                 (model,registerUser login)
         GotText result->
-            -- Debug.log "2" (model,gohome)
-             case result of
-                Ok _ ->
-                    ( model, Nav.load "/toplay")
-                Err _ ->
-                    (model,Cmd.none)
+            case result of
+                    Ok fullText ->
+                        case Decode.decodeString outputDecoder fullText of
+                            Ok output ->
+                                if output.state=="1" then
+                                    (model,Cmd.none)
+                                else if output.state=="2" || output.state=="5" then
+                                    (model,Nav.load "/toplay")
+                                else
+                                -- fixme: 給model设置错误消息
+                                    (model,Cmd.none) 
+                            Err _ ->
+                                    (model,Cmd.none)
+                    Err _ ->
+                        (model,Cmd.none)
+
         ChangeEmail str->
             updateForm (\form -> { form | email = str }) model
         ChangePwd str->
             updateForm (\form -> { form | password = str }) model
-            
 
-        -- NoExpect _ ->
-        --     (model,Cmd.none)
+type alias Output=
+    {
+        msg:String,
+        state:String
+    }
+
+outputDecoder : Decoder Output
+outputDecoder =
+    Decode.map2 Output
+        (Decode.field "msg" string)
+        (Decode.field "state" string)
+
 -- checkEmail : String -> Bool
 -- checkEmail email=email==/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/
 

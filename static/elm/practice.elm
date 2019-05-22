@@ -2,6 +2,35 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 
 main =
+    Browser.element
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
+
+type alias Model={
+
+}
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
+
+init : () -> (Model, Cmd Msg)
+init _ =
+      (
+        model,
+        Cmd.none
+      )
+
+type Msg=
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+
+view : Model -> Html Msg
+view model =
   div [] [
     nav [ id "navigation" ]
       [ div [ class "navigation_nav-container" ]
@@ -256,7 +285,7 @@ main =
                             [ div [ class "cg-puzzle-tile large" ]
                               [ div [ class "puzzle-wrapper" ]
                                 [ a [ class "puzzle-content puzzle-hover", href "/training/easy/power-of-thor-episode-1" ]
-                                  [ img [ class "tile-image", src "static/images/thor.jpg" ]
+                                  [ img [ class "tile-image", src "/static/images/thor.jpg" ]
                                     []
                                   , div [ class "background-container" ]
                                     [ div [ class "background" ]
@@ -316,7 +345,7 @@ main =
                             [ div [ class "cg-puzzle-tile large" ]
                               [ div [ class "puzzle-wrapper" ]
                                 [ a [ class "puzzle-content puzzle-hover", href "/training/easy/power-of-thor-episode-1" ]
-                                  [ img [ class "tile-image", src "static/images/thor.jpg" ]
+                                  [ img [ class "tile-image", src "/static/images/thor.jpg" ]
                                     []
                                   , div [ class "background-container" ]
                                     [ div [ class "background" ]
@@ -388,7 +417,7 @@ main =
                                     [ span [ class "icon" ]
                                       []
                                     ]
-                                  , img [ class "tile-image", src "static/images/thor.jpg" ]
+                                  , img [ class "tile-image", src "/static/images/thor.jpg" ]
                                     []
                                   , div [ class "background-container" ]
                                     [ div [ class "background" ]
