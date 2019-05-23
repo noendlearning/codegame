@@ -5865,8 +5865,8 @@ var elm$json$Json$Decode$string = _Json_decodeString;
 var author$project$Main$puzzleDecoder = A3(
 	elm$json$Json$Decode$map2,
 	author$project$Main$Puzzle,
-	A2(elm$json$Json$Decode$field, 'puzzleTitle', elm$json$Json$Decode$string),
-	A2(elm$json$Json$Decode$field, 'puzzleUuid', elm$json$Json$Decode$string));
+	A2(elm$json$Json$Decode$field, 'puzzleUuid', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'puzzleTitle', elm$json$Json$Decode$string));
 var elm$json$Json$Decode$list = _Json_decodeList;
 var author$project$Main$puzzlesDecoder = elm$json$Json$Decode$list(author$project$Main$puzzleDecoder);
 var elm$core$Debug$log = _Debug_log;
@@ -5914,6 +5914,20 @@ var author$project$Main$update = F2(
 					elm$core$Platform$Cmd$none));
 		}
 	});
+var elm$core$List$map = F2(
+	function (f, xs) {
+		return A3(
+			elm$core$List$foldr,
+			F2(
+				function (x, acc) {
+					return A2(
+						elm$core$List$cons,
+						f(x),
+						acc);
+				}),
+			_List_Nil,
+			xs);
+	});
 var elm$json$Json$Decode$map = _Json_map1;
 var elm$json$Json$Decode$succeed = _Json_succeed;
 var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
@@ -5929,17 +5943,11 @@ var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	}
 };
 var elm$html$Html$a = _VirtualDom_node('a');
-var elm$html$Html$button = _VirtualDom_node('button');
 var elm$html$Html$div = _VirtualDom_node('div');
-var elm$html$Html$h1 = _VirtualDom_node('h1');
-var elm$html$Html$h2 = _VirtualDom_node('h2');
 var elm$html$Html$img = _VirtualDom_node('img');
-var elm$html$Html$li = _VirtualDom_node('li');
-var elm$html$Html$nav = _VirtualDom_node('nav');
 var elm$html$Html$span = _VirtualDom_node('span');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
-var elm$html$Html$ul = _VirtualDom_node('ul');
 var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -5955,13 +5963,225 @@ var elm$html$Html$Attributes$href = function (url) {
 		'href',
 		_VirtualDom_noJavaScriptUri(url));
 };
-var elm$html$Html$Attributes$id = elm$html$Html$Attributes$stringProperty('id');
 var elm$html$Html$Attributes$src = function (url) {
 	return A2(
 		elm$html$Html$Attributes$stringProperty,
 		'src',
 		_VirtualDom_noJavaScriptOrHtmlUri(url));
 };
+var author$project$Main$getPanel = function (model) {
+	return A2(
+		elm$core$List$map,
+		function (x) {
+			return A2(
+				elm$html$Html$div,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$class('level-puzzle')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$div,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('cg-puzzle-tile large')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								elm$html$Html$div,
+								_List_fromArray(
+									[
+										elm$html$Html$Attributes$class('puzzle-wrapper')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										elm$html$Html$a,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$class('puzzle-content puzzle-hover'),
+												elm$html$Html$Attributes$href('/training?uuid=' + x.puzzleUuid)
+											]),
+										_List_fromArray(
+											[
+												A2(
+												elm$html$Html$img,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class('tile-image'),
+														elm$html$Html$Attributes$src('/static/images/thor.jpg')
+													]),
+												_List_Nil),
+												A2(
+												elm$html$Html$div,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class('background-container')
+													]),
+												_List_fromArray(
+													[
+														A2(
+														elm$html$Html$div,
+														_List_fromArray(
+															[
+																elm$html$Html$Attributes$class('background')
+															]),
+														_List_fromArray(
+															[
+																A2(
+																elm$html$Html$div,
+																_List_fromArray(
+																	[
+																		elm$html$Html$Attributes$class('puzzle-details-container')
+																	]),
+																_List_fromArray(
+																	[
+																		A2(
+																		elm$html$Html$div,
+																		_List_fromArray(
+																			[
+																				elm$html$Html$Attributes$class('puzzle-info')
+																			]),
+																		_List_fromArray(
+																			[
+																				A2(
+																				elm$html$Html$div,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('puzzle-title')
+																					]),
+																				_List_fromArray(
+																					[
+																						elm$html$Html$text('Power of Thor - Episode 1')
+																					])),
+																				A2(
+																				elm$html$Html$div,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('xp-points')
+																					]),
+																				_List_fromArray(
+																					[
+																						A2(
+																						elm$html$Html$span,
+																						_List_fromArray(
+																							[
+																								elm$html$Html$Attributes$class('xp-logo')
+																							]),
+																						_List_fromArray(
+																							[
+																								elm$html$Html$text('XP')
+																							])),
+																						A2(
+																						elm$html$Html$span,
+																						_List_Nil,
+																						_List_fromArray(
+																							[
+																								elm$html$Html$text('+50 XP')
+																							]))
+																					])),
+																				A2(
+																				elm$html$Html$div,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('puzzle-progress-codingamers-solved')
+																					]),
+																				_List_fromArray(
+																					[
+																						A2(
+																						elm$html$Html$span,
+																						_List_Nil,
+																						_List_fromArray(
+																							[
+																								elm$html$Html$text('Completed by 227,075 CodinGamers')
+																							]))
+																					]))
+																			]))
+																	])),
+																A2(
+																elm$html$Html$div,
+																_List_fromArray(
+																	[
+																		elm$html$Html$Attributes$class('puzzle-progress')
+																	]),
+																_List_fromArray(
+																	[
+																		A2(
+																		elm$html$Html$div,
+																		_List_fromArray(
+																			[
+																				elm$html$Html$Attributes$class('puzzle-progress-bar')
+																			]),
+																		_List_fromArray(
+																			[
+																				A2(
+																				elm$html$Html$div,
+																				_List_fromArray(
+																					[
+																						elm$html$Html$Attributes$class('puzzle-progress-value')
+																					]),
+																				_List_fromArray(
+																					[
+																						A2(
+																						elm$html$Html$span,
+																						_List_fromArray(
+																							[
+																								elm$html$Html$Attributes$class('puzzle-progress-score')
+																							]),
+																						_List_fromArray(
+																							[
+																								elm$html$Html$text('0')
+																							]))
+																					]))
+																			]))
+																	]))
+															]))
+													]))
+											])),
+										A2(
+										elm$html$Html$div,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$class('puzzle-footer-details')
+											]),
+										_List_fromArray(
+											[
+												A2(
+												elm$html$Html$div,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class('footer-content')
+													]),
+												_List_fromArray(
+													[
+														A2(
+														elm$html$Html$a,
+														_List_fromArray(
+															[
+																elm$html$Html$Attributes$class('footer-topic'),
+																elm$html$Html$Attributes$href('/training?uuid=' + x.puzzleUuid)
+															]),
+														_List_fromArray(
+															[
+																elm$html$Html$text(x.puzzleTitle)
+															]))
+													]))
+											]))
+									]))
+							]))
+					]));
+		},
+		model.puzzles);
+};
+var elm$html$Html$button = _VirtualDom_node('button');
+var elm$html$Html$h1 = _VirtualDom_node('h1');
+var elm$html$Html$h2 = _VirtualDom_node('h2');
+var elm$html$Html$li = _VirtualDom_node('li');
+var elm$html$Html$nav = _VirtualDom_node('nav');
+var elm$html$Html$ul = _VirtualDom_node('ul');
+var elm$html$Html$Attributes$id = elm$html$Html$Attributes$stringProperty('id');
 var author$project$Main$view = function (model) {
 	return A2(
 		elm$html$Html$div,
@@ -7031,416 +7251,14 @@ var author$project$Main$view = function (model) {
 																									[
 																										elm$html$Html$Attributes$class('puzzles large')
 																									]),
-																								_List_fromArray(
-																									[
-																										A2(
-																										elm$html$Html$div,
-																										_List_fromArray(
-																											[
-																												elm$html$Html$Attributes$class('level-puzzle')
-																											]),
-																										_List_fromArray(
-																											[
-																												A2(
-																												elm$html$Html$div,
-																												_List_fromArray(
-																													[
-																														elm$html$Html$Attributes$class('cg-puzzle-tile large')
-																													]),
-																												_List_fromArray(
-																													[
-																														A2(
-																														elm$html$Html$div,
-																														_List_fromArray(
-																															[
-																																elm$html$Html$Attributes$class('puzzle-wrapper')
-																															]),
-																														_List_fromArray(
-																															[
-																																A2(
-																																elm$html$Html$a,
-																																_List_fromArray(
-																																	[
-																																		elm$html$Html$Attributes$class('puzzle-content puzzle-hover'),
-																																		elm$html$Html$Attributes$href('/training/easy/power-of-thor-episode-1')
-																																	]),
-																																_List_fromArray(
-																																	[
-																																		A2(
-																																		elm$html$Html$img,
-																																		_List_fromArray(
-																																			[
-																																				elm$html$Html$Attributes$class('tile-image'),
-																																				elm$html$Html$Attributes$src('/static/images/thor.jpg')
-																																			]),
-																																		_List_Nil),
-																																		A2(
-																																		elm$html$Html$div,
-																																		_List_fromArray(
-																																			[
-																																				elm$html$Html$Attributes$class('background-container')
-																																			]),
-																																		_List_fromArray(
-																																			[
-																																				A2(
-																																				elm$html$Html$div,
-																																				_List_fromArray(
-																																					[
-																																						elm$html$Html$Attributes$class('background')
-																																					]),
-																																				_List_fromArray(
-																																					[
-																																						A2(
-																																						elm$html$Html$div,
-																																						_List_fromArray(
-																																							[
-																																								elm$html$Html$Attributes$class('puzzle-details-container')
-																																							]),
-																																						_List_fromArray(
-																																							[
-																																								A2(
-																																								elm$html$Html$div,
-																																								_List_fromArray(
-																																									[
-																																										elm$html$Html$Attributes$class('puzzle-info')
-																																									]),
-																																								_List_fromArray(
-																																									[
-																																										A2(
-																																										elm$html$Html$div,
-																																										_List_fromArray(
-																																											[
-																																												elm$html$Html$Attributes$class('puzzle-title')
-																																											]),
-																																										_List_fromArray(
-																																											[
-																																												elm$html$Html$text('Power of Thor - Episode 1')
-																																											])),
-																																										A2(
-																																										elm$html$Html$div,
-																																										_List_fromArray(
-																																											[
-																																												elm$html$Html$Attributes$class('xp-points')
-																																											]),
-																																										_List_fromArray(
-																																											[
-																																												A2(
-																																												elm$html$Html$span,
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$Attributes$class('xp-logo')
-																																													]),
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$text('XP')
-																																													])),
-																																												A2(
-																																												elm$html$Html$span,
-																																												_List_Nil,
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$text('+50 XP')
-																																													]))
-																																											])),
-																																										A2(
-																																										elm$html$Html$div,
-																																										_List_fromArray(
-																																											[
-																																												elm$html$Html$Attributes$class('puzzle-progress-codingamers-solved')
-																																											]),
-																																										_List_fromArray(
-																																											[
-																																												A2(
-																																												elm$html$Html$span,
-																																												_List_Nil,
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$text('Completed by 227,075 CodinGamers')
-																																													]))
-																																											]))
-																																									]))
-																																							])),
-																																						A2(
-																																						elm$html$Html$div,
-																																						_List_fromArray(
-																																							[
-																																								elm$html$Html$Attributes$class('puzzle-progress')
-																																							]),
-																																						_List_fromArray(
-																																							[
-																																								A2(
-																																								elm$html$Html$div,
-																																								_List_fromArray(
-																																									[
-																																										elm$html$Html$Attributes$class('puzzle-progress-bar')
-																																									]),
-																																								_List_fromArray(
-																																									[
-																																										A2(
-																																										elm$html$Html$div,
-																																										_List_fromArray(
-																																											[
-																																												elm$html$Html$Attributes$class('puzzle-progress-value')
-																																											]),
-																																										_List_fromArray(
-																																											[
-																																												A2(
-																																												elm$html$Html$span,
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$Attributes$class('puzzle-progress-score')
-																																													]),
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$text('0')
-																																													]))
-																																											]))
-																																									]))
-																																							]))
-																																					]))
-																																			]))
-																																	])),
-																																A2(
-																																elm$html$Html$div,
-																																_List_fromArray(
-																																	[
-																																		elm$html$Html$Attributes$class('puzzle-footer-details')
-																																	]),
-																																_List_fromArray(
-																																	[
-																																		A2(
-																																		elm$html$Html$div,
-																																		_List_fromArray(
-																																			[
-																																				elm$html$Html$Attributes$class('footer-content')
-																																			]),
-																																		_List_fromArray(
-																																			[
-																																				A2(
-																																				elm$html$Html$a,
-																																				_List_fromArray(
-																																					[
-																																						elm$html$Html$Attributes$class('footer-topic'),
-																																						elm$html$Html$Attributes$href('/learn/conditions')
-																																					]),
-																																				_List_fromArray(
-																																					[
-																																						elm$html$Html$text('Conditions')
-																																					]))
-																																			]))
-																																	]))
-																															]))
-																													]))
-																											]))
-																									])),
+																								author$project$Main$getPanel(model)),
 																								A2(
 																								elm$html$Html$div,
 																								_List_fromArray(
 																									[
 																										elm$html$Html$Attributes$class('puzzles secondline')
 																									]),
-																								_List_fromArray(
-																									[
-																										A2(
-																										elm$html$Html$div,
-																										_List_fromArray(
-																											[
-																												elm$html$Html$Attributes$class('level-puzzle')
-																											]),
-																										_List_fromArray(
-																											[
-																												A2(
-																												elm$html$Html$div,
-																												_List_fromArray(
-																													[
-																														elm$html$Html$Attributes$class('cg-puzzle-tile large')
-																													]),
-																												_List_fromArray(
-																													[
-																														A2(
-																														elm$html$Html$div,
-																														_List_fromArray(
-																															[
-																																elm$html$Html$Attributes$class('puzzle-wrapper')
-																															]),
-																														_List_fromArray(
-																															[
-																																A2(
-																																elm$html$Html$a,
-																																_List_fromArray(
-																																	[
-																																		elm$html$Html$Attributes$class('puzzle-content puzzle-hover'),
-																																		elm$html$Html$Attributes$href('/training/easy/power-of-thor-episode-1')
-																																	]),
-																																_List_fromArray(
-																																	[
-																																		A2(
-																																		elm$html$Html$img,
-																																		_List_fromArray(
-																																			[
-																																				elm$html$Html$Attributes$class('tile-image'),
-																																				elm$html$Html$Attributes$src('/static/images/thor.jpg')
-																																			]),
-																																		_List_Nil),
-																																		A2(
-																																		elm$html$Html$div,
-																																		_List_fromArray(
-																																			[
-																																				elm$html$Html$Attributes$class('background-container')
-																																			]),
-																																		_List_fromArray(
-																																			[
-																																				A2(
-																																				elm$html$Html$div,
-																																				_List_fromArray(
-																																					[
-																																						elm$html$Html$Attributes$class('background')
-																																					]),
-																																				_List_fromArray(
-																																					[
-																																						A2(
-																																						elm$html$Html$div,
-																																						_List_fromArray(
-																																							[
-																																								elm$html$Html$Attributes$class('puzzle-details-container')
-																																							]),
-																																						_List_fromArray(
-																																							[
-																																								A2(
-																																								elm$html$Html$div,
-																																								_List_fromArray(
-																																									[
-																																										elm$html$Html$Attributes$class('puzzle-info')
-																																									]),
-																																								_List_fromArray(
-																																									[
-																																										A2(
-																																										elm$html$Html$div,
-																																										_List_fromArray(
-																																											[
-																																												elm$html$Html$Attributes$class('puzzle-title')
-																																											]),
-																																										_List_fromArray(
-																																											[
-																																												elm$html$Html$text('Power of Thor - Episode 1')
-																																											])),
-																																										A2(
-																																										elm$html$Html$div,
-																																										_List_fromArray(
-																																											[
-																																												elm$html$Html$Attributes$class('xp-points')
-																																											]),
-																																										_List_fromArray(
-																																											[
-																																												A2(
-																																												elm$html$Html$span,
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$Attributes$class('xp-logo')
-																																													]),
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$text('XP')
-																																													])),
-																																												A2(
-																																												elm$html$Html$span,
-																																												_List_Nil,
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$text('+50 XP')
-																																													]))
-																																											])),
-																																										A2(
-																																										elm$html$Html$div,
-																																										_List_fromArray(
-																																											[
-																																												elm$html$Html$Attributes$class('puzzle-progress-codingamers-solved')
-																																											]),
-																																										_List_fromArray(
-																																											[
-																																												A2(
-																																												elm$html$Html$span,
-																																												_List_Nil,
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$text('Completed by 227,075 CodinGamers')
-																																													]))
-																																											]))
-																																									]))
-																																							])),
-																																						A2(
-																																						elm$html$Html$div,
-																																						_List_fromArray(
-																																							[
-																																								elm$html$Html$Attributes$class('puzzle-progress')
-																																							]),
-																																						_List_fromArray(
-																																							[
-																																								A2(
-																																								elm$html$Html$div,
-																																								_List_fromArray(
-																																									[
-																																										elm$html$Html$Attributes$class('puzzle-progress-bar')
-																																									]),
-																																								_List_fromArray(
-																																									[
-																																										A2(
-																																										elm$html$Html$div,
-																																										_List_fromArray(
-																																											[
-																																												elm$html$Html$Attributes$class('puzzle-progress-value')
-																																											]),
-																																										_List_fromArray(
-																																											[
-																																												A2(
-																																												elm$html$Html$span,
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$Attributes$class('puzzle-progress-score')
-																																													]),
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$text('0')
-																																													]))
-																																											]))
-																																									]))
-																																							]))
-																																					]))
-																																			]))
-																																	])),
-																																A2(
-																																elm$html$Html$div,
-																																_List_fromArray(
-																																	[
-																																		elm$html$Html$Attributes$class('puzzle-footer-details')
-																																	]),
-																																_List_fromArray(
-																																	[
-																																		A2(
-																																		elm$html$Html$div,
-																																		_List_fromArray(
-																																			[
-																																				elm$html$Html$Attributes$class('footer-content')
-																																			]),
-																																		_List_fromArray(
-																																			[
-																																				A2(
-																																				elm$html$Html$a,
-																																				_List_fromArray(
-																																					[
-																																						elm$html$Html$Attributes$class('footer-topic'),
-																																						elm$html$Html$Attributes$href('/learn/conditions')
-																																					]),
-																																				_List_fromArray(
-																																					[
-																																						elm$html$Html$text('Conditions')
-																																					]))
-																																			]))
-																																	]))
-																															]))
-																													]))
-																											]))
-																									]))
+																								author$project$Main$getPanel(model))
 																							])),
 																						A2(
 																						elm$html$Html$div,
@@ -7484,224 +7302,7 @@ var author$project$Main$view = function (model) {
 																									[
 																										elm$html$Html$Attributes$class('puzzles secondline')
 																									]),
-																								_List_fromArray(
-																									[
-																										A2(
-																										elm$html$Html$div,
-																										_List_fromArray(
-																											[
-																												elm$html$Html$Attributes$class('level-puzzle')
-																											]),
-																										_List_fromArray(
-																											[
-																												A2(
-																												elm$html$Html$div,
-																												_List_fromArray(
-																													[
-																														elm$html$Html$Attributes$class('cg-puzzle-tile large')
-																													]),
-																												_List_fromArray(
-																													[
-																														A2(
-																														elm$html$Html$div,
-																														_List_fromArray(
-																															[
-																																elm$html$Html$Attributes$class('puzzle-wrapper')
-																															]),
-																														_List_fromArray(
-																															[
-																																A2(
-																																elm$html$Html$a,
-																																_List_fromArray(
-																																	[
-																																		elm$html$Html$Attributes$class('puzzle-content puzzle-hover'),
-																																		elm$html$Html$Attributes$href('/training/easy/power-of-thor-episode-1')
-																																	]),
-																																_List_fromArray(
-																																	[
-																																		A2(
-																																		elm$html$Html$div,
-																																		_List_fromArray(
-																																			[
-																																				elm$html$Html$Attributes$class('puzzle-done')
-																																			]),
-																																		_List_fromArray(
-																																			[
-																																				A2(
-																																				elm$html$Html$span,
-																																				_List_fromArray(
-																																					[
-																																						elm$html$Html$Attributes$class('icon')
-																																					]),
-																																				_List_Nil)
-																																			])),
-																																		A2(
-																																		elm$html$Html$img,
-																																		_List_fromArray(
-																																			[
-																																				elm$html$Html$Attributes$class('tile-image'),
-																																				elm$html$Html$Attributes$src('/static/images/thor.jpg')
-																																			]),
-																																		_List_Nil),
-																																		A2(
-																																		elm$html$Html$div,
-																																		_List_fromArray(
-																																			[
-																																				elm$html$Html$Attributes$class('background-container')
-																																			]),
-																																		_List_fromArray(
-																																			[
-																																				A2(
-																																				elm$html$Html$div,
-																																				_List_fromArray(
-																																					[
-																																						elm$html$Html$Attributes$class('background')
-																																					]),
-																																				_List_fromArray(
-																																					[
-																																						A2(
-																																						elm$html$Html$div,
-																																						_List_fromArray(
-																																							[
-																																								elm$html$Html$Attributes$class('puzzle-details-container')
-																																							]),
-																																						_List_fromArray(
-																																							[
-																																								A2(
-																																								elm$html$Html$div,
-																																								_List_fromArray(
-																																									[
-																																										elm$html$Html$Attributes$class('puzzle-info')
-																																									]),
-																																								_List_fromArray(
-																																									[
-																																										A2(
-																																										elm$html$Html$div,
-																																										_List_fromArray(
-																																											[
-																																												elm$html$Html$Attributes$class('puzzle-title')
-																																											]),
-																																										_List_fromArray(
-																																											[
-																																												elm$html$Html$text('Power of Thor - Episode 1')
-																																											])),
-																																										A2(
-																																										elm$html$Html$div,
-																																										_List_fromArray(
-																																											[
-																																												elm$html$Html$Attributes$class('xp-points')
-																																											]),
-																																										_List_fromArray(
-																																											[
-																																												A2(
-																																												elm$html$Html$span,
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$Attributes$class('xp-logo')
-																																													]),
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$text('XP')
-																																													])),
-																																												A2(
-																																												elm$html$Html$span,
-																																												_List_Nil,
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$text('+50 XP')
-																																													]))
-																																											])),
-																																										A2(
-																																										elm$html$Html$div,
-																																										_List_fromArray(
-																																											[
-																																												elm$html$Html$Attributes$class('puzzle-progress-codingamers-solved')
-																																											]),
-																																										_List_fromArray(
-																																											[
-																																												A2(
-																																												elm$html$Html$span,
-																																												_List_Nil,
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$text('Completed by 227,075 CodinGamers')
-																																													]))
-																																											]))
-																																									]))
-																																							])),
-																																						A2(
-																																						elm$html$Html$div,
-																																						_List_fromArray(
-																																							[
-																																								elm$html$Html$Attributes$class('puzzle-progress')
-																																							]),
-																																						_List_fromArray(
-																																							[
-																																								A2(
-																																								elm$html$Html$div,
-																																								_List_fromArray(
-																																									[
-																																										elm$html$Html$Attributes$class('puzzle-progress-bar')
-																																									]),
-																																								_List_fromArray(
-																																									[
-																																										A2(
-																																										elm$html$Html$div,
-																																										_List_fromArray(
-																																											[
-																																												elm$html$Html$Attributes$class('puzzle-progress-value')
-																																											]),
-																																										_List_fromArray(
-																																											[
-																																												A2(
-																																												elm$html$Html$span,
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$Attributes$class('puzzle-progress-score')
-																																													]),
-																																												_List_fromArray(
-																																													[
-																																														elm$html$Html$text('0')
-																																													]))
-																																											]))
-																																									]))
-																																							]))
-																																					]))
-																																			]))
-																																	])),
-																																A2(
-																																elm$html$Html$div,
-																																_List_fromArray(
-																																	[
-																																		elm$html$Html$Attributes$class('puzzle-footer-details')
-																																	]),
-																																_List_fromArray(
-																																	[
-																																		A2(
-																																		elm$html$Html$div,
-																																		_List_fromArray(
-																																			[
-																																				elm$html$Html$Attributes$class('footer-content')
-																																			]),
-																																		_List_fromArray(
-																																			[
-																																				A2(
-																																				elm$html$Html$a,
-																																				_List_fromArray(
-																																					[
-																																						elm$html$Html$Attributes$class('footer-topic'),
-																																						elm$html$Html$Attributes$href('/learn/conditions')
-																																					]),
-																																				_List_fromArray(
-																																					[
-																																						elm$html$Html$text('Conditions')
-																																					]))
-																																			]))
-																																	]))
-																															]))
-																													]))
-																											]))
-																									]))
+																								author$project$Main$getPanel(model))
 																							]))
 																					]))
 																			]))
@@ -7736,20 +7337,6 @@ var elm$core$Task$Perform = function (a) {
 	return {$: 'Perform', a: a};
 };
 var elm$core$Task$init = elm$core$Task$succeed(_Utils_Tuple0);
-var elm$core$List$map = F2(
-	function (f, xs) {
-		return A3(
-			elm$core$List$foldr,
-			F2(
-				function (x, acc) {
-					return A2(
-						elm$core$List$cons,
-						f(x),
-						acc);
-				}),
-			_List_Nil,
-			xs);
-	});
 var elm$core$Task$map = F2(
 	function (func, taskA) {
 		return A2(

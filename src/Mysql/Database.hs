@@ -442,8 +442,6 @@ selectPuzzleByCategory'  =
                  return p
         liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
 
-
-
 {-
 根据状态查询相应的puzzle
 -}

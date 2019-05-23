@@ -45,6 +45,8 @@ app req respond =  do
           unsafePerformIO $ Api.listAll req
         ["easypuzzles"]->
           trace "easypuzzles" unsafePerformIO $ Api.categoryPuzzles Easy req
+        -- ["training":rest]->
+          -- fixme:rest是什么 根据rest获得对应的数据 将uuid放在页面内？
         _->
           resFile "text/html" "static/index.html"
     Just cookieMess->
@@ -84,30 +86,8 @@ app req respond =  do
             unsafePerformIO $ Api.resData req
           _ -> res404
 
--- app req respond = respond $
---     case pathInfo req of
---       ["loginUser"] ->
---         unsafePerformIO $ Api.loginUser req
---       ["registerUser"] ->
---         unsafePerformIO $ Api.registerUser req
---       ["play"] ->
---             -- unsafePerformIO 函数是取出IO中的 Response
---             unsafePerformIO $ Api.testParam req
---       ["init"] ->
---         unsafePerformIO $ Api.initCode req
---       ["list"]->
---         unsafePerformIO $ Api.listAll req
---       ["static", subDir, fileName] ->
---             serveStatic subDir fileName
---       [] ->
---         resFile "text/html" "static/index.html"
---       _ -> res404
-
 resFile :: ByteString -> FilePath -> Response
 resFile contentType filename = responseFile status200 [("Content-Type", contentType)] filename Nothing
-
--- resFile' :: ByteString -> FilePath -> Response
--- resFile' contentType filename = responseFile movedPermanently301 [("Content-Type", contentType)] filename Nothing
 
 serveStatic :: Text -> Text -> Response
 serveStatic subDir fName =
