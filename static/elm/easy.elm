@@ -3,7 +3,6 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Decode exposing (..)
 import Http exposing (..)
-import Json.Decode.Extra exposing (combine)
 import Debug exposing (..)
 
 main =
@@ -54,7 +53,9 @@ update msg model =
       GotText result ->
         case result of
           Ok fullText ->
-            case Decode.decodeString (combine puzzleDecoder) fullText of
+            let res=Debug.log "parse" (Decode.decodeString puzzlesDecoder fullText)
+                ful=Debug.log "fullText" fullText
+            in case res of
                 Ok output ->
                   Debug.log "puzzles" ({model|loadState=Success,puzzles=output},Cmd.none)
                 Err _ ->
@@ -75,13 +76,15 @@ type alias Puzzle=
 
 type alias Puzzles=List Puzzle
 
-puzzleDecoder :List (Decoder Puzzle)
+puzzlesDecoder : Decode.Decoder (List Puzzle)
+puzzlesDecoder =
+    Decode.list puzzleDecoder
+
+puzzleDecoder : Decode.Decoder Puzzle
 puzzleDecoder =
-    [
-      map2 Puzzle
+    map2 Puzzle
+        (field "puzzleTitle" string)
         (field "puzzleUuid" string)
-        (field "puzzleTitle" string )
-    ]
 
 view : Model -> Html Msg
 view model =

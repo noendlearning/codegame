@@ -101,17 +101,20 @@ update msg model =
         GotText result->
             case result of
                     Ok fullText ->
-                        case Decode.decodeString outputDecoder fullText of
-                            Ok output ->
-                                if output.state=="1" then
-                                    (model,Cmd.none)
-                                else if output.state=="2" || output.state=="5" then
-                                    (model,Nav.load "/easy")
-                                else
-                                -- fixme: 給model设置错误消息
-                                    (model,Cmd.none)
-                            Err _ ->
-                                    (model,Cmd.none)
+                        let ful=Debug.log "fullText" fullText
+                        in
+                            case Decode.decodeString outputDecoder fullText of
+                                Ok output ->
+                                    if output.state=="1" then
+                                        (model,Cmd.none)
+                                    else if output.state=="2" || output.state=="5" then
+                                        -- (model,Nav.load "/easy")
+                                        (model,Cmd.none)
+                                    else
+                                    -- fixme: 給model设置错误消息
+                                        (model,Cmd.none)
+                                Err _ ->
+                                        (model,Cmd.none)
                     Err _ ->
                         (model,Cmd.none)
 

@@ -5862,34 +5862,29 @@ var author$project$Main$Puzzle = F2(
 var elm$json$Json$Decode$field = _Json_decodeField;
 var elm$json$Json$Decode$map2 = _Json_map2;
 var elm$json$Json$Decode$string = _Json_decodeString;
-var author$project$Main$puzzleDecoder = _List_fromArray(
-	[
-		A3(
-		elm$json$Json$Decode$map2,
-		author$project$Main$Puzzle,
-		A2(elm$json$Json$Decode$field, 'puzzleUuid', elm$json$Json$Decode$string),
-		A2(elm$json$Json$Decode$field, 'puzzleTitle', elm$json$Json$Decode$string))
-	]);
+var author$project$Main$puzzleDecoder = A3(
+	elm$json$Json$Decode$map2,
+	author$project$Main$Puzzle,
+	A2(elm$json$Json$Decode$field, 'puzzleTitle', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'puzzleUuid', elm$json$Json$Decode$string));
+var elm$json$Json$Decode$list = _Json_decodeList;
+var author$project$Main$puzzlesDecoder = elm$json$Json$Decode$list(author$project$Main$puzzleDecoder);
 var elm$core$Debug$log = _Debug_log;
 var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var elm$json$Json$Decode$decodeString = _Json_runOnString;
-var elm$json$Json$Decode$succeed = _Json_succeed;
-var elm_community$json_extra$Json$Decode$Extra$combine = A2(
-	elm$core$List$foldr,
-	elm$json$Json$Decode$map2(elm$core$List$cons),
-	elm$json$Json$Decode$succeed(_List_Nil));
 var author$project$Main$update = F2(
 	function (msg, model) {
 		var result = msg.a;
 		if (result.$ === 'Ok') {
 			var fullText = result.a;
-			var _n2 = A2(
-				elm$json$Json$Decode$decodeString,
-				elm_community$json_extra$Json$Decode$Extra$combine(author$project$Main$puzzleDecoder),
-				fullText);
-			if (_n2.$ === 'Ok') {
-				var output = _n2.a;
+			var res = A2(
+				elm$core$Debug$log,
+				'parse',
+				A2(elm$json$Json$Decode$decodeString, author$project$Main$puzzlesDecoder, fullText));
+			var ful = A2(elm$core$Debug$log, 'fullText', fullText);
+			if (res.$ === 'Ok') {
+				var output = res.a;
 				return A2(
 					elm$core$Debug$log,
 					'puzzles',
@@ -5920,6 +5915,7 @@ var author$project$Main$update = F2(
 		}
 	});
 var elm$json$Json$Decode$map = _Json_map1;
+var elm$json$Json$Decode$succeed = _Json_succeed;
 var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	switch (handler.$) {
 		case 'Normal':
