@@ -106,7 +106,7 @@ update msg model =
                                 if output.state=="1" then
                                     (model,Cmd.none)
                                 else if output.state=="2" || output.state=="5" then
-                                    (model,Nav.load "/practice")
+                                    (model,Nav.load "/easy")
                                 else
                                 -- fixme: 給model设置错误消息
                                     (model,Cmd.none)

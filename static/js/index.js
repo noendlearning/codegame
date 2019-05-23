@@ -6165,7 +6165,7 @@ var author$project$Main$update = F2(
 						var output = _n2.a;
 						return (output.state === '1') ? _Utils_Tuple2(model, elm$core$Platform$Cmd$none) : (((output.state === '2') || (output.state === '5')) ? _Utils_Tuple2(
 							model,
-							elm$browser$Browser$Navigation$load('/practice')) : _Utils_Tuple2(model, elm$core$Platform$Cmd$none));
+							elm$browser$Browser$Navigation$load('/easy')) : _Utils_Tuple2(model, elm$core$Platform$Cmd$none));
 					} else {
 						return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 					}
