@@ -176,6 +176,19 @@ insertPuzzle (Puzzle _ title  _ createBy  updateBy _  inputDescription outputDes
         insert_ $ Solution ( DU.toString suuid ) language code (DU.toString puuid)  (Just now)  update   (Just now)  create  unsolve   sstate
         insert_ $ Validation (DU.toString vuuid)  (DU.toString puuid) input output category orders createB  (Just now)  updateB  (Just now)  vstate vtitle
 
+
+--通过Puzzle表的uuid 查询Solution表内容
+selectSolutionByPuzzleUuid :: String -> IO[Solution]
+selectSolutionByPuzzleUuid uuid = 
+    inBackend $ do 
+        solution <- E.select $
+                    E.from $ \s -> do
+                    E.where_ (s ^. SolutionPuzzleId E.==. E.val uuid)
+                    return s
+        liftIO $ mapM (return . entityVal) (solution :: [Entity Solution])
+
+        
+
 --通过Puzzle表的uuid 查询Puzzle表内容
 selectPuzzleByUUID::String->IO [Puzzle]
 selectPuzzleByUUID uuid=
