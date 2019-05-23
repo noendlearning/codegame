@@ -74,7 +74,7 @@ loginUser login=
         }
 
 registerUser : Form-> Cmd Msg
-registerUser singup= 
+registerUser singup=
     Http.post
         {
             url="/registerUser",
@@ -93,7 +93,7 @@ update msg model =
         LoginSubmit->
             let login=model.form
             in
-                (model,loginUser login)
+                Debug.log "login" (model,loginUser login)
         SingupSubmit->
             let login=model.form
             in
@@ -106,10 +106,10 @@ update msg model =
                                 if output.state=="1" then
                                     (model,Cmd.none)
                                 else if output.state=="2" || output.state=="5" then
-                                    (model,Nav.load "/toplay")
+                                    (model,Nav.load "/practice")
                                 else
                                 -- fixme: 給model设置错误消息
-                                    (model,Cmd.none) 
+                                    (model,Cmd.none)
                             Err _ ->
                                     (model,Cmd.none)
                     Err _ ->
@@ -188,7 +188,7 @@ view model =
                 , span
                     [ class "inputBox" ]
                     [ input
-                        [ id "txtName", placeholder "Email" ]
+                        [ id "txtName", placeholder "Email" ,onInput ChangeEmail]
                         []
                     ]
                 , a
@@ -203,7 +203,7 @@ view model =
                 , span
                     [ class "inputBox" ]
                     [ input
-                        [ id "txtPwd", placeholder "Password" ]
+                        [ id "txtPwd", placeholder "Password" ,onInput ChangePwd]
                         []
                     ]
                 , a
@@ -263,7 +263,7 @@ view model =
             , div
                 [ class "row" ]
                 [ a
-                -- TODO check both email and pwd then post 
+                -- TODO check both email and pwd then post
                     [ href "#", id "singupbtn", onClick SingupSubmit ]
                     [ text "SING UP" ]
                 ]

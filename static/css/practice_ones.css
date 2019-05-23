@@ -102,7 +102,7 @@ button, button:active, button:hover, button:visited {
   display: flex;
   align-items: center;
   transition: opacity,.2s;
-  background-image: url(static/images/icones.png);
+  background-image: url(/static/images/icones.png);
   width: 138px;
   height: 18px;
   width: 142px;
@@ -145,7 +145,7 @@ button, button:active, button:hover, button:visited {
 .navigation-notifications .navigation-notifications_nav-notifications-icon:before {
   content: "";
   display: inline-block;
-  background-image: url(static/images/icones.png);
+  background-image: url(/static/images/icones.png);
   background-position: -20px -33px;
   width: 17px;
   height: 17px;
@@ -265,7 +265,7 @@ button, button:active, button:hover, button:visited {
 }
 
 .cg-notifications.theme-black .notification-no-notif-icon-container .notification-no-notif-icon {
-  background-image: url(static/images/icones3.png);
+  background-image: url(/static/images/icones3.png);
   background-position: 0 -170px;
   width: 25px;
   height: 25px;
@@ -308,7 +308,7 @@ button, button:active, button:hover, button:visited {
 }
 
 .navigation-profile .navigation-profile_nav-profile-avatar {
-  background-image: url(static/images/man.png);
+  background-image: url(/static/images/man.png);
   background-repeat: no-repeat;
   background-size: cover;
   background-position: 50%;
@@ -449,12 +449,12 @@ button, button:active, button:hover, button:visited {
 }
 
 .navigation-icon_blog {
-  background-image: url(static/images/icones.png);
+  background-image: url(/static/images/icones.png);
   background-position: -61px -51px;
 }
 
 .navigation-icon_forum {
-  background-image: url(static/images/icones.png);
+  background-image: url(/static/images/icones.png);
   background-position: -37px -51px;
   width: 12px;
   height: 12px;
@@ -462,12 +462,12 @@ button, button:active, button:hover, button:visited {
 }
 
 .navigation-icon_about_us {
-  background-image: url(static/images/icones.png);
+  background-image: url(/static/images/icones.png);
   background-position: -25px -51px;
 }
 
 .navigation-icon_company {
-  background-image: url(static/images/icones.png);
+  background-image: url(/static/images/icones.png);
   background-position: -13px -51px;
   width: 12px;
   height: 12px;
@@ -475,7 +475,7 @@ button, button:active, button:hover, button:visited {
 }
 
 .navigation-icon_faq {
-  background-image: url(static/images/icones.png);
+  background-image: url(/static/images/icones.png);
   background-position: -130px -18px;
   width: 8px;
   height: 12px;
@@ -483,7 +483,7 @@ button, button:active, button:hover, button:visited {
 }
 
 .navigation-icon_facebook {
-  background-image: url(static/images/icones.png);
+  background-image: url(/static/images/icones.png);
   background-position: -84px -51px;
   width: 7px;
   height: 12px;
@@ -491,7 +491,7 @@ button, button:active, button:hover, button:visited {
 }
 
 .navigation-icon_twitter {
-  background-image: url(static/images/icones.png);
+  background-image: url(/static/images/icones.png);
   background-position: -99px -33px;
   width: 15px;
   height: 12px;
@@ -656,7 +656,7 @@ button, button:active, button:hover, button:visited {
 }
 
 .navigation-icon_friends {
-  background-image: url(static/images/icones.png);
+  background-image: url(/static/images/icones.png);
   background-position: -112px -18px;
   width: 18px;
   height: 13px;
@@ -677,7 +677,7 @@ button, button:active, button:hover, button:visited {
 }
 
 .navigation-icon_home {
-  background-image: url(static/images/icones.png);
+  background-image: url(/static/images/icones.png);
   background-position: -69px -33px;
   width: 15px;
   height: 13px;
@@ -739,7 +739,7 @@ button, button:active, button:hover, button:visited {
 }
 
 .cg-menu-actions .menu-actions .icon-actions {
-  background-image: url(static/images/threedot.png);
+  background-image: url(/static/images/threedot.png);
   background-position: 0 0;
   width: 4px;
   height: 18px;
@@ -1166,7 +1166,7 @@ button, button:active, button:hover, button:visited {
   display: inline-block;
   margin: 0 5px 0 0;
   transition: opacity .2s;
-  background-image: url(static/images/icones2.png);
+  background-image: url(/static/images/icones2.png);
   background-position: -25px -124px;
   width: 12px;
   height: 12px;
@@ -1206,7 +1206,7 @@ button, button:active, button:hover, button:visited {
 }
 
 .cg-puzzle-tile .puzzle-done .icon {
-  background-image: url(static/images/icones2.png);
+  background-image: url(/static/images/icones2.png);
   background-position: -102px -100px;
   width: 15px;
   height: 15px;
