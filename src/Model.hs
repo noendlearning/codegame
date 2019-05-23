@@ -18,7 +18,26 @@ data CodeOutput = CodeOutput {
       errMessage  :: Text
     } deriving (Generic,Show)
 instance ToJSON CodeOutput 
-instance FromJSON CodeOutput     
+instance FromJSON CodeOutput
+{- 
+通用返回給页面的json格式信息
+msg：信息
+state：与信息一一对应的状态
+<10 登录注册的状态
+1 邮箱已经被注册
+2 注册成功
+3 邮箱不存在
+4 退出登录成功
+5 登录成功
+-}
+data Output=Output{
+    msg::String,
+    state::String
+}deriving (Generic,Show)
+instance ToJSON Output
+instance FromJSON Output
+
+
 -- 保存代码的类型
 data CodeList = CodeList {
       codeList :: String
