@@ -1,37 +1,90 @@
+import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Json.Decode as Decode exposing (..)
+import Http exposing (..)
+import Json.Decode.Extra exposing (combine)
+import Debug exposing (..)
 
--- main =
---     Browser.element
---         { init = init
---         , view = view
---         , update = update
---         , subscriptions = subscriptions
---         }
+main =
+    Browser.element
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
 
--- type alias Model={
+type alias Model =
+    { loadState : StateModel
+    ,puzzles:Puzzles
+    }
 
--- }
+type StateModel
+    = Fail
+    | Success
+    | Loading
+    | ParseError
 
--- subscriptions : Model -> Sub Msg
--- subscriptions model =
---     Sub.none
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
 
--- init : () -> (Model, Cmd Msg)
--- init _ =
---       (
---         model,
---         Cmd.none
---       )
+init : () -> (Model, Cmd Msg)
+init _ =
+      (
+        {loadState=Loading
+        ,puzzles=[]
+        },
+        getEasyPuzzles
+      )
 
--- type Msg=
+getEasyPuzzles:Cmd Msg
+getEasyPuzzles =
+  Http.get
+    {
+      url="/easypuzzles"
+    , expect = Http.expectString GotText
+    }
 
--- update : Msg -> Model -> ( Model, Cmd Msg )
--- update msg model =
+type Msg=GotText (Result Http.Error String)
 
--- view : Model -> Html Msg
--- view model =
-main=
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+  case msg of
+      GotText result ->
+        case result of
+          Ok fullText ->
+            case Decode.decodeString (combine puzzleDecoder) fullText of
+                Ok output ->
+                  Debug.log "puzzles" ({model|loadState=Success,puzzles=output},Cmd.none)
+                Err _ ->
+                -- 解析错误，后台返回的不是puzzle的list，而只是单纯的错误信息
+                  Debug.log "error" ({model|loadState=ParseError},Cmd.none)
+          Err _ ->
+            Debug.log "hh" ({model|loadState=Fail},Cmd.none)
+
+type alias Puzzle=
+  {
+    puzzleUuid:String,
+    puzzleTitle:String
+    -- puzzleCreateTime:String,
+    -- puzzleStar:String,
+    -- puzzlePicture:String,
+    -- puzzleCreateBy:String
+  }
+
+type alias Puzzles=List Puzzle
+
+puzzleDecoder :List (Decoder Puzzle)
+puzzleDecoder =
+    [
+      map2 Puzzle
+        (field "puzzleUuid" string)
+        (field "puzzleTitle" string )
+    ]
+
+view : Model -> Html Msg
+view model =
   div [] [
     nav [ id "navigation" ]
       [ div [ class "navigation_nav-container" ]
@@ -39,22 +92,23 @@ main=
           [ a [ href "/home", class "navigation-logo" ]
             []
           , div [ class "navigation-desktop_nav-tabs" ]
-            [ a [ href "/training", class "navigation-desktop_nav-tab navigation-desktop_selected" ]
+            [ a [ href "/practice", class "navigation-desktop_nav-tab navigation-desktop_selected" ]
               [ span []
                 [ text "Practice" ]
               ]
-            , a [ href "/training", class "navigation-desktop_nav-tab" ]
-              [ span []
-                [ text "Compete" ]
-              ]
-            , a [ href "/training", class "navigation-desktop_nav-tab" ]
-              [ span []
-                [ text "Contribute" ]
-              ]
-            , a [ href "/training", class "navigation-desktop_nav-tab" ]
-              [ span []
-                [ text "Learn" ]
-              ]
+              -- fixme: 这里暂时先隐藏，暂时不需要那么多菜单
+            -- , a [ href "/training", class "navigation-desktop_nav-tab" ]
+            --   [ span []
+            --     [ text "Compete" ]
+            --   ]
+            -- , a [ href "/training", class "navigation-desktop_nav-tab" ]
+            --   [ span []
+            --     [ text "Contribute" ]
+            --   ]
+            -- , a [ href "/training", class "navigation-desktop_nav-tab" ]
+            --   [ span []
+            --     [ text "Learn" ]
+            --   ]
             ]
           , div [ class "navigation_nav-space" ]
             []

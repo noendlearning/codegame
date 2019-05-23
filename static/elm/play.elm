@@ -97,7 +97,7 @@ update msg model =
                             if model.batchSubmit then
                                 if model.testIndex<5 then
                                     Debug.log (String.fromInt model.testIndex) ( { model | codeOutput = output, jsonReqState = Success, parseJson = Success,testIndex=model.testIndex+1 }, jsonReq (model.testIndex+1) model.code model.language )
-                                
+
                                 else
                                     Debug.log (String.fromInt model.testIndex) ( { model | codeOutput = output, jsonReqState = Success, parseJson = Success,testIndex=5,batchSubmit=False }, jsonReq 5 model.code model.language )
 
@@ -121,17 +121,9 @@ type alias Code =
     String
 
 
--- type alias Codes =
---     List Code
-
-
 codeDecoder : Decoder Code
--- codeDecoder : Decoder CodeList
 codeDecoder =
     Decode.field "codeList" string
-    -- Decode.map2 CodeList
-    --     (Decode.field "codeList" string)
-    --    ( Decode.field "language" string)
 
 type alias CodeOutput =
     { output : String
@@ -272,20 +264,20 @@ view model =
                                           -- ,
                                         --   FIXME 数据库查询 放在session内？
                                           option
-                                            [case model.language of 
-                                            "haskell" ->selected True 
+                                            [case model.language of
+                                            "haskell" ->selected True
                                             _->selected False
                                             ,onClick (CheckLanguage "haskell")]
                                             [ text "Haskell" ]
                                         , option
-                                            [case model.language of 
-                                            "java" ->selected True 
+                                            [case model.language of
+                                            "java" ->selected True
                                             _->selected False
                                             , onClick (CheckLanguage "java") ]
                                             [ text "Java" ]
                                         , option
-                                            [ case model.language of 
-                                            "python3" ->selected True 
+                                            [ case model.language of
+                                            "python3" ->selected True
                                             _->selected False
                                             ,onClick (CheckLanguage "python3")]
                                             [ text "Python3" ]
@@ -458,7 +450,7 @@ init _ =
       , jsonReqState = Loading
       , errMessage = ""
       , codeState = Loading
-      , testIndex = 0 
+      , testIndex = 0
       , language = "python3"
       , batchSubmit=False
       }

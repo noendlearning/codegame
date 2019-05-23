@@ -8,6 +8,7 @@ import Network.Wai.Handler.Warp
 import System.IO.Unsafe (unsafePerformIO)
 import qualified HTTP.API.Auth as Api
 import Network.HTTP.Types (status200, unauthorized401, status404)
+import Tool.Types
 
 main ::Int -> IO ()
 main port = do
@@ -42,6 +43,8 @@ app req respond =  do
           -- 获取所有的puzzle
         ["allpuzzles"]->
           unsafePerformIO $ Api.listAll req
+        ["easypuzzles"]->
+          trace "easypuzzles" unsafePerformIO $ Api.categoryPuzzles Easy req
         _->
           resFile "text/html" "static/index.html"
     Just cookieMess->
@@ -60,7 +63,7 @@ app req respond =  do
                 unsafePerformIO $ Api.testParam cookieMess req
           ["init"] ->
             unsafePerformIO $ Api.initCode req
-          ["list"]->
+          ["allpuzzles"]->
             unsafePerformIO $ Api.listAll req
           ["static", subDir, fileName] ->
                 serveStatic subDir fileName
@@ -75,6 +78,8 @@ app req respond =  do
           -- 去easy页面
           ["easy"]->
             resFile "text/html" "static/easy.html"
+          ["easypuzzles"]->
+            unsafePerformIO $ Api.categoryPuzzles Easy req
           ["code"] ->
             unsafePerformIO $ Api.resData req
           _ -> res404

@@ -25,6 +25,7 @@ import Tool.Types
 import Text.Read
 import Control.Exception
 import Data.Sequence as Seq
+import qualified Data.ByteString.Lazy.Internal as LI (ByteString)
 
 -- 获取初始化代码
 initCode ::Request ->IO Response
@@ -213,6 +214,7 @@ listAll req=do
 根据类别查询puzzles，
 easy medium hard professional
 -}
+-- encode (Output {msg= "该Email已经注册", state="1"})
 categoryPuzzles::PCategory->Request->IO Response
 categoryPuzzles p req=do
     puzzles<-M.selectPuzzleByCategory  p 0

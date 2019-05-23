@@ -431,6 +431,19 @@ selectPuzzleByCategory category number =
                  return p
         liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
 
+-- fixme: 只是为了测试 用完即删除
+--根据难度级别(category)和条数查询puzzle表
+selectPuzzleByCategory' :: IO [Puzzle]
+selectPuzzleByCategory'  =
+    inBackend $ do
+        puzzle<- E.select $
+                 E.from $ \p->do
+                 E.where_ (p ^. PuzzleCategory E.==. E.val Easy &&. p ^. PuzzleState E.==. E.val Public)
+                 return p
+        liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
+
+
+
 {-
 根据状态查询相应的puzzle
 -}
