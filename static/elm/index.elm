@@ -25,8 +25,8 @@ type alias Model =
     { loadState : StateModel
     , form : Form
     -- , singup : Form
-    , emailState : Int
-    , pwdState : Int
+    -- , emailState : Int
+    -- , pwdState : Int
     }
 
 type alias Form =
@@ -41,8 +41,8 @@ init _ =
             { email = ""
             , password = ""
             }
-        ,emailState=0
-        ,pwdState=0
+        -- ,emailState=0
+        -- ,pwdState=0
         }
         ,Cmd.none
         )
