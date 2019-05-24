@@ -1,3 +1,15 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<title>Main</title>
+	<link rel="stylesheet" href="/static/css/all.css">
+
+</head>
+
+<body>
+<div id="elm-f0111bc4e658d0f98db96260c16f7e49"></div>
+<script>
 (function(scope){
 'use strict';
 
@@ -5837,15 +5849,15 @@ var elm$http$Http$get = function (r) {
 	return elm$http$Http$request(
 		{body: elm$http$Http$emptyBody, expect: r.expect, headers: _List_Nil, method: 'GET', timeout: elm$core$Maybe$Nothing, tracker: elm$core$Maybe$Nothing, url: r.url});
 };
-var author$project$Main$getEasyPuzzles = elm$http$Http$get(
+var author$project$Main$getAllPuzzles = elm$http$Http$get(
 	{
 		expect: elm$http$Http$expectString(author$project$Main$GotText),
-		url: '/easypuzzles'
+		url: '/allpuzzles'
 	});
 var author$project$Main$init = function (_n0) {
 	return _Utils_Tuple2(
-		{loadState: author$project$Main$Loading, puzzles: _List_Nil},
-		author$project$Main$getEasyPuzzles);
+		{epuzzles: _List_Nil, hpuzzles: _List_Nil, loadState: author$project$Main$Loading, mpuzzles: _List_Nil, ppuzzles: _List_Nil},
+		author$project$Main$getAllPuzzles);
 };
 var elm$core$Platform$Sub$batch = _Platform_batch;
 var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
@@ -5855,21 +5867,33 @@ var author$project$Main$subscriptions = function (model) {
 var author$project$Main$Fail = {$: 'Fail'};
 var author$project$Main$ParseError = {$: 'ParseError'};
 var author$project$Main$Success = {$: 'Success'};
-var author$project$Main$Puzzle = F2(
-	function (puzzleUuid, puzzleTitle) {
-		return {puzzleTitle: puzzleTitle, puzzleUuid: puzzleUuid};
+var author$project$Main$Puzzle = F3(
+	function (puzzleUuid, puzzleTitle, puzzleCategory) {
+		return {puzzleCategory: puzzleCategory, puzzleTitle: puzzleTitle, puzzleUuid: puzzleUuid};
 	});
 var elm$json$Json$Decode$field = _Json_decodeField;
-var elm$json$Json$Decode$map2 = _Json_map2;
+var elm$json$Json$Decode$map3 = _Json_map3;
 var elm$json$Json$Decode$string = _Json_decodeString;
-var author$project$Main$puzzleDecoder = A3(
-	elm$json$Json$Decode$map2,
+var author$project$Main$puzzleDecoder = A4(
+	elm$json$Json$Decode$map3,
 	author$project$Main$Puzzle,
 	A2(elm$json$Json$Decode$field, 'puzzleUuid', elm$json$Json$Decode$string),
-	A2(elm$json$Json$Decode$field, 'puzzleTitle', elm$json$Json$Decode$string));
+	A2(elm$json$Json$Decode$field, 'puzzleTitle', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'puzzleCategory', elm$json$Json$Decode$string));
 var elm$json$Json$Decode$list = _Json_decodeList;
 var author$project$Main$puzzlesDecoder = elm$json$Json$Decode$list(author$project$Main$puzzleDecoder);
 var elm$core$Debug$log = _Debug_log;
+var elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2(elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
 var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var elm$json$Json$Decode$decodeString = _Json_runOnString;
@@ -5885,13 +5909,37 @@ var author$project$Main$update = F2(
 			var ful = A2(elm$core$Debug$log, 'fullText', fullText);
 			if (res.$ === 'Ok') {
 				var output = res.a;
+				var profession = A2(
+					elm$core$List$filter,
+					function (x) {
+						return x.puzzleCategory === 'Professional';
+					},
+					output);
+				var medium = A2(
+					elm$core$List$filter,
+					function (x) {
+						return x.puzzleCategory === 'Medium';
+					},
+					output);
+				var hard = A2(
+					elm$core$List$filter,
+					function (x) {
+						return x.puzzleCategory === 'Hard';
+					},
+					output);
+				var easy = A2(
+					elm$core$List$filter,
+					function (x) {
+						return x.puzzleCategory === 'Easy';
+					},
+					output);
 				return A2(
 					elm$core$Debug$log,
 					'puzzles',
 					_Utils_Tuple2(
 						_Utils_update(
 							model,
-							{loadState: author$project$Main$Success, puzzles: output}),
+							{epuzzles: easy, hpuzzles: hard, loadState: author$project$Main$Success, mpuzzles: medium, ppuzzles: profession}),
 						elm$core$Platform$Cmd$none));
 			} else {
 				return A2(
@@ -5929,6 +5977,7 @@ var elm$core$List$map = F2(
 			xs);
 	});
 var elm$json$Json$Decode$map = _Json_map1;
+var elm$json$Json$Decode$map2 = _Json_map2;
 var elm$json$Json$Decode$succeed = _Json_succeed;
 var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	switch (handler.$) {
@@ -5971,7 +6020,7 @@ var elm$html$Html$Attributes$src = function (url) {
 		'src',
 		_VirtualDom_noJavaScriptOrHtmlUri(url));
 };
-var author$project$Main$getPanel = function (model) {
+var author$project$Main$getPanel = function (puzzles) {
 	return A2(
 		elm$core$List$map,
 		function (x) {
@@ -6228,10 +6277,9 @@ var author$project$Main$getPanel = function (model) {
 							]))
 					]));
 		},
-		model.puzzles);
+		puzzles);
 };
 var elm$html$Html$button = _VirtualDom_node('button');
-var elm$html$Html$h1 = _VirtualDom_node('h1');
 var elm$html$Html$h2 = _VirtualDom_node('h2');
 var elm$html$Html$nav = _VirtualDom_node('nav');
 var elm$html$Html$Attributes$id = elm$html$Html$Attributes$stringProperty('id');
@@ -6269,7 +6317,7 @@ var author$project$Main$view = function (model) {
 										elm$html$Html$a,
 										_List_fromArray(
 											[
-												elm$html$Html$Attributes$href('/home'),
+												elm$html$Html$Attributes$href('/list'),
 												elm$html$Html$Attributes$class('navigation-logo')
 											]),
 										_List_Nil),
@@ -6285,7 +6333,7 @@ var author$project$Main$view = function (model) {
 												elm$html$Html$a,
 												_List_fromArray(
 													[
-														elm$html$Html$Attributes$href('/practice'),
+														elm$html$Html$Attributes$href('/list'),
 														elm$html$Html$Attributes$class('navigation-desktop_nav-tab navigation-desktop_selected')
 													]),
 												_List_fromArray(
@@ -7183,7 +7231,7 @@ var author$project$Main$view = function (model) {
 																elm$html$Html$div,
 																_List_fromArray(
 																	[
-																		elm$html$Html$Attributes$class('games-level-header')
+																		elm$html$Html$Attributes$class('cg-navigation-subtabs')
 																	]),
 																_List_fromArray(
 																	[
@@ -7191,50 +7239,42 @@ var author$project$Main$view = function (model) {
 																		elm$html$Html$div,
 																		_List_fromArray(
 																			[
-																				elm$html$Html$Attributes$class('games-level-header_content')
+																				elm$html$Html$Attributes$class('cg-navigation-subtabs_content')
 																			]),
 																		_List_fromArray(
 																			[
 																				A2(
-																				elm$html$Html$ul,
+																				elm$html$Html$div,
 																				_List_fromArray(
 																					[
-																						elm$html$Html$Attributes$id('content-details-breadcrumb')
+																						elm$html$Html$Attributes$class('cg-subtabs')
 																					]),
 																				_List_fromArray(
 																					[
 																						A2(
-																						elm$html$Html$li,
-																						_List_Nil,
+																						elm$html$Html$a,
+																						_List_fromArray(
+																							[
+																								elm$html$Html$Attributes$href('/list'),
+																								elm$html$Html$Attributes$class('subtab selected')
+																							]),
 																						_List_fromArray(
 																							[
 																								A2(
-																								elm$html$Html$a,
+																								elm$html$Html$span,
+																								_List_Nil,
 																								_List_fromArray(
 																									[
-																										elm$html$Html$Attributes$href('/training')
+																										elm$html$Html$text('Puzzles')
+																									])),
+																								A2(
+																								elm$html$Html$div,
+																								_List_fromArray(
+																									[
+																										elm$html$Html$Attributes$class('hover-bar')
 																									]),
-																								_List_fromArray(
-																									[
-																										A2(
-																										elm$html$Html$span,
-																										_List_Nil,
-																										_List_fromArray(
-																											[
-																												elm$html$Html$text('Practice')
-																											]))
-																									]))
+																								_List_Nil)
 																							]))
-																					])),
-																				A2(
-																				elm$html$Html$h1,
-																				_List_fromArray(
-																					[
-																						elm$html$Html$Attributes$class('games-level-header_title')
-																					]),
-																				_List_fromArray(
-																					[
-																						elm$html$Html$text('Classic Puzzle - Easy')
 																					]))
 																			]))
 																	])),
@@ -7268,51 +7308,7 @@ var author$project$Main$view = function (model) {
 																							[
 																								elm$html$Html$Attributes$class('cg-puzzles-section')
 																							]),
-																						_List_fromArray(
-																							[
-																								A2(
-																								elm$html$Html$div,
-																								_List_fromArray(
-																									[
-																										elm$html$Html$Attributes$class('puzzle-header')
-																									]),
-																								_List_fromArray(
-																									[
-																										A2(
-																										elm$html$Html$div,
-																										_List_fromArray(
-																											[
-																												elm$html$Html$Attributes$class('puzzle-title-header')
-																											]),
-																										_List_fromArray(
-																											[
-																												A2(
-																												elm$html$Html$a,
-																												_List_fromArray(
-																													[
-																														elm$html$Html$Attributes$class('puzzle-title')
-																													]),
-																												_List_fromArray(
-																													[
-																														elm$html$Html$text('To start')
-																													]))
-																											]))
-																									])),
-																								A2(
-																								elm$html$Html$div,
-																								_List_fromArray(
-																									[
-																										elm$html$Html$Attributes$class('puzzles large')
-																									]),
-																								author$project$Main$getPanel(model)),
-																								A2(
-																								elm$html$Html$div,
-																								_List_fromArray(
-																									[
-																										elm$html$Html$Attributes$class('puzzles secondline')
-																									]),
-																								author$project$Main$getPanel(model))
-																							])),
+																						_List_Nil),
 																						A2(
 																						elm$html$Html$div,
 																						_List_fromArray(
@@ -7338,14 +7334,40 @@ var author$project$Main$view = function (model) {
 																										_List_fromArray(
 																											[
 																												A2(
-																												elm$html$Html$a,
+																												elm$html$Html$div,
+																												_List_Nil,
 																												_List_fromArray(
 																													[
-																														elm$html$Html$Attributes$class('puzzle-title')
+																														A2(
+																														elm$html$Html$a,
+																														_List_fromArray(
+																															[
+																																elm$html$Html$Attributes$class('puzzle-title')
+																															]),
+																														_List_fromArray(
+																															[
+																																elm$html$Html$text('Classic Puzzle - Easy')
+																															])),
+																														A2(
+																														elm$html$Html$div,
+																														_List_fromArray(
+																															[
+																																elm$html$Html$Attributes$class('sub-title')
+																															]),
+																														_List_fromArray(
+																															[
+																																elm$html$Html$text('Improve your skills by solving algorithmic puzzles')
+																															]))
+																													])),
+																												A2(
+																												elm$html$Html$div,
+																												_List_fromArray(
+																													[
+																														elm$html$Html$Attributes$class('level-progress-value')
 																													]),
 																												_List_fromArray(
 																													[
-																														elm$html$Html$text('Completed')
+																														elm$html$Html$text('4% completed')
 																													]))
 																											]))
 																									])),
@@ -7353,9 +7375,36 @@ var author$project$Main$view = function (model) {
 																								elm$html$Html$div,
 																								_List_fromArray(
 																									[
-																										elm$html$Html$Attributes$class('puzzles secondline')
+																										elm$html$Html$Attributes$class('puzzles')
 																									]),
-																								author$project$Main$getPanel(model))
+																								author$project$Main$getPanel(model.epuzzles)),
+																								A2(
+																								elm$html$Html$a,
+																								_List_fromArray(
+																									[
+																										elm$html$Html$Attributes$class('sub-pane'),
+																										elm$html$Html$Attributes$href('/easy')
+																									]),
+																								_List_fromArray(
+																									[
+																										A2(
+																										elm$html$Html$span,
+																										_List_fromArray(
+																											[
+																												elm$html$Html$Attributes$class('icon_view_all')
+																											]),
+																										_List_Nil),
+																										A2(
+																										elm$html$Html$span,
+																										_List_fromArray(
+																											[
+																												elm$html$Html$Attributes$class('sub-pane-label')
+																											]),
+																										_List_fromArray(
+																											[
+																												elm$html$Html$text('View all')
+																											]))
+																									]))
 																							]))
 																					]))
 																			]))
@@ -7574,3 +7623,12 @@ var author$project$Main$main = elm$browser$Browser$element(
 	{init: author$project$Main$init, subscriptions: author$project$Main$subscriptions, update: author$project$Main$update, view: author$project$Main$view});
 _Platform_export({'Main':{'init':author$project$Main$main(
 	elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));
+
+var app = Elm.Main.init({ node: document.getElementById("elm-f0111bc4e658d0f98db96260c16f7e49") });
+if (document.getElementById("elm-f0111bc4e658d0f98db96260c16f7e49"))
+{
+  document.getElementById("elm-f0111bc4e658d0f98db96260c16f7e49").innerText = 'This is a headless program, meaning there is nothing to show here.\n\nI started the program anyway though, and you can access it as `app` in the developer console.';
+}
+</script>
+</body>
+</html>

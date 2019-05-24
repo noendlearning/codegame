@@ -40,13 +40,13 @@ app req respond =  do
           resFile "text/html" "static/easy.html"
         ["gohome"]->
           resFile "text/html" "static/home.html"
+        ["list"]->
+          resFile "text/html" "static/list.html"
           -- 获取所有的puzzle
         ["allpuzzles"]->
           unsafePerformIO $ Api.listAll req
         ["easypuzzles"]->
           trace "easypuzzles" unsafePerformIO $ Api.categoryPuzzles Easy req
-        -- ["training":rest]->
-          -- fixme:rest是什么 根据rest获得对应的数据 将uuid放在页面内？
         _->
           resFile "text/html" "static/index.html"
     Just cookieMess->
