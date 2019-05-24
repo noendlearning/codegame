@@ -67,3 +67,5 @@ data StandCase = StandCase{
 } deriving (Generic,Show)
 instance ToJSON StandCase
 instance FromJSON StandCase
+
+

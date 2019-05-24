@@ -38,7 +38,7 @@ findUserIdBySessionId sId = do
 
   result <- withConn $ R.get (fromString sId)
 
-  traceM(show(result))
+  --traceM(show(result))
   return $ case result of
     --Right Nothing -> Just "uIdStr"
     Right (Just uIdStr) ->  return $ unpack . decodeUtf8 $ uIdStr

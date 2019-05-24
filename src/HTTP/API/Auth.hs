@@ -12,6 +12,7 @@ import qualified Redis.Auth as R
 import qualified Data.Map.Lazy as MAP
 --import Domain.Auth
 import Model
+import qualified Data.Maybe as DM
 import qualified HTTP.API.Tool as Tool
 import Data.Aeson
 import System.Process
@@ -43,12 +44,12 @@ initCode req = do
 loginUser :: Request ->IO Response
 loginUser req = do
     (params, _) <- parseRequestBody lbsBackEnd req
-    traceM(show(params))
+    --traceM(show(params))
     let paramsMap = mapFromList params :: Map ByteString ByteString
     -- 用户登录
     result <-M.login ((unpack . decodeUtf8) $ paramsMap MAP.! "email") $ (unpack . decodeUtf8) $ paramsMap MAP.! "passw"
-    traceM(show("==============="))
-    traceM(show(result))
+   -- traceM(show("==============="))
+   -- traceM(show(result))
     case result of
         [] -> return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (Output {msg= "用户不存在", state="3"})
         [_] ->  do
@@ -72,7 +73,7 @@ quitUser cookieMess req = do
 registerUser::Request->IO Response
 registerUser req = do
   (params, _) <- parseRequestBody lbsBackEnd req
-  traceM(show(params))
+ -- traceM(show(params))
   let paramsMap = mapFromList params :: Map ByteString ByteString
       email=((unpack . decodeUtf8) $ paramsMap MAP.! "email")
       pwd=(unpack . decodeUtf8) $ paramsMap MAP.! "passw"
@@ -106,7 +107,6 @@ testParam cookieMess req = do
             puzzleId = (unpack . decodeUtf8) (paramsMap MAP.! "puzzleId")
             languagesId = (unpack . decodeUtf8) (paramsMap MAP.! "languagesId")
             languageSetting = Tool.getLanguageSetting  language code userFolder
-
         -- 写入文件文件名不存在的时候会新建，每次都会重新写入
         outh <- IO.openFile (List.head languageSetting) WriteMode
         hPutStrLn outh (languageSetting List.!! 1)
@@ -147,6 +147,20 @@ testParam cookieMess req = do
             --M.updateCode $ M.Code "" (M.userEmail $ List.head user) puzzleId languagesId code Nothing Nothing
             return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ codeOutput
 
+--通过puzzleid查询Validateion表，Puzzle表，Solution表内容
+selectAllByPuzzleUUID ::Request->IO Response
+selectAllByPuzzleUUID req = do 
+             let params = paramFoldr (queryString req) 
+                 paramsMap = mapFromList params
+                 uuid = (unpack . decodeUtf8) (paramsMap MAP.! "uuid")   
+             all <- M.selectPuzzleAll uuid  
+             case all of
+                ([],[],[])->
+                  return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ "数据库查询出错"
+                (_)->
+                  return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode all
+
+
 getPuzzleInput :: String ->IO PuzzleInput
 getPuzzleInput puzzleInput = do
      case decode $ fromString puzzleInput :: Maybe PuzzleInput of
@@ -176,7 +190,7 @@ resData req = do
         validator'=validator b
     let input'=input c
         oput'=oput c
-    traceM(show(a,b,c))
+    --traceM(show(a,b,c))
     outh <- IO.openFile "./static/code/User.txt" WriteMode
     hPutStrLn outh (show $ title'<>statement'<>inputDescription'<>outputDescription'<>constraints')
     hPutStrLn outh (testName'<>validator')
@@ -223,3 +237,7 @@ categoryPuzzles p req=do
         return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ "数据库查询出错"
       _->
         return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode puzzles
+
+--处理get参数的方法
+paramFoldr :: [(a,Maybe b)] -> [(a,b)] 
+paramFoldr xs = foldr (\x acc -> (fst x , DM.fromJust $ snd x) : acc) [] xs 
