@@ -27,7 +27,7 @@ import Text.Read
 import Control.Exception
 import Data.Sequence as Seq
 import qualified Data.ByteString.Lazy.Internal as LI (ByteString)
-
+import HTTP.API.Handler
 -- 获取初始化代码
 initCode ::Request ->IO Response
 initCode req = do
@@ -38,7 +38,7 @@ initCode req = do
     solution <- M.selectSolutionByUUID ((unpack . decodeUtf8) $ paramsMap MAP.! "puzzleId") $ (unpack . decodeUtf8) $ paramsMap MAP.! "languageId"
     let code = M.solutionCode $ List.head solution
         codeList= encode (CodeList {codeList = code})
-    return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ codeList
+    resJson codeList
 
 --用户登录
 loginUser :: Request ->IO Response
@@ -57,7 +57,7 @@ loginUser req = do
             sessionId <- liftIO $ R.newSession ((unpack . decodeUtf8) $ paramsMap MAP.! "email")
             -- 把上一步返回的sessionId为设置cookie里面
             cookies <- Cookie.setSessionIdInCookie sessionId
-            return $ responseBuilder status200 [("Content-Type","application/json"),("Cookie",cookies)] $ lazyByteString $ encode (Output {msg= "欢迎登录", state="5"})
+            resJson' cookies $ encode (Output {msg= "欢迎登录", state="5"})
 
 --退出登录
 quitUser ::ByteString ->  Request ->IO Response
@@ -65,9 +65,10 @@ quitUser cookieMess req = do
       sessionId <- getCookie cookieMess "sessionId"
       number <- R.deleteUserIdBySessionId sessionId
       case number of
-        0 -> return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (Output {msg= "用户不存在",state="3"})
+        0 ->
+          resJson $ encode (Output {msg= "用户不存在",state="3"})
         1 ->  do
-            return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (Output {msg= "欢迎下次登录",state="4"})
+          resJson $ encode (Output {msg= "欢迎下次登录",state="4"})
 
 -- 用户注册
 registerUser::Request->IO Response
@@ -80,10 +81,11 @@ registerUser req = do
   --根据email 查找 userId
   user <- M.selectUserByUserEmail email
   case user of
-    [_] ->  return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (Output {msg= "该Email已经注册", state="1"})
+    [_] ->
+      resJson $ encode (Output {msg= "该Email已经注册", state="1"})
     [] -> do
       M.insertUser $ M.User "" email pwd Nothing Nothing Normal
-      return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (Output {msg= "注册成功", state="2"})
+      resJson $ encode (Output {msg= "注册成功", state="2"})
 
 -- 提交代码验证是否正确
 testParam ::ByteString -> Request ->IO Response
@@ -93,7 +95,7 @@ testParam cookieMess req = do
     email <- R.findUserIdBySessionId sessionId
     case email of
       Nothing -> do
-        return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= fromString "cookie失效，请先登录在提交代码", message="", found="", expected="", errMessage= ""})
+        resJson $ encode (CodeOutput {output= fromString "cookie失效，请先登录在提交代码", message="", found="", expected="", errMessage= ""})
       Just email -> do
         -- 为每个用户新建一个文件夹，这个是文件夹的路径。使用完之后删除
         let userFolder = "./static/"++ email
@@ -129,7 +131,7 @@ testParam cookieMess req = do
         Dir.removeDirectoryRecursive userFolder
         case content of
           Nothing  ->
-            return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (CodeOutput {output= fromString "Timeout: your program did not provide an input in due time.", message="Failure", found="", expected="", errMessage= fromString errMessage})
+            resJson $ encode (CodeOutput {output= fromString "Timeout: your program did not provide an input in due time.", message="Failure", found="", expected="", errMessage= fromString errMessage})
           Just value  -> do
             let contents = List.lines value
             --从数据库中获取正确的答案
@@ -145,20 +147,34 @@ testParam cookieMess req = do
             user <- M.selectUserByUserEmail email
             --更新用户提交的代码
             --M.updateCode $ M.Code "" (M.userEmail $ List.head user) puzzleId languagesId code Nothing Nothing
-            return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ codeOutput
+            resJson codeOutput
 
 --通过puzzleid查询Validateion表，Puzzle表，Solution表内容
 selectAllByPuzzleUUID ::Request->IO Response
-selectAllByPuzzleUUID req = do 
-             let params = paramFoldr (queryString req) 
+selectAllByPuzzleUUID req = do
+             let params = paramFoldr (queryString req)
                  paramsMap = mapFromList params
-                 uuid = (unpack . decodeUtf8) (paramsMap MAP.! "uuid")   
-             all <- M.selectPuzzleAll uuid  
+                 uuid = (unpack . decodeUtf8) (paramsMap MAP.! "uuid")
+             all <- M.selectPuzzleAll uuid
              case all of
                 ([],[],[])->
-                  return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ "数据库查询出错"
+                  resJson "数据库查询出错"
                 (_)->
-                  return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode all
+                  resJson $ encode all
+
+{-
+跳转到play页面，在cookie中携带puzzle的uuid
+-}
+playWithPuzzleUUID ::Request->IO Response
+playWithPuzzleUUID req = do
+            let params = paramFoldr (queryString req)
+                paramsMap = mapFromList params
+                uuid = (unpack . decodeUtf8) (paramsMap MAP.! "uuid")
+                --  fixme:
+            sessionId <- liftIO $ R.newSession  uuid
+            -- 把上一步返回的sessionId为设置cookie里面
+            cookies <- Cookie.setSessionIdInCookie' "uuid" sessionId
+            return $ resFile' cookies  "static/play.html"
 
 
 getPuzzleInput :: String ->IO PuzzleInput
@@ -196,7 +212,7 @@ resData req = do
     hPutStrLn outh (testName'<>validator')
     hPutStrLn outh (input'<>oput')
     IO.hClose outh
-    return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ " "
+    resJson " "
 
 -- 请求里是否携带cookie信息
 hasCookieInfo::Request ->IO (Maybe ByteString)
@@ -220,24 +236,23 @@ listAll req=do
   puzzles<-M.selectPuzzleByState Public
   case puzzles of
     []->
-      return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ "数据库查询出错"
+      resJson "数据库查询出错"
     _->
-      return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode puzzles
+      resJson $ encode puzzles
 
 {-
 根据类别查询puzzles，
 easy medium hard professional
 -}
--- encode (Output {msg= "该Email已经注册", state="1"})
 categoryPuzzles::PCategory->Request->IO Response
 categoryPuzzles p req=do
     puzzles<-M.selectPuzzleByCategory  p 0
     case puzzles of
       []->
-        return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ "数据库查询出错"
+        resJson "数据库查询出错"
       _->
-        return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode puzzles
+        resJson $ encode puzzles
 
 --处理get参数的方法
-paramFoldr :: [(a,Maybe b)] -> [(a,b)] 
-paramFoldr xs = foldr (\x acc -> (fst x , DM.fromJust $ snd x) : acc) [] xs 
+paramFoldr :: [(a,Maybe b)] -> [(a,b)]
+paramFoldr xs = foldr (\x acc -> (fst x , DM.fromJust $ snd x) : acc) [] xs
