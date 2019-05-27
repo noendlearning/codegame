@@ -1,7 +1,7 @@
 -- module Name exposing (Model, Msg, update, view, subscriptions, init)
 
 
-module Main exposing (Model, Msg(..), StateModel(..), init, jsonReq, main, outputDecoder, subscriptions, update, view)
+port module Main exposing (Model, Msg(..), StateModel(..), init, jsonReq, main, outputDecoder, subscriptions, update, view)
 
 import Browser
 import Debug exposing (..)
@@ -20,7 +20,7 @@ main =
         , subscriptions = subscriptions
         }
 
-
+port activeUuid : (E.Value -> msg) -> Sub msg
 
 --提交代码请求服务器返回的状态
 --页面初始化状态
@@ -37,6 +37,8 @@ type alias CodeList=
         code : String,
         language : String
     }
+
+
 
 type alias Model =
     { loadState : StateModel

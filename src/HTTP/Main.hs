@@ -43,7 +43,7 @@ app req respond =  do
           resFile "text/html" "static/home.html"
           -- fixme:
         ["training"]->
-          resFile "text/html" "static/home.html"
+          trace "training" $ unsafePerformIO $ Api.playWithPuzzleUUID req
         ["list"]->
           resFile "text/html" "static/list.html"
           -- 获取所有的puzzle

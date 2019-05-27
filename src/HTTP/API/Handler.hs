@@ -15,6 +15,10 @@ resFile contentType filename = responseFile status200 [("Content-Type", contentT
 resFile' ::ByteString-> FilePath -> Response
 resFile' cookies filename = responseFile status200 [("Content-Type", "text/html"),("Cookie",cookies)] filename Nothing
 
+-- 可以携带cookie到页面，cookie里放数据
+resFile_ ::ByteString-> FilePath -> Response
+resFile_ cookies filename = responseFile status200 [("Content-Type", "text/html"),("Uuid",cookies)] filename Nothing
+
 serveStatic :: Text -> Text -> Response
 serveStatic subDir fName =
     case sub of

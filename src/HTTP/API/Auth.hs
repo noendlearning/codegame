@@ -169,12 +169,14 @@ playWithPuzzleUUID ::Request->IO Response
 playWithPuzzleUUID req = do
             let params = paramFoldr (queryString req)
                 paramsMap = mapFromList params
-                uuid = (unpack . decodeUtf8) (paramsMap MAP.! "uuid")
+                uuid = paramsMap MAP.! "uuid"
+            traceM(show(uuid))
                 --  fixme:
-            sessionId <- liftIO $ R.newSession  uuid
+            -- sessionId <- liftIO $ R.newSession  uuid
             -- 把上一步返回的sessionId为设置cookie里面
-            cookies <- Cookie.setSessionIdInCookie' "uuid" sessionId
-            return $ resFile' cookies  "static/play.html"
+            -- cookies <- Cookie.setSessionIdInCookie' "uuid" uuid
+            -- traceM(show(cookies))
+            return $ resFile_ uuid  "static/play.html"
 
 
 getPuzzleInput :: String ->IO PuzzleInput
