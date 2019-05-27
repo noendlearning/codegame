@@ -32,28 +32,28 @@ app req respond =  do
         ["static", subDir, fileName] ->
           serveStatic subDir fileName
         ["toplay"]->
-          resFile "text/html" "static/play.html"
+          resFile "static/play.html"
         ["addpuzzle"]->
-          resFile "text/html" "static/addpuzzle.html"
+          resFile "static/addpuzzle.html"
           -- 去practice页面
         ["easy"]->
-          resFile "text/html" "static/easy.html"
+          resFile "static/easy.html"
         ["gohome"]->
-          resFile "text/html" "static/home.html"
+          resFile "static/home.html"
         ["list"]->
-          resFile "text/html" "static/list.html"
+          resFile "static/list.html"
           -- 获取所有的puzzle
         ["allpuzzles"]->
           unsafePerformIO $ Api.listAll req
         ["easypuzzles"]->
           trace "easypuzzles" unsafePerformIO $ Api.categoryPuzzles Easy req
         _->
-          resFile "text/html" "static/index.html"
+          resFile "static/index.html"
     Just cookieMess->
       respond $
         case pathInfo req of
           ["toplay"]->
-            resFile "text/html" "static/html/play.html"
+            resFile "static/html/play.html"
           ["quitUser"] ->
               unsafePerformIO $ Api.quitUser cookieMess req
           ["loginUser"] ->
@@ -70,24 +70,24 @@ app req respond =  do
           ["static", subDir, fileName] ->
                 serveStatic subDir fileName
           [] ->
-            resFile "text/html" "static/index.html"
+            resFile "static/index.html"
           ["index"] ->
-            resFile "text/html" "static/index.html"
+            resFile "static/index.html"
           ["gohome"] ->
-            resFile "text/html" "static/home.html"
+            resFile "static/home.html"
           ["addpuzzle"] ->
-            resFile "text/html" "static/addpuzzle.html"
+            resFile "static/addpuzzle.html"
           -- 去easy页面
           ["easy"]->
-            resFile "text/html" "static/easy.html"
+            resFile "static/easy.html"
           ["easypuzzles"]->
             unsafePerformIO $ Api.categoryPuzzles Easy req
           ["code"] ->
             unsafePerformIO $ Api.resData req
           _ -> res404
 
-resFile :: ByteString -> FilePath -> Response
-resFile contentType filename = responseFile status200 [("Content-Type", contentType)] filename Nothing
+resFile :: FilePath -> Response
+resFile filename = responseFile status200 [("Content-Type", "text/html")] filename Nothing
 
 serveStatic :: Text -> Text -> Response
 serveStatic subDir fName =
