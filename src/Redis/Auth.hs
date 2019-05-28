@@ -1,5 +1,5 @@
 module Redis.Auth where
-  
+
 import ClassyPrelude
 import qualified Database.Redis as R
 import qualified Control.Exception.Safe as S
@@ -10,7 +10,7 @@ import qualified Data.UUID.V4 as UV (nextRandom)
 type Redis m = (MonadIO m, S.MonadThrow m)
 type UserId = String
 type SessionId = String
-    
+
 redConn :: IO R.Connection
 redConn =  case R.parseConnectInfo "redis://localhost:6379/0" of
   Left _ ->
@@ -31,7 +31,7 @@ newSession userId = do
     Right R.Ok -> return $ unpack sId
     err -> S.throwString $ "意外的redis错误: " <> show err
 
-    
+
 --根据SessionId查找用户名
 findUserIdBySessionId :: Redis m => SessionId -> m (Maybe UserId)
 findUserIdBySessionId sId = do
@@ -40,7 +40,7 @@ findUserIdBySessionId sId = do
 
   --traceM(show(result))
   return $ case result of
-    --Right Nothing -> Just "uIdStr"
+    Right Nothing -> Just "uIdStr"
     Right (Just uIdStr) ->  return $ unpack . decodeUtf8 $ uIdStr
     err -> S.throwString $ "意外的redis错误: " <> show err
 

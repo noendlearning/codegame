@@ -20,12 +20,13 @@ main =
         , subscriptions = subscriptions
         }
 
-port activeUuid : (E.Value -> msg) -> Sub msg
+type alias UUID=String
+
+port receiveData : (UUID -> msg) -> Sub msg
 
 --提交代码请求服务器返回的状态
 --页面初始化状态
 --服务器返回json数据在页面进行解析的状态
-
 
 type StateModel
     = Fail
@@ -37,7 +38,6 @@ type alias CodeList=
         code : String,
         language : String
     }
-
 
 
 type alias Model =
@@ -65,6 +65,9 @@ type Msg
     | SubmitCode Int -- 提交代码
     | CheckLanguage String --选择语言
     | BatchSubmitCode
+    | ReceiveDataFromJS UUID
+    -- 根据uuid向后台查询 返回的结果
+    | GotPuzzle (Result Http.Error String)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -118,10 +121,111 @@ update msg model =
         BatchSubmitCode ->
             ({model|batchSubmit=True,testIndex=1},jsonReq 1 model.code model.language)
 
+        ReceiveDataFromJS uuid->
+        --  发送请求到后台 根据uuid查询puzzle validation solution
+            let
+                languageId="faf338cb-80fd-445d-b345-77c09c6d8581"
+            in
+                (model,playWithUuid uuid languageId)
 
+-- initCode : String->Cmd Msg
+-- initCode language=
+--     Http.post
+--         { url = "/init"
+
+--         --todo post 请求携带参数
+--         , body =
+--             multipartBody
+--             -- FIXME 初始默认是python
+--                 [ stringPart "language" ( if (String.isEmpty language) then "python3" else language)
+--                 ]
+--         , expect = Http.expectString GotText
+--         }
+
+-- 页面初始化 渲染页面
+playWithUuid:String -> String->Cmd Msg
+playWithUuid uuid languageId=
+    Http.post
+        {
+            url="init",
+            body=
+                multipartBody
+                    [
+                        stringPart "puzzleId" uuid,
+                        stringPart "languageId" languageId
+                    ],
+            expect=Http.expectString GotPuzzle
+        }
+
+type alias Validation={
+    input:String,
+    output:String,
+    title:String
+}
+
+type alias Puzzle={
+    title:String,
+    inputDescription:String,
+    outputDescription:String,
+    constraints:String
+}
+puzzleDecoder:Decoder Puzzle
+puzzleDecoder=
+    map4 Puzzle
+        (Decoder.field "puzzleTitle" string)
+        (Decoder.field "puzzleInputDescription" string)
+        (Decoder.field "puzzleOutputDescription" string)
+        (Decoder.field "puzzleConstraints" string)
+
+
+validationDecoder : Decoder Validation
+validationDecoder =
+    map3 Validation
+        (Decoder.field "validationInput" string)
+        (Decoder.field "validationOutput" string)
+        (Decoder.field "validationTitle" string)
+
+type alias Solution={
+    uuid:String,
+    language:String,
+    code:String,
+    unsolve:String
+}
+
+solutionDecoder:Decoder Solution
+solutionDecoder =
+    map4 Solustion
+        (Decoder.field "solutionUuid" string)
+        (Decoder.field "solutionLanguage" string)
+        (Decoder.field "solutionCode" string)
+        (Decoder.field "solutionUnsolve" string)
+
+type alias Res={
+    puzzle:Puzzle,
+    solution:Solution,
+    validation:List Validation
+}
+
+-- todo:  测试是否管用
+resDecoder : Decoder Res
+resDecoder
+    map3 Res
+        (Decoder.field "puzzle" puzzleDecoder)
+        (Decoder.field "solution" solutionDecoder)
+        (Decoder.field "validation" (Decode.list validationDecoder))
+
+type alias Language={
+    uuid:String,
+    language:String
+}
+
+languageDecoder:Decoder Language
+languageDecoder =
+    map2 Language
+        (Decoder.field "languagesUuid" string)
+        (Decoder.field "languagesLanguage" string)
 type alias Code =
     String
-
 
 codeDecoder : Decoder Code
 codeDecoder =
@@ -432,9 +536,9 @@ view model =
                 ]
 
 
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.none
+subscriptions : UUID -> Sub Msg
+subscriptions uuid =
+    receiveData ReceiveDataFromJS
 
 
 init : () -> ( Model, Cmd Msg )
@@ -456,21 +560,8 @@ init _ =
       , language = "python3"
       , batchSubmit=False
       }
-    , --Cmd.none
-      initCode ""
+    ,
+    -- fixme:获取语言列表
     )
 
 
-initCode : String->Cmd Msg
-initCode language=
-    Http.post
-        { url = "/init"
-
-        --todo post 请求携带参数
-        , body =
-            multipartBody
-            -- FIXME 初始默认是python
-                [ stringPart "language" ( if (String.isEmpty language) then "python3" else language)
-                ]
-        , expect = Http.expectString GotText
-        }

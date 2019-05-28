@@ -176,7 +176,7 @@ insertPuzzle (Puzzle _ title  _ createBy  updateBy _  inputDescription outputDes
         insert_ $ Solution ( DU.toString suuid ) language code (DU.toString puuid)  (Just now)  update   (Just now)  create  unsolve   sstate
         insert_ $ Validation (DU.toString vuuid)  (DU.toString puuid) input output category orders createB  (Just now)  updateB  (Just now)  vstate vtitle
 
-        
+
 selectPuzzleAll :: String -> IO ([Solution], [Puzzle], [Validation])
 selectPuzzleAll uuid = do
     solution <- selectSolutionByPuzzleUuid uuid
@@ -184,17 +184,24 @@ selectPuzzleAll uuid = do
     validation <- selectValidationByUUID  uuid
     return (solution,puzzle,validation)
 
-    
+selectPuzzleAll' :: String->String -> IO ([Solution], [Puzzle], [Validation])
+selectPuzzleAll' uuid languageId = do
+    solution <- selectSolutionByUUID uuid languageId
+    puzzle <- selectPuzzleByUUID  uuid
+    validation <- selectValidationByUUID  uuid
+    return (solution,puzzle,validation)
+
+
 --通过Puzzle表的uuid 查询Solution表内容
 selectSolutionByPuzzleUuid :: String -> IO[Solution]
-selectSolutionByPuzzleUuid uuid = 
-    inBackend $ do 
+selectSolutionByPuzzleUuid uuid =
+    inBackend $ do
         solution <- E.select $
                     E.from $ \s -> do
                     E.where_ (s ^. SolutionPuzzleId E.==. E.val uuid)
                     return s
         liftIO $ mapM (return . entityVal) (solution :: [Entity Solution])
-      
+
 
 --通过Puzzle表的uuid 查询Puzzle表内容
 selectPuzzleByUUID::String->IO [Puzzle]
@@ -239,7 +246,6 @@ selectSolutionByUUID puzzleId languageId=
 {-
 ? solution crud
 -}
--- todo
 insertSolutionWithPuzzleId::Solution->IO()
 insertSolutionWithPuzzleId (Solution _ language code puzzleId _ updateBy _ createBy unsolve _) =
     inBackend  $ do
@@ -261,7 +267,7 @@ getPuzzleId uuid =
         liftIO $ mapM (return . puzzleUuid . entityVal) (puzzleId :: [Entity Puzzle] )
 
 
---根据State获取 Soultion表中language
+--根据State获取language
 getLanguage :: String -> IO [String]
 getLanguage state =
     inBackend $ do
@@ -274,7 +280,6 @@ getLanguage state =
 {-
 ? validation crud
 -}
--- todo
 insertValidationWithPuzzleId::Validation -> IO()
 insertValidationWithPuzzleId (Validation _ puzzleid input output category orders createBy _ updateBy _ state title) =
     inBackend $ do
@@ -343,14 +348,14 @@ insertAllLanguage =
 "Objective OCaml","Pascal","Perl","PHP",
 "Python","Python3 ","Ruby","Rust","Scala","Swift","VB.NET"]
 -}
-queryAllLanguageWithNormalState::IO [String]
+queryAllLanguageWithNormalState::IO [Languages]
 queryAllLanguageWithNormalState =
     inBackend $ do
         languages<- E.select $
                     E.from $ \l->do
                     E.where_ (l ^. LanguagesState E.==. E.val Normal)
                     return l
-        liftIO $ mapM (return . languagesLanguage . entityVal) (languages::[Entity Languages])
+        liftIO $ mapM (return . entityVal) (languages::[Entity Languages])
 
 
 --通过language查询Language表的uuid
@@ -397,7 +402,6 @@ selectUserByUUID uuid =inBackend .
     E.where_ (p ^. UserUuid E.==. val uuid)
     return p
 
--- fixme
 selectUserByEmail ::String->IO [Entity User]
 selectUserByEmail email =inBackend .
     E.select $
@@ -451,16 +455,6 @@ selectPuzzleByCategory category number =
                  return p
         liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
 
--- fixme: 只是为了测试 用完即删除
---根据难度级别(category)和条数查询puzzle表
-selectPuzzleByCategory' :: IO [Puzzle]
-selectPuzzleByCategory'  =
-    inBackend $ do
-        puzzle<- E.select $
-                 E.from $ \p->do
-                 E.where_ (p ^. PuzzleCategory E.==. E.val Easy &&. p ^. PuzzleState E.==. E.val Public)
-                 return p
-        liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
 
 {-
 根据状态查询相应的puzzle

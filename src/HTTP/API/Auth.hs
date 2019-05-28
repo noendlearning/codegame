@@ -35,11 +35,14 @@ initCode req = do
         "### \n#   \n##  \n#   \n### " Major 1 "createBy" Nothing (Just "updateBy")  Nothing Normal "" -}
     (params, _) <- parseRequestBody lbsBackEnd req
     let paramsMap = mapFromList params :: Map ByteString ByteString
-    solution <- M.selectSolutionByUUID ((unpack . decodeUtf8) $ paramsMap MAP.! "puzzleId") $ (unpack . decodeUtf8) $ paramsMap MAP.! "languageId"
-    let code = M.solutionCode $ List.head solution
-        codeList= encode (CodeList {codeList = code})
-    resJson codeList
-
+    let uuid=(unpack . decodeUtf8) $ paramsMap MAP.! "puzzleId"
+    let languageId=(unpack . decodeUtf8) $ paramsMap MAP.! "languageId"
+    all <- M.selectPuzzleAll' uuid languageId
+    case all of
+      ([],[],[])->
+        resJson "数据库查询出错"
+      (_)->
+        resJson $ encode all
 --用户登录
 loginUser :: Request ->IO Response
 loginUser req = do
@@ -150,17 +153,22 @@ testParam cookieMess req = do
             resJson codeOutput
 
 --通过puzzleid查询Validateion表，Puzzle表，Solution表内容
-selectAllByPuzzleUUID ::Request->IO Response
-selectAllByPuzzleUUID req = do
-             let params = paramFoldr (queryString req)
-                 paramsMap = mapFromList params
-                 uuid = (unpack . decodeUtf8) (paramsMap MAP.! "uuid")
-             all <- M.selectPuzzleAll uuid
-             case all of
-                ([],[],[])->
-                  resJson "数据库查询出错"
-                (_)->
-                  resJson $ encode all
+-- selectAllByPuzzleUUID ::Request->IO Response
+-- selectAllByPuzzleUUID req = do
+--              let params = paramFoldr (queryString req)
+--                  paramsMap = mapFromList params
+--                  uuid = (unpack . decodeUtf8) (paramsMap MAP.! "uuid")
+--              all <- M.selectPuzzleAll uuid
+--              case all of
+--                 ([],[],[])->
+--                   resJson "数据库查询出错"
+--                 (_)->
+--                   resJson $ encode all
+
+selectAllLanguage::IO Response
+selectAllLanguage = do
+  all<-M.queryAllLanguageWithNormalState
+  resJson $ encode all
 
 {-
 跳转到play页面，在cookie中携带puzzle的uuid
@@ -171,11 +179,6 @@ playWithPuzzleUUID req = do
                 paramsMap = mapFromList params
                 uuid = paramsMap MAP.! "uuid"
             traceM(show(uuid))
-                --  fixme:
-            -- sessionId <- liftIO $ R.newSession  uuid
-            -- 把上一步返回的sessionId为设置cookie里面
-            -- cookies <- Cookie.setSessionIdInCookie' "uuid" uuid
-            -- traceM(show(cookies))
             return $ resFile_ uuid  "static/play.html"
 
 

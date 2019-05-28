@@ -32,16 +32,15 @@ app req respond =  do
           unsafePerformIO $ Api.registerUser req
         ["static", subDir, fileName] ->
           serveStatic subDir fileName
-        ["toplay"]->
-          resFile "text/html" "static/play.html"
+        -- ["toplay"]->
+        --   resFile "text/html" "static/play.html"
         ["addpuzzle"]->
           resFile "text/html" "static/addpuzzle.html"
-          -- 去practice页面
+          -- 去easy页面
         ["easy"]->
           resFile "text/html" "static/easy.html"
         ["gohome"]->
           resFile "text/html" "static/home.html"
-          -- fixme:
         ["training"]->
           trace "training" $ unsafePerformIO $ Api.playWithPuzzleUUID req
         ["list"]->
@@ -51,6 +50,13 @@ app req respond =  do
           unsafePerformIO $ Api.listAll req
         ["easypuzzles"]->
           trace "easypuzzles" unsafePerformIO $ Api.categoryPuzzles Easy req
+          -- fixme:
+        ["play"]->
+          unsafePerformIO $ Api.testParam "cookieMess" req
+        ["init"] ->
+          unsafePerformIO $ Api.initCode req
+        ["language"]->
+          unsafePerformIO $ Api.selectAllLanguage
         _->
           resFile "text/html" "static/index.html"
     Just cookieMess->
