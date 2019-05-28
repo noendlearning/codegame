@@ -151,20 +151,6 @@ update msg model =
             in
                 ({model|uuid=uuid},initCode uuid languageId)
 
--- initCode : String->Cmd Msg
--- initCode language=
---     Http.post
---         { url = "/init"
-
---         --todo post 请求携带参数
---         , body =
---             multipartBody
---             -- FIXME 初始默认是python
---                 [ stringPart "language" ( if (String.isEmpty language) then "python3" else language)
---                 ]
---         , expect = Http.expectString GotText
---         }
-
 -- 页面初始化 渲染页面
 initCode:String -> String->Cmd Msg
 initCode uuid languageId=
@@ -316,10 +302,7 @@ jsonReq testIndex code language =
 view : Model -> Html Msg
 view model =
     case model.loadState of
-        Loading ->
-            text "loding"
-
-        Success ->
+        _ ->
             div [ class "all" ]
                 [ div
                     [ class "nag" ]
