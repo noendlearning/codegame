@@ -1,6 +1,3 @@
--- module Name exposing (Model, Msg, update, view, subscriptions, init)
-
-
 port module Main exposing (Model, Msg(..), StateModel(..), init, jsonReq, main, outputDecoder, subscriptions, update, view)
 
 import Browser
@@ -20,9 +17,7 @@ main =
         , subscriptions = subscriptions
         }
 
-type alias UUID=String
-
-port receiveData : (UUID -> msg) -> Sub msg
+port receiveData : (String-> msg) -> Sub msg
 
 --提交代码请求服务器返回的状态
 --页面初始化状态
@@ -43,54 +38,79 @@ type alias CodeList=
 type alias Model =
     { loadState : StateModel
     , --页面初始化
-      code : String
+    code : String
     , --代码
-      codeOutput : CodeOutput
+    codeOutput : CodeOutput
     , --代码解析结果
-      parseJson : StateModel
+    parseJson : StateModel
     , --json解析状态
-      jsonReqState : StateModel -- 后台代码返回状态
+    jsonReqState : StateModel -- 后台代码返回状态
     , errMessage : String
     , codeState : StateModel
     , testIndex : Int
-    , language : String
+    , languageId : String
     , batchSubmit : Bool
+    ,languages:List Language
+    ,uuid:String
+    ,solutions:List Solution
+    ,puzzles:List Puzzle
+    ,validations:List Validation
     }
 
 
 type Msg
-    = GotText (Result Http.Error String)
-    | ChangeCode String --输入代码
+    =
+    -- GotText (Result Http.Error String)
+    ChangeCode String --输入代码
     | RenderOutput (Result Http.Error String) --代码运行结果填充页面
     | SubmitCode Int -- 提交代码
     | CheckLanguage String --选择语言
     | BatchSubmitCode
-    | ReceiveDataFromJS UUID
+    | ReceiveDataFromJS String
     -- 根据uuid向后台查询 返回的结果
     | GotPuzzle (Result Http.Error String)
+    | GotLanguage (Result Http.Error String)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GotText result ->
+        GotPuzzle result ->
             case result of
                 Ok fullText ->
-                    case Decode.decodeString codeDecoder fullText of
-                        Ok codes ->
-                            Debug.log "ok get code" ( { model | code = codes, codeState = Success, loadState = Success }, Cmd.none )
-
+                    case Decode.decodeString resDecoder fullText of
+                        Ok ookk->
+                            --todo: tmd 这是我写过最长的json分析 恶心死了
+                            let
+                                o=Debug.log "000000000000" ookk
+                                puzzles=ookk.puzzle
+                                solutions=ookk.solution
+                                validations=ookk.validation
+                            in
+                                ({model|puzzles=puzzles,validations=validations,solutions=solutions},Cmd.none)
                         Err _ ->
-                            Debug.log "err" ( { model | codeState = Fail, loadState = Success }, Cmd.none )
+                            Debug.log "err......" (model,Cmd.none)
 
                 Err _ ->
                     Debug.log "fail" ( { model | loadState = Fail }, Cmd.none )
+        GotLanguage result->
+            case result of
+                Ok fullText->
+                    case Decode.decodeString languagesDecoder fullText of
+                        Ok langs ->
 
+                            ({ model | languages = langs}, Cmd.none )
+
+                        Err _ ->
+                            Debug.log "err" ( model, Cmd.none )
+                Err _ ->
+                -- fixme: 这里可能需要为model增加一个状态，告知语言列表获取失败
+                    Debug.log "fail" (model,Cmd.none)
         ChangeCode str ->
             ( { model | code= str }, Cmd.none )
 
         SubmitCode index ->
-            ( { model | testIndex = index }, jsonReq index model.code model.language )
+            ( { model | testIndex = index }, jsonReq index model.code model.languageId )
 
         RenderOutput result ->
             --渲染代码运行的结果
@@ -101,10 +121,10 @@ update msg model =
                         Ok output ->
                             if model.batchSubmit then
                                 if model.testIndex<5 then
-                                    Debug.log (String.fromInt model.testIndex) ( { model | codeOutput = output, jsonReqState = Success, parseJson = Success,testIndex=model.testIndex+1 }, jsonReq (model.testIndex+1) model.code model.language )
+                                    Debug.log (String.fromInt model.testIndex) ( { model | codeOutput = output, jsonReqState = Success, parseJson = Success,testIndex=model.testIndex+1 }, jsonReq (model.testIndex+1) model.code model.languageId )
 
                                 else
-                                    Debug.log (String.fromInt model.testIndex) ( { model | codeOutput = output, jsonReqState = Success, parseJson = Success,testIndex=5,batchSubmit=False }, jsonReq 5 model.code model.language )
+                                    Debug.log (String.fromInt model.testIndex) ( { model | codeOutput = output, jsonReqState = Success, parseJson = Success,testIndex=5,batchSubmit=False }, jsonReq 5 model.code model.languageId )
 
                             else
                                 Debug.log "output3" ( { model | codeOutput = output, jsonReqState = Success, parseJson = Success }, Cmd.none )
@@ -116,17 +136,20 @@ update msg model =
                     --服务器返回失败
                     ( { model | jsonReqState = Fail }, Cmd.none )
 
-        CheckLanguage str ->
-            ( { model | language = str }, initCode str)
+        CheckLanguage languageId ->
+            let
+                uu=model.uuid
+            in
+                ( { model | languageId = languageId }, initCode uu languageId)
         BatchSubmitCode ->
-            ({model|batchSubmit=True,testIndex=1},jsonReq 1 model.code model.language)
+            ({model|batchSubmit=True,testIndex=1},jsonReq 1 model.code model.languageId)
 
         ReceiveDataFromJS uuid->
         --  发送请求到后台 根据uuid查询puzzle validation solution
             let
                 languageId="faf338cb-80fd-445d-b345-77c09c6d8581"
             in
-                (model,playWithUuid uuid languageId)
+                ({model|uuid=uuid},initCode uuid languageId)
 
 -- initCode : String->Cmd Msg
 -- initCode language=
@@ -143,8 +166,8 @@ update msg model =
 --         }
 
 -- 页面初始化 渲染页面
-playWithUuid:String -> String->Cmd Msg
-playWithUuid uuid languageId=
+initCode:String -> String->Cmd Msg
+initCode uuid languageId=
     Http.post
         {
             url="init",
@@ -157,73 +180,98 @@ playWithUuid uuid languageId=
             expect=Http.expectString GotPuzzle
         }
 
-type alias Validation={
-    input:String,
-    output:String,
-    title:String
-}
+type alias Validation=
+    {
+        input:String,
+        output:String,
+        title:String,
+        orders:Int
+    }
 
-type alias Puzzle={
-    title:String,
-    inputDescription:String,
-    outputDescription:String,
-    constraints:String
-}
+type alias Puzzle=
+    {
+        title:String,
+        inputDescription:String,
+        outputDescription:String,
+        constraints:String
+    }
+
+puzzlesDecoder:Decode.Decoder (List Puzzle)
+puzzlesDecoder=
+    Decode.list puzzleDecoder
+
 puzzleDecoder:Decoder Puzzle
 puzzleDecoder=
     map4 Puzzle
-        (Decoder.field "puzzleTitle" string)
-        (Decoder.field "puzzleInputDescription" string)
-        (Decoder.field "puzzleOutputDescription" string)
-        (Decoder.field "puzzleConstraints" string)
+        (Decode.field "puzzleTitle" string)
+        (Decode.field "puzzleInputDescription" string)
+        (Decode.field "puzzleOutputDescription" string)
+        (Decode.field "puzzleConstraints" string)
 
+
+validationsDecoder:Decode.Decoder (List Validation)
+validationsDecoder=
+    Decode.list validationDecoder
 
 validationDecoder : Decoder Validation
 validationDecoder =
-    map3 Validation
-        (Decoder.field "validationInput" string)
-        (Decoder.field "validationOutput" string)
-        (Decoder.field "validationTitle" string)
+    map4 Validation
+        (Decode.field "validationInput" string)
+        (Decode.field "validationOutput" string)
+        (Decode.field "validationTitle" string)
+        (Decode.field "validationOrders" int)
 
-type alias Solution={
-    uuid:String,
-    language:String,
-    code:String,
-    unsolve:String
-}
+type alias Solution=
+    {
+        uuid:String,
+        language:String,
+        code:String,
+        unsolve:String
+    }
+
+solutionsDecoder:Decode.Decoder (List Solution)
+solutionsDecoder=
+    Decode.list solutionDecoder
 
 solutionDecoder:Decoder Solution
 solutionDecoder =
-    map4 Solustion
-        (Decoder.field "solutionUuid" string)
-        (Decoder.field "solutionLanguage" string)
-        (Decoder.field "solutionCode" string)
-        (Decoder.field "solutionUnsolve" string)
+    map4 Solution
+        (Decode.field "solutionUuid" string)
+        (Decode.field "solutionLanguage" string)
+        (Decode.field "solutionCode" string)
+        (Decode.field "solutionUnsolve" string)
 
-type alias Res={
-    puzzle:Puzzle,
-    solution:Solution,
-    validation:List Validation
-}
+type alias Res=
+    {
+        solution:List Solution,
+        puzzle:List Puzzle,
+        validation:List Validation
+    }
 
--- todo:  测试是否管用
 resDecoder : Decoder Res
-resDecoder
-    map3 Res
-        (Decoder.field "puzzle" puzzleDecoder)
-        (Decoder.field "solution" solutionDecoder)
-        (Decoder.field "validation" (Decode.list validationDecoder))
+resDecoder=
+    Decode.map3 Res
+        (Decode.index 0 solutionsDecoder)
+        (Decode.index 1 puzzlesDecoder)
+        (Decode.index 2 validationsDecoder)
 
-type alias Language={
-    uuid:String,
-    language:String
-}
+
+type alias Language=
+    {
+        uuid:String,
+        language:String
+    }
 
 languageDecoder:Decoder Language
 languageDecoder =
     map2 Language
-        (Decoder.field "languagesUuid" string)
-        (Decoder.field "languagesLanguage" string)
+        (Decode.field "languagesUuid" string)
+        (Decode.field "languagesLanguage" string)
+
+languagesDecoder:Decode.Decoder (List Language)
+languagesDecoder=
+    Decode.list languageDecoder
+
 type alias Code =
     String
 
@@ -364,34 +412,18 @@ view model =
                                     [ class "write_top" ]
                                     [ select
                                         [ class "drop-down" ]
-                                        [ --     option
-                                          --     []
-                                          --     [ text "Elm" ]
-                                          -- ,
-                                        --   FIXME 数据库查询 放在session内？
-                                          option
-                                            [case model.language of
-                                            "haskell" ->selected True
-                                            _->selected False
-                                            ,onClick (CheckLanguage "haskell")]
-                                            [ text "Haskell" ]
-                                        , option
-                                            [case model.language of
-                                            "java" ->selected True
-                                            _->selected False
-                                            , onClick (CheckLanguage "java") ]
-                                            [ text "Java" ]
-                                        , option
-                                            [ case model.language of
-                                            "python3" ->selected True
-                                            _->selected False
-                                            ,onClick (CheckLanguage "python3")]
-                                            [ text "Python3" ]
-
-                                        -- , option
-                                        --     []
-                                        --     [ text "PHP" ]
-                                        ]
+                                        (List.map
+                                            (
+                                                \x->
+                                                    option
+                                                    [(if model.languageId==x.uuid then
+                                                        selected True
+                                                    else
+                                                        selected False)
+                                                    ,onClick (CheckLanguage x.uuid)]
+                                                    [ text x.language ]
+                                            )
+                                        model.languages)
                                     ]
                                 , textarea
                                     [ id "codeTextarea" ]
@@ -415,97 +447,121 @@ view model =
                                         ]
                                     , div
                                         [ class "bottom" ]
-                                        [ div
-                                            [ class "test" ]
-                                            [ button
-                                                [ class "btn_test", onClick (SubmitCode 1) ]
-                                                [ span
-                                                    []
-                                                    [ text "▶ PLAY TESTCASES" ]
+                                        ( List.map
+                                            (\x->
+                                                div
+                                                [ class "test" ]
+                                                [ button
+                                                    [ class "btn_test", onClick (SubmitCode x.orders) ]
+                                                    [ span
+                                                        []
+                                                        [ text "▶ PLAY TESTCASES" ]
+                                                    ]
+                                                , span
+                                                    [ class "img_0" ]
+                                                    [ img
+                                                        [ src ("/static/images/0"++String.fromInt x.orders++".png")]
+                                                        []
+                                                    ]
+                                                , div
+                                                    [ class "word_0" ]
+                                                    [ text x.title ]
                                                 ]
-                                            , span
-                                                [ class "img_0" ]
-                                                [ img
-                                                    [ src "/static/images/01.png" ]
-                                                    []
-                                                ]
-                                            , div
-                                                [ class "word_0" ]
-                                                [ text "Test only letter:E" ]
-                                            ]
-                                        , div
-                                            [ class "test" ]
-                                            [ button
-                                                [ class "btn_test", onClick (SubmitCode 2) ]
-                                                [ span
-                                                    []
-                                                    [ text "▶ PLAY TESTCASES" ]
-                                                ]
-                                            , span
-                                                [ class "img_0" ]
-                                                [ img
-                                                    [ src "/static/images/02.png" ]
-                                                    []
-                                                ]
-                                            , div
-                                                [ class "word_0" ]
-                                                [ text "Test MANHATTAN" ]
-                                            ]
-                                        , div
-                                            [ class "test" ]
-                                            [ button
-                                                [ class "btn_test", onClick (SubmitCode 3) ]
-                                                [ span
-                                                    []
-                                                    [ text "▶ PLAY TESTCASES" ]
-                                                ]
-                                            , span
-                                                [ class "img_0" ]
-                                                [ img
-                                                    [ src "/static/images/03.png" ]
-                                                    []
-                                                ]
-                                            , div
-                                                [ class "word_0" ]
-                                                [ text "Test ManhAtTan" ]
-                                            ]
-                                        , div
-                                            [ class "test" ]
-                                            [ button
-                                                [ class "btn_test", onClick (SubmitCode 4) ]
-                                                [ span
-                                                    []
-                                                    [ text "▶ PLAY TESTCASES" ]
-                                                ]
-                                            , span
-                                                [ class "img_0" ]
-                                                [ img
-                                                    [ src "/static/images/04.png" ]
-                                                    []
-                                                ]
-                                            , div
-                                                [ class "word_0" ]
-                                                [ text "Test M@NH@TT@N" ]
-                                            ]
-                                        , div
-                                            [ class "test_0" ]
-                                            [ button
-                                                [ class "btn_test", onClick (SubmitCode 5) ]
-                                                [ span
-                                                    []
-                                                    [ text "▶ PLAY TESTCASES" ]
-                                                ]
-                                            , span
-                                                [ class "img_0" ]
-                                                [ img
-                                                    [ src "/static/images/05.png" ]
-                                                    []
-                                                ]
-                                            , div
-                                                [ class "word_0" ]
-                                                [ text "MANHATTAN with..." ]
-                                            ]
-                                        ]
+
+                                            )
+                                        model.validations)
+                                        -- [
+                                        --     div
+                                        --     [ class "test" ]
+                                        --     [ button
+                                        --         [ class "btn_test", onClick (SubmitCode 1) ]
+                                        --         [ span
+                                        --             []
+                                        --             [ text "▶ PLAY TESTCASES" ]
+                                        --         ]
+                                        --     , span
+                                        --         [ class "img_0" ]
+                                        --         [ img
+                                        --             [ src "/static/images/01.png" ]
+                                        --             []
+                                        --         ]
+                                        --     , div
+                                        --         [ class "word_0" ]
+                                        --         [ text "Test only letter:E" ]
+                                        --     ]
+                                        -- , div
+                                        --     [ class "test" ]
+                                        --     [ button
+                                        --         [ class "btn_test", onClick (SubmitCode 2) ]
+                                        --         [ span
+                                        --             []
+                                        --             [ text "▶ PLAY TESTCASES" ]
+                                        --         ]
+                                        --     , span
+                                        --         [ class "img_0" ]
+                                        --         [ img
+                                        --             [ src "/static/images/02.png" ]
+                                        --             []
+                                        --         ]
+                                        --     , div
+                                        --         [ class "word_0" ]
+                                        --         [ text "Test MANHATTAN" ]
+                                        --     ]
+                                        -- , div
+                                        --     [ class "test" ]
+                                        --     [ button
+                                        --         [ class "btn_test", onClick (SubmitCode 3) ]
+                                        --         [ span
+                                        --             []
+                                        --             [ text "▶ PLAY TESTCASES" ]
+                                        --         ]
+                                        --     , span
+                                        --         [ class "img_0" ]
+                                        --         [ img
+                                        --             [ src "/static/images/03.png" ]
+                                        --             []
+                                        --         ]
+                                        --     , div
+                                        --         [ class "word_0" ]
+                                        --         [ text "Test ManhAtTan" ]
+                                        --     ]
+                                        -- , div
+                                        --     [ class "test" ]
+                                        --     [ button
+                                        --         [ class "btn_test", onClick (SubmitCode 4) ]
+                                        --         [ span
+                                        --             []
+                                        --             [ text "▶ PLAY TESTCASES" ]
+                                        --         ]
+                                        --     , span
+                                        --         [ class "img_0" ]
+                                        --         [ img
+                                        --             [ src "/static/images/04.png" ]
+                                        --             []
+                                        --         ]
+                                        --     , div
+                                        --         [ class "word_0" ]
+                                        --         [ text "Test M@NH@TT@N" ]
+                                        --     ]
+                                        -- , div
+                                        --     [ class "test_0" ]
+                                        --     [ button
+                                        --         [ class "btn_test", onClick (SubmitCode 5) ]
+                                        --         [ span
+                                        --             []
+                                        --             [ text "▶ PLAY TESTCASES" ]
+                                        --         ]
+                                        --     , span
+                                        --         [ class "img_0" ]
+                                        --         [ img
+                                        --             [ src "/static/images/05.png" ]
+                                        --             []
+                                        --         ]
+                                        --     , div
+                                        --         [ class "word_0" ]
+                                        --         [ text "MANHATTAN with..." ]
+                                        --     ]
+                                        -- ]
                                     ]
                                 , div
                                     [ class "actions" ]
@@ -516,7 +572,7 @@ view model =
                                         [ class "actions_bottom" ]
                                         [ button
                                             [ class "btn_1", onClick BatchSubmitCode ]
-                                            [ text "▶ PLAY ALL   TESTCASES" ]
+                                            [ text "▶ PLAY ALL  TESTCASES" ]
                                         , button
                                             [ class "btn_2" ]
                                             [ text "✔ SUBMIT" ]
@@ -536,32 +592,44 @@ view model =
                 ]
 
 
-subscriptions : UUID -> Sub Msg
-subscriptions uuid =
+subscriptions : Model-> Sub Msg
+subscriptions model =
     receiveData ReceiveDataFromJS
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { loadState = Loading
-      , code = ""
-      , codeOutput =
-            { output = ""
-            , errMessage = ""
-            , message = ""
-            , found = ""
-            , expected = ""
-            }
-      , parseJson = Loading
-      , jsonReqState = Loading
-      , errMessage = ""
-      , codeState = Loading
-      , testIndex = 0
-      , language = "python3"
-      , batchSubmit=False
-      }
+    , code = ""
+    , codeOutput =
+        { output = ""
+        , errMessage = ""
+        , message = ""
+        , found = ""
+        , expected = ""
+        }
+    , parseJson = Loading
+    , jsonReqState = Loading
+    , errMessage = ""
+    , codeState = Loading
+    , testIndex = 0
+    , languageId = "faf338cb-80fd-445d-b345-77c09c6d8581"
+    , batchSubmit=False
+    ,languages=[]
+    ,uuid=""
+    ,solutions=[]
+    ,puzzles=[]
+    ,validations=[]
+    }
     ,
-    -- fixme:获取语言列表
+        initLanguage
     )
 
-
+-- 页面初始化 渲染页面
+initLanguage:Cmd Msg
+initLanguage =
+    Http.get
+        {
+            url="language",
+            expect=Http.expectString GotLanguage
+        }

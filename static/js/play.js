@@ -4486,9 +4486,22 @@ function _Browser_load(url)
 	}));
 }
 var author$project$Main$Loading = {$: 'Loading'};
-var author$project$Main$GotText = function (a) {
-	return {$: 'GotText', a: a};
+var author$project$Main$GotLanguage = function (a) {
+	return {$: 'GotLanguage', a: a};
 };
+var elm$core$Result$Ok = function (a) {
+	return {$: 'Ok', a: a};
+};
+var elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
+var elm$core$Basics$identity = function (x) {
+	return x;
+};
+var elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
+var elm$core$Dict$empty = elm$core$Dict$RBEmpty_elm_builtin;
 var elm$core$Elm$JsArray$foldr = _JsArray_foldr;
 var elm$core$Array$foldr = F3(
 	function (func, baseCase, _n0) {
@@ -4569,23 +4582,6 @@ var elm$core$Set$toList = function (_n0) {
 	var dict = _n0.a;
 	return elm$core$Dict$keys(dict);
 };
-var elm$core$Basics$eq = _Utils_equal;
-var elm$core$String$isEmpty = function (string) {
-	return string === '';
-};
-var elm$core$Result$Ok = function (a) {
-	return {$: 'Ok', a: a};
-};
-var elm$core$Basics$composeR = F3(
-	function (f, g, x) {
-		return g(
-			f(x));
-	});
-var elm$core$Basics$identity = function (x) {
-	return x;
-};
-var elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
-var elm$core$Dict$empty = elm$core$Dict$RBEmpty_elm_builtin;
 var elm$core$Basics$compare = _Utils_compare;
 var elm$core$Maybe$Just = function (a) {
 	return {$: 'Just', a: a};
@@ -4730,6 +4726,7 @@ var elm$core$Dict$insert = F3(
 			return x;
 		}
 	});
+var elm$core$Basics$eq = _Utils_equal;
 var elm$core$Basics$lt = _Utils_lt;
 var elm$core$Dict$getMin = function (dict) {
 	getMin:
@@ -5588,12 +5585,7 @@ var elm$http$Http$expectString = function (toMsg) {
 		toMsg,
 		elm$http$Http$resolve(elm$core$Result$Ok));
 };
-var elm$http$Http$multipartBody = function (parts) {
-	return A2(
-		_Http_pair,
-		'',
-		_Http_toFormData(parts));
-};
+var elm$http$Http$emptyBody = _Http_emptyBody;
 var elm$http$Http$Request = function (a) {
 	return {$: 'Request', a: a};
 };
@@ -5841,26 +5833,15 @@ var elm$http$Http$request = function (r) {
 		elm$http$Http$Request(
 			{allowCookiesFromOtherDomains: false, body: r.body, expect: r.expect, headers: r.headers, method: r.method, timeout: r.timeout, tracker: r.tracker, url: r.url}));
 };
-var elm$http$Http$post = function (r) {
+var elm$http$Http$get = function (r) {
 	return elm$http$Http$request(
-		{body: r.body, expect: r.expect, headers: _List_Nil, method: 'POST', timeout: elm$core$Maybe$Nothing, tracker: elm$core$Maybe$Nothing, url: r.url});
+		{body: elm$http$Http$emptyBody, expect: r.expect, headers: _List_Nil, method: 'GET', timeout: elm$core$Maybe$Nothing, tracker: elm$core$Maybe$Nothing, url: r.url});
 };
-var elm$http$Http$stringPart = _Http_pair;
-var author$project$Main$initCode = function (language) {
-	return elm$http$Http$post(
-		{
-			body: elm$http$Http$multipartBody(
-				_List_fromArray(
-					[
-						A2(
-						elm$http$Http$stringPart,
-						'language',
-						elm$core$String$isEmpty(language) ? 'python3' : language)
-					])),
-			expect: elm$http$Http$expectString(author$project$Main$GotText),
-			url: '/init'
-		});
-};
+var author$project$Main$initLanguage = elm$http$Http$get(
+	{
+		expect: elm$http$Http$expectString(author$project$Main$GotLanguage),
+		url: 'language'
+	});
 var author$project$Main$init = function (_n0) {
 	return _Utils_Tuple2(
 		{
@@ -5870,23 +5851,56 @@ var author$project$Main$init = function (_n0) {
 			codeState: author$project$Main$Loading,
 			errMessage: '',
 			jsonReqState: author$project$Main$Loading,
-			language: 'python3',
+			languageId: 'faf338cb-80fd-445d-b345-77c09c6d8581',
+			languages: _List_Nil,
 			loadState: author$project$Main$Loading,
 			parseJson: author$project$Main$Loading,
-			testIndex: 0
+			puzzles: _List_Nil,
+			solutions: _List_Nil,
+			testIndex: 0,
+			uuid: '',
+			validations: _List_Nil
 		},
-		author$project$Main$initCode(''));
+		author$project$Main$initLanguage);
 };
-var elm$core$Platform$Sub$batch = _Platform_batch;
-var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
+var author$project$Main$ReceiveDataFromJS = function (a) {
+	return {$: 'ReceiveDataFromJS', a: a};
+};
+var elm$json$Json$Decode$string = _Json_decodeString;
+var author$project$Main$receiveData = _Platform_incomingPort('receiveData', elm$json$Json$Decode$string);
 var author$project$Main$subscriptions = function (model) {
-	return elm$core$Platform$Sub$none;
+	return author$project$Main$receiveData(author$project$Main$ReceiveDataFromJS);
 };
 var author$project$Main$Fail = {$: 'Fail'};
 var author$project$Main$Success = {$: 'Success'};
-var elm$json$Json$Decode$field = _Json_decodeField;
-var elm$json$Json$Decode$string = _Json_decodeString;
-var author$project$Main$codeDecoder = A2(elm$json$Json$Decode$field, 'codeList', elm$json$Json$Decode$string);
+var author$project$Main$GotPuzzle = function (a) {
+	return {$: 'GotPuzzle', a: a};
+};
+var elm$http$Http$multipartBody = function (parts) {
+	return A2(
+		_Http_pair,
+		'',
+		_Http_toFormData(parts));
+};
+var elm$http$Http$post = function (r) {
+	return elm$http$Http$request(
+		{body: r.body, expect: r.expect, headers: _List_Nil, method: 'POST', timeout: elm$core$Maybe$Nothing, tracker: elm$core$Maybe$Nothing, url: r.url});
+};
+var elm$http$Http$stringPart = _Http_pair;
+var author$project$Main$initCode = F2(
+	function (uuid, languageId) {
+		return elm$http$Http$post(
+			{
+				body: elm$http$Http$multipartBody(
+					_List_fromArray(
+						[
+							A2(elm$http$Http$stringPart, 'puzzleId', uuid),
+							A2(elm$http$Http$stringPart, 'languageId', languageId)
+						])),
+				expect: elm$http$Http$expectString(author$project$Main$GotPuzzle),
+				url: 'init'
+			});
+	});
 var author$project$Main$RenderOutput = function (a) {
 	return {$: 'RenderOutput', a: a};
 };
@@ -5908,6 +5922,19 @@ var author$project$Main$jsonReq = F3(
 				url: '/play'
 			});
 	});
+var author$project$Main$Language = F2(
+	function (uuid, language) {
+		return {language: language, uuid: uuid};
+	});
+var elm$json$Json$Decode$field = _Json_decodeField;
+var elm$json$Json$Decode$map2 = _Json_map2;
+var author$project$Main$languageDecoder = A3(
+	elm$json$Json$Decode$map2,
+	author$project$Main$Language,
+	A2(elm$json$Json$Decode$field, 'languagesUuid', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'languagesLanguage', elm$json$Json$Decode$string));
+var elm$json$Json$Decode$list = _Json_decodeList;
+var author$project$Main$languagesDecoder = elm$json$Json$Decode$list(author$project$Main$languageDecoder);
 var author$project$Main$CodeOutput = F5(
 	function (output, errMessage, message, found, expected) {
 		return {errMessage: errMessage, expected: expected, found: found, message: message, output: output};
@@ -5921,6 +5948,56 @@ var author$project$Main$outputDecoder = A6(
 	A2(elm$json$Json$Decode$field, 'message', elm$json$Json$Decode$string),
 	A2(elm$json$Json$Decode$field, 'found', elm$json$Json$Decode$string),
 	A2(elm$json$Json$Decode$field, 'expected', elm$json$Json$Decode$string));
+var author$project$Main$Res = F3(
+	function (solution, puzzle, validation) {
+		return {puzzle: puzzle, solution: solution, validation: validation};
+	});
+var author$project$Main$Puzzle = F4(
+	function (title, inputDescription, outputDescription, constraints) {
+		return {constraints: constraints, inputDescription: inputDescription, outputDescription: outputDescription, title: title};
+	});
+var elm$json$Json$Decode$map4 = _Json_map4;
+var author$project$Main$puzzleDecoder = A5(
+	elm$json$Json$Decode$map4,
+	author$project$Main$Puzzle,
+	A2(elm$json$Json$Decode$field, 'puzzleTitle', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'puzzleInputDescription', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'puzzleOutputDescription', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'puzzleConstraints', elm$json$Json$Decode$string));
+var author$project$Main$puzzlesDecoder = elm$json$Json$Decode$list(author$project$Main$puzzleDecoder);
+var author$project$Main$Solution = F4(
+	function (uuid, language, code, unsolve) {
+		return {code: code, language: language, unsolve: unsolve, uuid: uuid};
+	});
+var author$project$Main$solutionDecoder = A5(
+	elm$json$Json$Decode$map4,
+	author$project$Main$Solution,
+	A2(elm$json$Json$Decode$field, 'solutionUuid', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'solutionLanguage', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'solutionCode', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'solutionUnsolve', elm$json$Json$Decode$string));
+var author$project$Main$solutionsDecoder = elm$json$Json$Decode$list(author$project$Main$solutionDecoder);
+var author$project$Main$Validation = F4(
+	function (input, output, title, orders) {
+		return {input: input, orders: orders, output: output, title: title};
+	});
+var elm$json$Json$Decode$int = _Json_decodeInt;
+var author$project$Main$validationDecoder = A5(
+	elm$json$Json$Decode$map4,
+	author$project$Main$Validation,
+	A2(elm$json$Json$Decode$field, 'validationInput', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'validationOutput', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'validationTitle', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'validationOrders', elm$json$Json$Decode$int));
+var author$project$Main$validationsDecoder = elm$json$Json$Decode$list(author$project$Main$validationDecoder);
+var elm$json$Json$Decode$index = _Json_decodeIndex;
+var elm$json$Json$Decode$map3 = _Json_map3;
+var author$project$Main$resDecoder = A4(
+	elm$json$Json$Decode$map3,
+	author$project$Main$Res,
+	A2(elm$json$Json$Decode$index, 0, author$project$Main$solutionsDecoder),
+	A2(elm$json$Json$Decode$index, 1, author$project$Main$puzzlesDecoder),
+	A2(elm$json$Json$Decode$index, 2, author$project$Main$validationsDecoder));
 var elm$core$Debug$log = _Debug_log;
 var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
@@ -5928,30 +6005,27 @@ var elm$json$Json$Decode$decodeString = _Json_runOnString;
 var author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
-			case 'GotText':
+			case 'GotPuzzle':
 				var result = msg.a;
 				if (result.$ === 'Ok') {
 					var fullText = result.a;
-					var _n2 = A2(elm$json$Json$Decode$decodeString, author$project$Main$codeDecoder, fullText);
+					var _n2 = A2(elm$json$Json$Decode$decodeString, author$project$Main$resDecoder, fullText);
 					if (_n2.$ === 'Ok') {
-						var codes = _n2.a;
-						return A2(
-							elm$core$Debug$log,
-							'ok get code',
-							_Utils_Tuple2(
-								_Utils_update(
-									model,
-									{code: codes, codeState: author$project$Main$Success, loadState: author$project$Main$Success}),
-								elm$core$Platform$Cmd$none));
+						var ookk = _n2.a;
+						var validations = ookk.validation;
+						var solutions = ookk.solution;
+						var puzzles = ookk.puzzle;
+						var o = A2(elm$core$Debug$log, '000000000000', ookk);
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{puzzles: puzzles, solutions: solutions, validations: validations}),
+							elm$core$Platform$Cmd$none);
 					} else {
 						return A2(
 							elm$core$Debug$log,
-							'err',
-							_Utils_Tuple2(
-								_Utils_update(
-									model,
-									{codeState: author$project$Main$Fail, loadState: author$project$Main$Success}),
-								elm$core$Platform$Cmd$none));
+							'err......',
+							_Utils_Tuple2(model, elm$core$Platform$Cmd$none));
 					}
 				} else {
 					return A2(
@@ -5962,6 +6036,30 @@ var author$project$Main$update = F2(
 								model,
 								{loadState: author$project$Main$Fail}),
 							elm$core$Platform$Cmd$none));
+				}
+			case 'GotLanguage':
+				var result = msg.a;
+				if (result.$ === 'Ok') {
+					var fullText = result.a;
+					var _n4 = A2(elm$json$Json$Decode$decodeString, author$project$Main$languagesDecoder, fullText);
+					if (_n4.$ === 'Ok') {
+						var langs = _n4.a;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{languages: langs}),
+							elm$core$Platform$Cmd$none);
+					} else {
+						return A2(
+							elm$core$Debug$log,
+							'err',
+							_Utils_Tuple2(model, elm$core$Platform$Cmd$none));
+					}
+				} else {
+					return A2(
+						elm$core$Debug$log,
+						'fail',
+						_Utils_Tuple2(model, elm$core$Platform$Cmd$none));
 				}
 			case 'ChangeCode':
 				var str = msg.a;
@@ -5976,14 +6074,14 @@ var author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{testIndex: index}),
-					A3(author$project$Main$jsonReq, index, model.code, model.language));
+					A3(author$project$Main$jsonReq, index, model.code, model.languageId));
 			case 'RenderOutput':
 				var result = msg.a;
 				if (result.$ === 'Ok') {
 					var fullText = result.a;
-					var _n4 = A2(elm$json$Json$Decode$decodeString, author$project$Main$outputDecoder, fullText);
-					if (_n4.$ === 'Ok') {
-						var output = _n4.a;
+					var _n6 = A2(elm$json$Json$Decode$decodeString, author$project$Main$outputDecoder, fullText);
+					if (_n6.$ === 'Ok') {
+						var output = _n6.a;
 						return model.batchSubmit ? ((model.testIndex < 5) ? A2(
 							elm$core$Debug$log,
 							elm$core$String$fromInt(model.testIndex),
@@ -5991,14 +6089,14 @@ var author$project$Main$update = F2(
 								_Utils_update(
 									model,
 									{codeOutput: output, jsonReqState: author$project$Main$Success, parseJson: author$project$Main$Success, testIndex: model.testIndex + 1}),
-								A3(author$project$Main$jsonReq, model.testIndex + 1, model.code, model.language))) : A2(
+								A3(author$project$Main$jsonReq, model.testIndex + 1, model.code, model.languageId))) : A2(
 							elm$core$Debug$log,
 							elm$core$String$fromInt(model.testIndex),
 							_Utils_Tuple2(
 								_Utils_update(
 									model,
 									{batchSubmit: false, codeOutput: output, jsonReqState: author$project$Main$Success, parseJson: author$project$Main$Success, testIndex: 5}),
-								A3(author$project$Main$jsonReq, 5, model.code, model.language)))) : A2(
+								A3(author$project$Main$jsonReq, 5, model.code, model.languageId)))) : A2(
 							elm$core$Debug$log,
 							'output3',
 							_Utils_Tuple2(
@@ -6021,18 +6119,27 @@ var author$project$Main$update = F2(
 						elm$core$Platform$Cmd$none);
 				}
 			case 'CheckLanguage':
-				var str = msg.a;
+				var languageId = msg.a;
+				var uu = model.uuid;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{language: str}),
-					author$project$Main$initCode(str));
-			default:
+						{languageId: languageId}),
+					A2(author$project$Main$initCode, uu, languageId));
+			case 'BatchSubmitCode':
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{batchSubmit: true, testIndex: 1}),
-					A3(author$project$Main$jsonReq, 1, model.code, model.language));
+					A3(author$project$Main$jsonReq, 1, model.code, model.languageId));
+			default:
+				var uuid = msg.a;
+				var languageId = 'faf338cb-80fd-445d-b345-77c09c6d8581';
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{uuid: uuid}),
+					A2(author$project$Main$initCode, uuid, languageId));
 		}
 	});
 var author$project$Main$BatchSubmitCode = {$: 'BatchSubmitCode'};
@@ -6042,8 +6149,21 @@ var author$project$Main$CheckLanguage = function (a) {
 var author$project$Main$SubmitCode = function (a) {
 	return {$: 'SubmitCode', a: a};
 };
+var elm$core$List$map = F2(
+	function (f, xs) {
+		return A3(
+			elm$core$List$foldr,
+			F2(
+				function (x, acc) {
+					return A2(
+						elm$core$List$cons,
+						f(x),
+						acc);
+				}),
+			_List_Nil,
+			xs);
+	});
 var elm$json$Json$Decode$map = _Json_map1;
-var elm$json$Json$Decode$map2 = _Json_map2;
 var elm$json$Json$Decode$succeed = _Json_succeed;
 var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	switch (handler.$) {
@@ -6372,66 +6492,23 @@ var author$project$Main$view = function (model) {
 																	[
 																		elm$html$Html$Attributes$class('drop-down')
 																	]),
-																_List_fromArray(
-																	[
-																		A2(
-																		elm$html$Html$option,
-																		_List_fromArray(
-																			[
-																				function () {
-																				var _n1 = model.language;
-																				if (_n1 === 'haskell') {
-																					return elm$html$Html$Attributes$selected(true);
-																				} else {
-																					return elm$html$Html$Attributes$selected(false);
-																				}
-																			}(),
-																				elm$html$Html$Events$onClick(
-																				author$project$Main$CheckLanguage('haskell'))
-																			]),
-																		_List_fromArray(
-																			[
-																				elm$html$Html$text('Haskell')
-																			])),
-																		A2(
-																		elm$html$Html$option,
-																		_List_fromArray(
-																			[
-																				function () {
-																				var _n2 = model.language;
-																				if (_n2 === 'java') {
-																					return elm$html$Html$Attributes$selected(true);
-																				} else {
-																					return elm$html$Html$Attributes$selected(false);
-																				}
-																			}(),
-																				elm$html$Html$Events$onClick(
-																				author$project$Main$CheckLanguage('java'))
-																			]),
-																		_List_fromArray(
-																			[
-																				elm$html$Html$text('Java')
-																			])),
-																		A2(
-																		elm$html$Html$option,
-																		_List_fromArray(
-																			[
-																				function () {
-																				var _n3 = model.language;
-																				if (_n3 === 'python3') {
-																					return elm$html$Html$Attributes$selected(true);
-																				} else {
-																					return elm$html$Html$Attributes$selected(false);
-																				}
-																			}(),
-																				elm$html$Html$Events$onClick(
-																				author$project$Main$CheckLanguage('python3'))
-																			]),
-																		_List_fromArray(
-																			[
-																				elm$html$Html$text('Python3')
-																			]))
-																	]))
+																A2(
+																	elm$core$List$map,
+																	function (x) {
+																		return A2(
+																			elm$html$Html$option,
+																			_List_fromArray(
+																				[
+																					_Utils_eq(model.languageId, x.uuid) ? elm$html$Html$Attributes$selected(true) : elm$html$Html$Attributes$selected(false),
+																					elm$html$Html$Events$onClick(
+																					author$project$Main$CheckLanguage(x.uuid))
+																				]),
+																			_List_fromArray(
+																				[
+																					elm$html$Html$text(x.language)
+																				]));
+																	},
+																	model.languages))
 															])),
 														A2(
 														elm$html$Html$textarea,
@@ -6501,274 +6578,65 @@ var author$project$Main$view = function (model) {
 																	[
 																		elm$html$Html$Attributes$class('bottom')
 																	]),
-																_List_fromArray(
-																	[
-																		A2(
-																		elm$html$Html$div,
-																		_List_fromArray(
-																			[
-																				elm$html$Html$Attributes$class('test')
-																			]),
-																		_List_fromArray(
-																			[
-																				A2(
-																				elm$html$Html$button,
-																				_List_fromArray(
-																					[
-																						elm$html$Html$Attributes$class('btn_test'),
-																						elm$html$Html$Events$onClick(
-																						author$project$Main$SubmitCode(1))
-																					]),
-																				_List_fromArray(
-																					[
-																						A2(
-																						elm$html$Html$span,
-																						_List_Nil,
-																						_List_fromArray(
-																							[
-																								elm$html$Html$text('▶ PLAY TESTCASES')
-																							]))
-																					])),
-																				A2(
-																				elm$html$Html$span,
-																				_List_fromArray(
-																					[
-																						elm$html$Html$Attributes$class('img_0')
-																					]),
-																				_List_fromArray(
-																					[
-																						A2(
-																						elm$html$Html$img,
-																						_List_fromArray(
-																							[
-																								elm$html$Html$Attributes$src('/static/images/01.png')
-																							]),
-																						_List_Nil)
-																					])),
-																				A2(
-																				elm$html$Html$div,
-																				_List_fromArray(
-																					[
-																						elm$html$Html$Attributes$class('word_0')
-																					]),
-																				_List_fromArray(
-																					[
-																						elm$html$Html$text('Test only letter:E')
-																					]))
-																			])),
-																		A2(
-																		elm$html$Html$div,
-																		_List_fromArray(
-																			[
-																				elm$html$Html$Attributes$class('test')
-																			]),
-																		_List_fromArray(
-																			[
-																				A2(
-																				elm$html$Html$button,
-																				_List_fromArray(
-																					[
-																						elm$html$Html$Attributes$class('btn_test'),
-																						elm$html$Html$Events$onClick(
-																						author$project$Main$SubmitCode(2))
-																					]),
-																				_List_fromArray(
-																					[
-																						A2(
-																						elm$html$Html$span,
-																						_List_Nil,
-																						_List_fromArray(
-																							[
-																								elm$html$Html$text('▶ PLAY TESTCASES')
-																							]))
-																					])),
-																				A2(
-																				elm$html$Html$span,
-																				_List_fromArray(
-																					[
-																						elm$html$Html$Attributes$class('img_0')
-																					]),
-																				_List_fromArray(
-																					[
-																						A2(
-																						elm$html$Html$img,
-																						_List_fromArray(
-																							[
-																								elm$html$Html$Attributes$src('/static/images/02.png')
-																							]),
-																						_List_Nil)
-																					])),
-																				A2(
-																				elm$html$Html$div,
-																				_List_fromArray(
-																					[
-																						elm$html$Html$Attributes$class('word_0')
-																					]),
-																				_List_fromArray(
-																					[
-																						elm$html$Html$text('Test MANHATTAN')
-																					]))
-																			])),
-																		A2(
-																		elm$html$Html$div,
-																		_List_fromArray(
-																			[
-																				elm$html$Html$Attributes$class('test')
-																			]),
-																		_List_fromArray(
-																			[
-																				A2(
-																				elm$html$Html$button,
-																				_List_fromArray(
-																					[
-																						elm$html$Html$Attributes$class('btn_test'),
-																						elm$html$Html$Events$onClick(
-																						author$project$Main$SubmitCode(3))
-																					]),
-																				_List_fromArray(
-																					[
-																						A2(
-																						elm$html$Html$span,
-																						_List_Nil,
-																						_List_fromArray(
-																							[
-																								elm$html$Html$text('▶ PLAY TESTCASES')
-																							]))
-																					])),
-																				A2(
-																				elm$html$Html$span,
-																				_List_fromArray(
-																					[
-																						elm$html$Html$Attributes$class('img_0')
-																					]),
-																				_List_fromArray(
-																					[
-																						A2(
-																						elm$html$Html$img,
-																						_List_fromArray(
-																							[
-																								elm$html$Html$Attributes$src('/static/images/03.png')
-																							]),
-																						_List_Nil)
-																					])),
-																				A2(
-																				elm$html$Html$div,
-																				_List_fromArray(
-																					[
-																						elm$html$Html$Attributes$class('word_0')
-																					]),
-																				_List_fromArray(
-																					[
-																						elm$html$Html$text('Test ManhAtTan')
-																					]))
-																			])),
-																		A2(
-																		elm$html$Html$div,
-																		_List_fromArray(
-																			[
-																				elm$html$Html$Attributes$class('test')
-																			]),
-																		_List_fromArray(
-																			[
-																				A2(
-																				elm$html$Html$button,
-																				_List_fromArray(
-																					[
-																						elm$html$Html$Attributes$class('btn_test'),
-																						elm$html$Html$Events$onClick(
-																						author$project$Main$SubmitCode(4))
-																					]),
-																				_List_fromArray(
-																					[
-																						A2(
-																						elm$html$Html$span,
-																						_List_Nil,
-																						_List_fromArray(
-																							[
-																								elm$html$Html$text('▶ PLAY TESTCASES')
-																							]))
-																					])),
-																				A2(
-																				elm$html$Html$span,
-																				_List_fromArray(
-																					[
-																						elm$html$Html$Attributes$class('img_0')
-																					]),
-																				_List_fromArray(
-																					[
-																						A2(
-																						elm$html$Html$img,
-																						_List_fromArray(
-																							[
-																								elm$html$Html$Attributes$src('/static/images/04.png')
-																							]),
-																						_List_Nil)
-																					])),
-																				A2(
-																				elm$html$Html$div,
-																				_List_fromArray(
-																					[
-																						elm$html$Html$Attributes$class('word_0')
-																					]),
-																				_List_fromArray(
-																					[
-																						elm$html$Html$text('Test M@NH@TT@N')
-																					]))
-																			])),
-																		A2(
-																		elm$html$Html$div,
-																		_List_fromArray(
-																			[
-																				elm$html$Html$Attributes$class('test_0')
-																			]),
-																		_List_fromArray(
-																			[
-																				A2(
-																				elm$html$Html$button,
-																				_List_fromArray(
-																					[
-																						elm$html$Html$Attributes$class('btn_test'),
-																						elm$html$Html$Events$onClick(
-																						author$project$Main$SubmitCode(5))
-																					]),
-																				_List_fromArray(
-																					[
-																						A2(
-																						elm$html$Html$span,
-																						_List_Nil,
-																						_List_fromArray(
-																							[
-																								elm$html$Html$text('▶ PLAY TESTCASES')
-																							]))
-																					])),
-																				A2(
-																				elm$html$Html$span,
-																				_List_fromArray(
-																					[
-																						elm$html$Html$Attributes$class('img_0')
-																					]),
-																				_List_fromArray(
-																					[
-																						A2(
-																						elm$html$Html$img,
-																						_List_fromArray(
-																							[
-																								elm$html$Html$Attributes$src('/static/images/05.png')
-																							]),
-																						_List_Nil)
-																					])),
-																				A2(
-																				elm$html$Html$div,
-																				_List_fromArray(
-																					[
-																						elm$html$Html$Attributes$class('word_0')
-																					]),
-																				_List_fromArray(
-																					[
-																						elm$html$Html$text('MANHATTAN with...')
-																					]))
-																			]))
-																	]))
+																A2(
+																	elm$core$List$map,
+																	function (x) {
+																		return A2(
+																			elm$html$Html$div,
+																			_List_fromArray(
+																				[
+																					elm$html$Html$Attributes$class('test')
+																				]),
+																			_List_fromArray(
+																				[
+																					A2(
+																					elm$html$Html$button,
+																					_List_fromArray(
+																						[
+																							elm$html$Html$Attributes$class('btn_test'),
+																							elm$html$Html$Events$onClick(
+																							author$project$Main$SubmitCode(x.orders))
+																						]),
+																					_List_fromArray(
+																						[
+																							A2(
+																							elm$html$Html$span,
+																							_List_Nil,
+																							_List_fromArray(
+																								[
+																									elm$html$Html$text('▶ PLAY TESTCASES')
+																								]))
+																						])),
+																					A2(
+																					elm$html$Html$span,
+																					_List_fromArray(
+																						[
+																							elm$html$Html$Attributes$class('img_0')
+																						]),
+																					_List_fromArray(
+																						[
+																							A2(
+																							elm$html$Html$img,
+																							_List_fromArray(
+																								[
+																									elm$html$Html$Attributes$src(
+																									'/static/images/0' + (elm$core$String$fromInt(x.orders) + '.png'))
+																								]),
+																							_List_Nil)
+																						])),
+																					A2(
+																					elm$html$Html$div,
+																					_List_fromArray(
+																						[
+																							elm$html$Html$Attributes$class('word_0')
+																						]),
+																					_List_fromArray(
+																						[
+																							elm$html$Html$text(x.title)
+																						]))
+																				]));
+																	},
+																	model.validations))
 															])),
 														A2(
 														elm$html$Html$div,
@@ -6805,7 +6673,7 @@ var author$project$Main$view = function (model) {
 																			]),
 																		_List_fromArray(
 																			[
-																				elm$html$Html$text('▶ PLAY ALL   TESTCASES')
+																				elm$html$Html$text('▶ PLAY ALL  TESTCASES')
 																			])),
 																		A2(
 																		elm$html$Html$button,
@@ -6877,20 +6745,6 @@ var elm$core$Task$Perform = function (a) {
 	return {$: 'Perform', a: a};
 };
 var elm$core$Task$init = elm$core$Task$succeed(_Utils_Tuple0);
-var elm$core$List$map = F2(
-	function (f, xs) {
-		return A3(
-			elm$core$List$foldr,
-			F2(
-				function (x, acc) {
-					return A2(
-						elm$core$List$cons,
-						f(x),
-						acc);
-				}),
-			_List_Nil,
-			xs);
-	});
 var elm$core$Task$map = F2(
 	function (func, taskA) {
 		return A2(
@@ -6955,6 +6809,9 @@ var elm$core$String$startsWith = _String_startsWith;
 var elm$url$Url$Http = {$: 'Http'};
 var elm$url$Url$Https = {$: 'Https'};
 var elm$core$String$indexes = _String_indexes;
+var elm$core$String$isEmpty = function (string) {
+	return string === '';
+};
 var elm$core$String$left = F2(
 	function (n, string) {
 		return (n < 1) ? '' : A3(elm$core$String$slice, 0, n, string);
