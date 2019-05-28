@@ -5904,8 +5904,8 @@ var author$project$Main$initCode = F2(
 var author$project$Main$RenderOutput = function (a) {
 	return {$: 'RenderOutput', a: a};
 };
-var author$project$Main$jsonReq = F3(
-	function (testIndex, code, language) {
+var author$project$Main$jsonReq = F4(
+	function (testIndex, code, language, uuid) {
 		return elm$http$Http$post(
 			{
 				body: elm$http$Http$multipartBody(
@@ -5916,7 +5916,8 @@ var author$project$Main$jsonReq = F3(
 							A2(
 							elm$http$Http$stringPart,
 							'testIndex',
-							elm$core$String$fromInt(testIndex))
+							elm$core$String$fromInt(testIndex)),
+							A2(elm$http$Http$stringPart, 'puzzleUuid', uuid)
 						])),
 				expect: elm$http$Http$expectString(author$project$Main$RenderOutput),
 				url: '/play'
@@ -6093,11 +6094,12 @@ var author$project$Main$update = F2(
 					elm$core$Platform$Cmd$none);
 			case 'SubmitCode':
 				var index = msg.a;
+				var uu = model.uuid;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{testIndex: index}),
-					A3(author$project$Main$jsonReq, index, model.code, model.languageId));
+					A4(author$project$Main$jsonReq, index, model.code, model.languageId, uu));
 			case 'RenderOutput':
 				var result = msg.a;
 				if (result.$ === 'Ok') {
@@ -6105,28 +6107,33 @@ var author$project$Main$update = F2(
 					var _n6 = A2(elm$json$Json$Decode$decodeString, author$project$Main$outputDecoder, fullText);
 					if (_n6.$ === 'Ok') {
 						var output = _n6.a;
-						return model.batchSubmit ? ((model.testIndex < 5) ? A2(
-							elm$core$Debug$log,
-							elm$core$String$fromInt(model.testIndex),
-							_Utils_Tuple2(
-								_Utils_update(
-									model,
-									{codeOutput: output, jsonReqState: author$project$Main$Success, parseJson: author$project$Main$Success, testIndex: model.testIndex + 1}),
-								A3(author$project$Main$jsonReq, model.testIndex + 1, model.code, model.languageId))) : A2(
-							elm$core$Debug$log,
-							elm$core$String$fromInt(model.testIndex),
-							_Utils_Tuple2(
-								_Utils_update(
-									model,
-									{batchSubmit: false, codeOutput: output, jsonReqState: author$project$Main$Success, parseJson: author$project$Main$Success, testIndex: 5}),
-								A3(author$project$Main$jsonReq, 5, model.code, model.languageId)))) : A2(
-							elm$core$Debug$log,
-							'output3',
-							_Utils_Tuple2(
-								_Utils_update(
-									model,
-									{codeOutput: output, jsonReqState: author$project$Main$Success, parseJson: author$project$Main$Success}),
-								elm$core$Platform$Cmd$none));
+						if (model.batchSubmit) {
+							var uu = model.uuid;
+							return (model.testIndex < 5) ? A2(
+								elm$core$Debug$log,
+								elm$core$String$fromInt(model.testIndex),
+								_Utils_Tuple2(
+									_Utils_update(
+										model,
+										{codeOutput: output, jsonReqState: author$project$Main$Success, parseJson: author$project$Main$Success, testIndex: model.testIndex + 1}),
+									A4(author$project$Main$jsonReq, model.testIndex + 1, model.code, model.languageId, uu))) : A2(
+								elm$core$Debug$log,
+								elm$core$String$fromInt(model.testIndex),
+								_Utils_Tuple2(
+									_Utils_update(
+										model,
+										{batchSubmit: false, codeOutput: output, jsonReqState: author$project$Main$Success, parseJson: author$project$Main$Success, testIndex: 5}),
+									A4(author$project$Main$jsonReq, 5, model.code, model.languageId, uu)));
+						} else {
+							return A2(
+								elm$core$Debug$log,
+								'output3',
+								_Utils_Tuple2(
+									_Utils_update(
+										model,
+										{codeOutput: output, jsonReqState: author$project$Main$Success, parseJson: author$project$Main$Success}),
+									elm$core$Platform$Cmd$none));
+						}
 					} else {
 						return _Utils_Tuple2(
 							_Utils_update(
@@ -6150,11 +6157,12 @@ var author$project$Main$update = F2(
 						{languageId: languageId}),
 					A2(author$project$Main$initCode, uu, languageId));
 			case 'BatchSubmitCode':
+				var uu = model.uuid;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{batchSubmit: true, testIndex: 1}),
-					A3(author$project$Main$jsonReq, 1, model.code, model.languageId));
+					A4(author$project$Main$jsonReq, 1, model.code, model.languageId, uu));
 			default:
 				var uuid = msg.a;
 				var languageId = 'faf338cb-80fd-445d-b345-77c09c6d8581';

@@ -119,7 +119,10 @@ update msg model =
             ( { model | code= str }, Cmd.none )
 
         SubmitCode index ->
-            ( { model | testIndex = index }, jsonReq index model.code model.languageId )
+            let
+                uu=model.uuid
+            in
+                ( { model | testIndex = index }, jsonReq index model.code model.languageId uu)
 
         RenderOutput result ->
             --渲染代码运行的结果
@@ -129,11 +132,14 @@ update msg model =
                     case Decode.decodeString outputDecoder fullText of
                         Ok output ->
                             if model.batchSubmit then
-                                if model.testIndex<5 then
-                                    Debug.log (String.fromInt model.testIndex) ( { model | codeOutput = output, jsonReqState = Success, parseJson = Success,testIndex=model.testIndex+1 }, jsonReq (model.testIndex+1) model.code model.languageId )
+                                let
+                                    uu=model.uuid
+                                in
+                                    if model.testIndex<5 then
+                                        Debug.log (String.fromInt model.testIndex) ( { model | codeOutput = output, jsonReqState = Success, parseJson = Success,testIndex=model.testIndex+1 }, jsonReq (model.testIndex+1) model.code model.languageId uu)
 
-                                else
-                                    Debug.log (String.fromInt model.testIndex) ( { model | codeOutput = output, jsonReqState = Success, parseJson = Success,testIndex=5,batchSubmit=False }, jsonReq 5 model.code model.languageId )
+                                    else
+                                        Debug.log (String.fromInt model.testIndex) ( { model | codeOutput = output, jsonReqState = Success, parseJson = Success,testIndex=5,batchSubmit=False }, jsonReq 5 model.code model.languageId uu)
 
                             else
                                 Debug.log "output3" ( { model | codeOutput = output, jsonReqState = Success, parseJson = Success }, Cmd.none )
@@ -151,7 +157,10 @@ update msg model =
             in
                 ( { model | languageId = languageId }, initCode uu languageId)
         BatchSubmitCode ->
-            ({model|batchSubmit=True,testIndex=1},jsonReq 1 model.code model.languageId)
+            let
+                uu=model.uuid
+            in
+                ({model|batchSubmit=True,testIndex=1},jsonReq 1 model.code model.languageId uu)
 
         ReceiveDataFromJS uuid->
         --  发送请求到后台 根据uuid查询puzzle validation solution
@@ -292,8 +301,8 @@ outputDecoder =
         (Decode.field "expected" string)
 
 
-jsonReq : Int -> String -> String -> Cmd Msg
-jsonReq testIndex code language =
+jsonReq : Int -> String -> String ->String-> Cmd Msg
+jsonReq testIndex code language uuid=
     Http.post
         { url = "/play"
 
@@ -303,6 +312,7 @@ jsonReq testIndex code language =
                 [ stringPart "code" code
                 , stringPart "language" language
                 , stringPart "testIndex" (String.fromInt testIndex)
+                , stringPart "puzzleUuid" uuid
                 ]
         , expect = Http.expectString RenderOutput
         }
