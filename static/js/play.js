@@ -5999,6 +5999,24 @@ var author$project$Main$resDecoder = A4(
 	A2(elm$json$Json$Decode$index, 1, author$project$Main$puzzlesDecoder),
 	A2(elm$json$Json$Decode$index, 2, author$project$Main$validationsDecoder));
 var elm$core$Debug$log = _Debug_log;
+var elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(x);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
+var elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
 var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var elm$json$Json$Decode$decodeString = _Json_runOnString;
@@ -6016,10 +6034,15 @@ var author$project$Main$update = F2(
 						var solutions = ookk.solution;
 						var puzzles = ookk.puzzle;
 						var o = A2(elm$core$Debug$log, '000000000000', ookk);
+						var defaultSolution = {code: '', language: 'faf338cb-80fd-445d-b345-77c09c6d8581', unsolve: '', uuid: ''};
+						var c = A2(
+							elm$core$Maybe$withDefault,
+							defaultSolution,
+							elm$core$List$head(solutions)).code;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{puzzles: puzzles, solutions: solutions, validations: validations}),
+								{code: c, puzzles: puzzles, solutions: solutions, validations: validations}),
 							elm$core$Platform$Cmd$none);
 					} else {
 						return A2(
@@ -6047,7 +6070,7 @@ var author$project$Main$update = F2(
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{languages: langs}),
+								{languages: langs, loadState: author$project$Main$Success}),
 							elm$core$Platform$Cmd$none);
 					} else {
 						return A2(

@@ -50,7 +50,6 @@ app req respond =  do
           unsafePerformIO $ Api.listAll req
         ["easypuzzles"]->
           trace "easypuzzles" unsafePerformIO $ Api.categoryPuzzles Easy req
-          -- fixme:
         ["play"]->
           unsafePerformIO $ Api.testParam "cookieMess" req
         ["init"] ->

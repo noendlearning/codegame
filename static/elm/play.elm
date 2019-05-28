@@ -86,8 +86,17 @@ update msg model =
                                 puzzles=ookk.puzzle
                                 solutions=ookk.solution
                                 validations=ookk.validation
+                                defaultSolution=
+                                    {
+                                        uuid="",
+                                        language="faf338cb-80fd-445d-b345-77c09c6d8581",
+                                        code="",
+                                        unsolve=""
+                                    }
+                                c=(Maybe.withDefault defaultSolution (List.head solutions)).code
+
                             in
-                                ({model|puzzles=puzzles,validations=validations,solutions=solutions},Cmd.none)
+                                ({model|puzzles=puzzles,validations=validations,solutions=solutions,code=c},Cmd.none)
                         Err _ ->
                             Debug.log "err......" (model,Cmd.none)
 
@@ -99,7 +108,7 @@ update msg model =
                     case Decode.decodeString languagesDecoder fullText of
                         Ok langs ->
 
-                            ({ model | languages = langs}, Cmd.none )
+                            ({ model | languages = langs,loadState=Success}, Cmd.none )
 
                         Err _ ->
                             Debug.log "err" ( model, Cmd.none )
@@ -302,7 +311,10 @@ jsonReq testIndex code language =
 view : Model -> Html Msg
 view model =
     case model.loadState of
-        _ ->
+        Loading ->
+            text "loding"
+
+        Success ->
             div [ class "all" ]
                 [ div
                     [ class "nag" ]
@@ -453,98 +465,6 @@ view model =
 
                                             )
                                         model.validations)
-                                        -- [
-                                        --     div
-                                        --     [ class "test" ]
-                                        --     [ button
-                                        --         [ class "btn_test", onClick (SubmitCode 1) ]
-                                        --         [ span
-                                        --             []
-                                        --             [ text "▶ PLAY TESTCASES" ]
-                                        --         ]
-                                        --     , span
-                                        --         [ class "img_0" ]
-                                        --         [ img
-                                        --             [ src "/static/images/01.png" ]
-                                        --             []
-                                        --         ]
-                                        --     , div
-                                        --         [ class "word_0" ]
-                                        --         [ text "Test only letter:E" ]
-                                        --     ]
-                                        -- , div
-                                        --     [ class "test" ]
-                                        --     [ button
-                                        --         [ class "btn_test", onClick (SubmitCode 2) ]
-                                        --         [ span
-                                        --             []
-                                        --             [ text "▶ PLAY TESTCASES" ]
-                                        --         ]
-                                        --     , span
-                                        --         [ class "img_0" ]
-                                        --         [ img
-                                        --             [ src "/static/images/02.png" ]
-                                        --             []
-                                        --         ]
-                                        --     , div
-                                        --         [ class "word_0" ]
-                                        --         [ text "Test MANHATTAN" ]
-                                        --     ]
-                                        -- , div
-                                        --     [ class "test" ]
-                                        --     [ button
-                                        --         [ class "btn_test", onClick (SubmitCode 3) ]
-                                        --         [ span
-                                        --             []
-                                        --             [ text "▶ PLAY TESTCASES" ]
-                                        --         ]
-                                        --     , span
-                                        --         [ class "img_0" ]
-                                        --         [ img
-                                        --             [ src "/static/images/03.png" ]
-                                        --             []
-                                        --         ]
-                                        --     , div
-                                        --         [ class "word_0" ]
-                                        --         [ text "Test ManhAtTan" ]
-                                        --     ]
-                                        -- , div
-                                        --     [ class "test" ]
-                                        --     [ button
-                                        --         [ class "btn_test", onClick (SubmitCode 4) ]
-                                        --         [ span
-                                        --             []
-                                        --             [ text "▶ PLAY TESTCASES" ]
-                                        --         ]
-                                        --     , span
-                                        --         [ class "img_0" ]
-                                        --         [ img
-                                        --             [ src "/static/images/04.png" ]
-                                        --             []
-                                        --         ]
-                                        --     , div
-                                        --         [ class "word_0" ]
-                                        --         [ text "Test M@NH@TT@N" ]
-                                        --     ]
-                                        -- , div
-                                        --     [ class "test_0" ]
-                                        --     [ button
-                                        --         [ class "btn_test", onClick (SubmitCode 5) ]
-                                        --         [ span
-                                        --             []
-                                        --             [ text "▶ PLAY TESTCASES" ]
-                                        --         ]
-                                        --     , span
-                                        --         [ class "img_0" ]
-                                        --         [ img
-                                        --             [ src "/static/images/05.png" ]
-                                        --             []
-                                        --         ]
-                                        --     , div
-                                        --         [ class "word_0" ]
-                                        --         [ text "MANHATTAN with..." ]
-                                        --     ]
-                                        -- ]
                                     ]
                                 , div
                                     [ class "actions" ]
