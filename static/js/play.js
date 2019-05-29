@@ -6174,6 +6174,9 @@ var author$project$Main$update = F2(
 		}
 	});
 var author$project$Main$BatchSubmitCode = {$: 'BatchSubmitCode'};
+var author$project$Main$ChangeCode = function (a) {
+	return {$: 'ChangeCode', a: a};
+};
 var author$project$Main$CheckLanguage = function (a) {
 	return {$: 'CheckLanguage', a: a};
 };
@@ -6266,6 +6269,37 @@ var elm$html$Html$Events$onClick = function (msg) {
 		elm$html$Html$Events$on,
 		'click',
 		elm$json$Json$Decode$succeed(msg));
+};
+var elm$html$Html$Events$alwaysStop = function (x) {
+	return _Utils_Tuple2(x, true);
+};
+var elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
+	return {$: 'MayStopPropagation', a: a};
+};
+var elm$html$Html$Events$stopPropagationOn = F2(
+	function (event, decoder) {
+		return A2(
+			elm$virtual_dom$VirtualDom$on,
+			event,
+			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
+	});
+var elm$json$Json$Decode$at = F2(
+	function (fields, decoder) {
+		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
+	});
+var elm$html$Html$Events$targetValue = A2(
+	elm$json$Json$Decode$at,
+	_List_fromArray(
+		['target', 'value']),
+	elm$json$Json$Decode$string);
+var elm$html$Html$Events$onInput = function (tagger) {
+	return A2(
+		elm$html$Html$Events$stopPropagationOn,
+		'input',
+		A2(
+			elm$json$Json$Decode$map,
+			elm$html$Html$Events$alwaysStop,
+			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
 };
 var author$project$Main$view = function (model) {
 	var _n0 = model.loadState;
@@ -6545,7 +6579,8 @@ var author$project$Main$view = function (model) {
 														elm$html$Html$textarea,
 														_List_fromArray(
 															[
-																elm$html$Html$Attributes$id('codeTextarea')
+																elm$html$Html$Attributes$id('codeTextarea'),
+																elm$html$Html$Events$onInput(author$project$Main$ChangeCode)
 															]),
 														_List_fromArray(
 															[
