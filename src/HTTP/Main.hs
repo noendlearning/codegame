@@ -20,7 +20,7 @@ main port = do
 app :: Application
 app req respond =  do
   res <- Api.hasCookieInfo req
-  -- traceM(show(res))
+  --traceM(show(res))
   case res of
     Nothing->
       respond $
@@ -42,14 +42,14 @@ app req respond =  do
         ["gohome"]->
           resFile "text/html" "static/home.html"
         ["training"]->
-          trace "training" $ unsafePerformIO $ Api.playWithPuzzleUUID req
+          unsafePerformIO $ Api.playWithPuzzleUUID req
         ["list"]->
           resFile "text/html" "static/list.html"
           -- 获取所有的puzzle
         ["allpuzzles"]->
           unsafePerformIO $ Api.listAll req
         ["easypuzzles"]->
-          trace "easypuzzles" unsafePerformIO $ Api.categoryPuzzles Easy req
+          unsafePerformIO $ Api.categoryPuzzles Easy req
         ["play"]->
           unsafePerformIO $ Api.testParam "cookieMess" req
         ["init"] ->

@@ -34,7 +34,6 @@ initCode req = do
     {- M.insertValidationWithPuzzleId $ M.Validation ""  "1" "4\n5\nE\n #  ##   ## ##  ### ### ##  # # ###  ## # # #   # # ###  #  ##   #  ##  ##  ### # # # # # # # # # # ### ### \n# # # # #   # # #   #   #   # #  #    # # # #   ### # # # # # # # # # # #    #  # # # # # # # # # #   #   # \n### ##  #   # # ##  ##  # # ###  #    # ##  #   ### # # # # ##  # # ##   #   #  # # # # ###  #   #   #   ## \n# # # # #   # # #   #   # # # #  #  # # # # #   # # # # # # #    ## # #   #  #  # # # # ### # #  #  #       \n# # ##   ## ##  ### #   ##  # # ###  #  # # ### # # # #  #  #     # # # ##   #  ###  #  # # # #  #  ###  #  "
         "### \n#   \n##  \n#   \n### " Major 1 "createBy" Nothing (Just "updateBy")  Nothing Normal "" -}
     (params, _) <- parseRequestBody lbsBackEnd req
-    traceM(show(params))
     let paramsMap = mapFromList params :: Map ByteString ByteString
     let uuid=(unpack . decodeUtf8) $ paramsMap MAP.! "puzzleId"
     let languageId=(unpack . decodeUtf8) $ paramsMap MAP.! "languageId"
@@ -52,10 +51,8 @@ loginUser req = do
     let paramsMap = mapFromList params :: Map ByteString ByteString
     -- 用户登录
     result <-M.login ((unpack . decodeUtf8) $ paramsMap MAP.! "email") $ (unpack . decodeUtf8) $ paramsMap MAP.! "passw"
-   -- traceM(show("==============="))
-   -- traceM(show(result))
     case result of
-        [] -> return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (Output {msg= "用户不存在", state="3"})
+        [] -> return $ responseBuilder status200 [("Content-Type","application/json")] $ lazyByteString $ encode (Output {msg= "帐号或密码错误", state="3"})
         [_] ->  do
             --用户登录成功后新建一个 session ,session里面存的是用户邮箱
             sessionId <- liftIO $ R.newSession ((unpack . decodeUtf8) $ paramsMap MAP.! "email")
@@ -64,9 +61,8 @@ loginUser req = do
             resJson' cookies $ encode (Output {msg= "欢迎登录", state="5"})
 
 --退出登录
-quitUser ::ByteString ->  Request ->IO Response
-quitUser cookieMess req = do
-      sessionId <- getCookie cookieMess "sessionId"
+quitUser ::String ->  Request ->IO Response
+quitUser sessionId req = do
       number <- R.deleteUserIdBySessionId sessionId
       case number of
         0 ->
@@ -92,10 +88,9 @@ registerUser req = do
       resJson $ encode (Output {msg= "注册成功", state="2"})
 
 -- 提交代码验证是否正确
-testParam ::ByteString -> Request ->IO Response
-testParam cookieMess req = do
+testParam ::String -> Request ->IO Response
+testParam sessionId req = do
     (params, _) <- parseRequestBody lbsBackEnd req
-    sessionId <- getCookie cookieMess "sessionId"
     email <- R.findUserIdBySessionId sessionId
     case email of
       Nothing -> do
@@ -107,18 +102,20 @@ testParam cookieMess req = do
         Dir.createDirectory userFolder
         --返回代码写入文件的路径和shell脚本在哪个路径下运行的命令
         let paramsMap = mapFromList params :: Map ByteString ByteString
-            language = (unpack . decodeUtf8) (paramsMap MAP.! "language")
+            languageId = (unpack . decodeUtf8) (paramsMap MAP.! "language")
             code = (unpack . decodeUtf8) (paramsMap MAP.! "code")
             testIndex = (unpack . decodeUtf8) (paramsMap MAP.! "testIndex")
-            puzzleId = (unpack . decodeUtf8) (paramsMap MAP.! "puzzleId")
-            languagesId = (unpack . decodeUtf8) (paramsMap MAP.! "languagesId")
-            languageSetting = Tool.getLanguageSetting  language code userFolder
+            puzzleId = (unpack . decodeUtf8) (paramsMap MAP.! "puzzleUuid")
+        languages <- M.selectLanguagesUuidByLanguage  languageId
+        let languageSetting = Tool.getLanguageSetting  (List.head languages) code userFolder
+            
         -- 写入文件文件名不存在的时候会新建，每次都会重新写入
         outh <- IO.openFile (List.head languageSetting) WriteMode
         hPutStrLn outh (languageSetting List.!! 1)
         IO.hClose outh
         -- 查询数据库中的正确答案和题目需要的参数
-        puzzle <- M.selectValidationByPuzzleId puzzleId (read $ (unpack . decodeUtf8) (paramsMap MAP.! "testIndex") :: Int)
+        puzzle <- M.selectValidationByPuzzleId puzzleId (read $ testIndex :: Int)
+        
         let input = M.validationInput $ List.head puzzle
         --把查询出来的题目参数写入文件
         out <- IO.openFile (userFolder ++ "/factor.txt") WriteMode
@@ -137,14 +134,19 @@ testParam cookieMess req = do
           Nothing  ->
             resJson $ encode (CodeOutput {output= fromString "Timeout: your program did not provide an input in due time.", message="Failure", found="", expected="", errMessage= fromString errMessage})
           Just value  -> do
-            let contents = List.lines value
+            let res = if value == ""
+                      then "Nothing"
+                      else value
+            let contents = List.lines res
             --从数据库中获取正确的答案
             let output = M.validationOutput $ List.head puzzle
                 inpStrs = List.lines output
                 codeOutput =  if contents == inpStrs
                               then
-                                encode (CodeOutput {output=fromString value, message="Success", found="", expected="", errMessage= fromString errMessage})
-                              else encode (CodeOutput {output=fromString value, message="Failure", found=List.head contents, expected=List.head inpStrs, errMessage= fromString errMessage})
+                                encode (CodeOutput {output=fromString res, message="Success", found="", expected="", errMessage= fromString errMessage})
+                              else 
+                                encode (CodeOutput {output=fromString res, message="Failure", found=List.head contents, expected=List.head inpStrs, errMessage= fromString errMessage})
+            
             --保存用户提交的代码
             --M.insertCode $ M.Code "" userId "1" "python" code Nothing Nothing
             --根据email 查找 userId
@@ -221,13 +223,19 @@ resData req = do
     resJson " "
 
 -- 请求里是否携带cookie信息
-hasCookieInfo::Request ->IO (Maybe ByteString)
+hasCookieInfo::Request ->IO (Maybe String)
 hasCookieInfo req=do
   let reqHeaders = requestHeaders req
   --把请求头变成Map
   let reqMap = MAP.fromList reqHeaders
       --获取具体的请求头的value
-  return $ reqMap MAP.!? (fromString "Cookie")
+  case reqMap MAP.!? (fromString "Cookie") of
+    Nothing -> return Nothing
+    Just value -> do
+      sesso <- Cookie.getCookie value "sessionId"
+      case sesso of
+        Just realityMess -> return $ Just realityMess
+        Nothing -> return Nothing
 
 --解析Cookie 参数cokieKey是，请求头中的cookie里面key.返回key对应的value值
 getCookie :: ByteString -> String -> IO String

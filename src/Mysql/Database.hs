@@ -1,3 +1,4 @@
+
 {-# LANGUAGE DeriveGeneric #-}
 
 module Mysql.Database   where
@@ -360,13 +361,13 @@ queryAllLanguageWithNormalState =
 
 --通过language查询Language表的uuid
 selectLanguagesUuidByLanguage :: String -> IO [String]
-selectLanguagesUuidByLanguage language =
+selectLanguagesUuidByLanguage languageId =
     inBackend $ do
         uuid <-  E.select $
                  E.from $ \l -> do
-                 E.where_ (l ^. LanguagesLanguage E.==. E.val language)
+                 E.where_ (l ^. LanguagesUuid  E.==. E.val languageId)
                  return l
-        liftIO $ mapM (return . languagesUuid . entityVal) (uuid :: [Entity Languages])
+        liftIO $ mapM (return . languagesLanguage . entityVal) (uuid :: [Entity Languages])
 
 
 
