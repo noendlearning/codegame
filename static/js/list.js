@@ -6397,16 +6397,6 @@ var author$project$Main$view = function (model) {
 																															[
 																																elm$html$Html$text('Improve your skills by solving algorithmic puzzles')
 																															]))
-																													])),
-																												A2(
-																												elm$html$Html$div,
-																												_List_fromArray(
-																													[
-																														elm$html$Html$Attributes$class('level-progress-value')
-																													]),
-																												_List_fromArray(
-																													[
-																														elm$html$Html$text('4% completed')
 																													]))
 																											]))
 																									])),
@@ -6416,34 +6406,7 @@ var author$project$Main$view = function (model) {
 																									[
 																										elm$html$Html$Attributes$class('puzzles')
 																									]),
-																								author$project$Main$getPanel(model.epuzzles)),
-																								A2(
-																								elm$html$Html$a,
-																								_List_fromArray(
-																									[
-																										elm$html$Html$Attributes$class('sub-pane'),
-																										elm$html$Html$Attributes$href('/easy')
-																									]),
-																								_List_fromArray(
-																									[
-																										A2(
-																										elm$html$Html$span,
-																										_List_fromArray(
-																											[
-																												elm$html$Html$Attributes$class('icon_view_all')
-																											]),
-																										_List_Nil),
-																										A2(
-																										elm$html$Html$span,
-																										_List_fromArray(
-																											[
-																												elm$html$Html$Attributes$class('sub-pane-label')
-																											]),
-																										_List_fromArray(
-																											[
-																												elm$html$Html$text('View all')
-																											]))
-																									]))
+																								author$project$Main$getPanel(model.epuzzles))
 																							]))
 																					]))
 																			]))
