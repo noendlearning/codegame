@@ -57,7 +57,7 @@ app req respond =  do
         ["language"]->
           unsafePerformIO $ Api.selectAllLanguage
         _->
-          resFile "text/html" "static/index.html"
+          resFile "text/html" "static/list.html"
     Just cookieMess->
       respond $
         case pathInfo req of
