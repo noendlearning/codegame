@@ -449,7 +449,9 @@ view model =
                                 [ div
                                     [ class "write_top" ]
                                     [ select
-                                        [ class "drop-down" ]
+                                        [ class "drop-down"
+                                        , onInput CheckLanguage
+                                        ]
                                         (List.map
                                             (\x ->
                                                 option
@@ -458,7 +460,7 @@ view model =
 
                                                       else
                                                         selected False
-                                                    , onClick (CheckLanguage x.uuid)
+                                                    , Html.Attributes.value x.uuid
                                                     ]
                                                     [ text x.language ]
                                             )

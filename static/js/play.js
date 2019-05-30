@@ -6253,6 +6253,7 @@ var elm$html$Html$Attributes$src = function (url) {
 		'src',
 		_VirtualDom_noJavaScriptOrHtmlUri(url));
 };
+var elm$html$Html$Attributes$value = elm$html$Html$Attributes$stringProperty('value');
 var elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -6555,7 +6556,8 @@ var author$project$Main$view = function (model) {
 																elm$html$Html$select,
 																_List_fromArray(
 																	[
-																		elm$html$Html$Attributes$class('drop-down')
+																		elm$html$Html$Attributes$class('drop-down'),
+																		elm$html$Html$Events$onInput(author$project$Main$CheckLanguage)
 																	]),
 																A2(
 																	elm$core$List$map,
@@ -6565,8 +6567,7 @@ var author$project$Main$view = function (model) {
 																			_List_fromArray(
 																				[
 																					_Utils_eq(model.languageId, x.uuid) ? elm$html$Html$Attributes$selected(true) : elm$html$Html$Attributes$selected(false),
-																					elm$html$Html$Events$onClick(
-																					author$project$Main$CheckLanguage(x.uuid))
+																					elm$html$Html$Attributes$value(x.uuid)
 																				]),
 																			_List_fromArray(
 																				[
