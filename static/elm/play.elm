@@ -7,6 +7,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http exposing (..)
 import Json.Decode as Decode exposing (..)
+import List exposing (..) 
 
 
 main =
@@ -59,6 +60,7 @@ type alias Model =
     , solutions : List Solution
     , puzzles : List Puzzle
     , validations : List Validation
+    , testIndexs : List Int
     }
 
 
@@ -137,7 +139,7 @@ update msg model =
                 uu =
                     model.uuid
             in
-            ( { model | testIndex = index }, jsonReq index model.code model.languageId uu )
+            ( { model | testIndex = index, testIndexs = index :: model.testIndexs }, jsonReq index model.code model.languageId uu )
 
         RenderOutput result ->
             --渲染代码运行的结果
@@ -179,7 +181,7 @@ update msg model =
                 uu =
                     model.uuid
             in
-            ( { model | batchSubmit = True, testIndex = 1 }, jsonReq 1 model.code model.languageId uu )
+            ( { model | batchSubmit = True, testIndex = 1, testIndexs = [0,1,2,3,4,5] }, jsonReq 1 model.code model.languageId uu )
 
         ReceiveDataFromJS uuid ->
             --  发送请求到后台 根据uuid查询puzzle validation solution
@@ -230,7 +232,7 @@ puzzlesDecoder =
 
 puzzleDecoder : Decoder Puzzle
 puzzleDecoder =
-    map4 Puzzle
+    Decode.map4 Puzzle
         (Decode.field "puzzleTitle" string)
         (Decode.field "puzzleInputDescription" string)
         (Decode.field "puzzleOutputDescription" string)
@@ -244,7 +246,7 @@ validationsDecoder =
 
 validationDecoder : Decoder Validation
 validationDecoder =
-    map4 Validation
+    Decode.map4 Validation
         (Decode.field "validationInput" string)
         (Decode.field "validationOutput" string)
         (Decode.field "validationTitle" string)
@@ -266,7 +268,7 @@ solutionsDecoder =
 
 solutionDecoder : Decoder Solution
 solutionDecoder =
-    map4 Solution
+    Decode.map4 Solution
         (Decode.field "solutionUuid" string)
         (Decode.field "solutionLanguage" string)
         (Decode.field "solutionCode" string)
@@ -296,7 +298,7 @@ type alias Language =
 
 languageDecoder : Decoder Language
 languageDecoder =
-    map2 Language
+    Decode.map2 Language
         (Decode.field "languagesUuid" string)
         (Decode.field "languagesLanguage" string)
 
@@ -449,9 +451,7 @@ view model =
                                 [ div
                                     [ class "write_top" ]
                                     [ select
-                                        [ class "drop-down"
-                                        , onInput CheckLanguage
-                                        ]
+                                        [ class "drop-down" ]
                                         (List.map
                                             (\x ->
                                                 option
@@ -460,7 +460,7 @@ view model =
 
                                                       else
                                                         selected False
-                                                    , Html.Attributes.value x.uuid
+                                                    , onClick (CheckLanguage x.uuid)
                                                     ]
                                                     [ text x.language ]
                                             )
@@ -506,7 +506,17 @@ view model =
                                                             []
                                                         ]
                                                     , div
-                                                        [ class "word_0" ]
+                                                        [ class "word_0"
+                                                        , case model.jsonReqState of
+                                                            Success ->
+                                                                if member x.orders model.testIndexs then 
+                                                                    style "color" "blue"
+                                                                else style "color" "green"
+                                                            Fail ->
+                                                                style "color" "red"
+                                                            Loading ->
+                                                                style "color" "green"                                    
+                                                             ]
                                                         [ text x.title ]
                                                     ]
                                             )
@@ -570,6 +580,7 @@ init _ =
       , solutions = []
       , puzzles = []
       , validations = []
+      , testIndexs = []
       }
     , initLanguage
     )
