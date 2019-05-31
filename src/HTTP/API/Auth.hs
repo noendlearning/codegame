@@ -33,6 +33,7 @@ initCode ::Request ->IO Response
 initCode req = do
     {- M.insertValidationWithPuzzleId $ M.Validation ""  "1" "4\n5\nE\n #  ##   ## ##  ### ### ##  # # ###  ## # # #   # # ###  #  ##   #  ##  ##  ### # # # # # # # # # # ### ### \n# # # # #   # # #   #   #   # #  #    # # # #   ### # # # # # # # # # # #    #  # # # # # # # # # #   #   # \n### ##  #   # # ##  ##  # # ###  #    # ##  #   ### # # # # ##  # # ##   #   #  # # # # ###  #   #   #   ## \n# # # # #   # # #   #   # # # #  #  # # # # #   # # # # # # #    ## # #   #  #  # # # # ### # #  #  #       \n# # ##   ## ##  ### #   ##  # # ###  #  # # ### # # # #  #  #     # # # ##   #  ###  #  # # # #  #  ###  #  "
         "### \n#   \n##  \n#   \n### " Major 1 "createBy" Nothing (Just "updateBy")  Nothing Normal "" -}
+    --实验    
     (params, _) <- parseRequestBody lbsBackEnd req
     let paramsMap = mapFromList params :: Map ByteString ByteString
     let uuid=(unpack . decodeUtf8) $ paramsMap MAP.! "puzzleId"
