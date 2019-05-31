@@ -4,17 +4,17 @@ module Tool.Constant where
 import ClassyPrelude
 import Data.ByteString.Internal
 import GHC.Word
-{- 
+{-
 *
 -}
 
-{- 
+{-
 * 密码加密的盐值
 -}
-originalsalt::ByteString        
+originalsalt::ByteString
 originalsalt = "hnbrina2019XN9dUU8uhnbrina2019bQSkvEZIRhnbrina2019UWr9UVWCjzOLsU=hnbrina2019LbmItlhltyIHhnbrina20194Nro2YyMFeCCKwtV0=hnbrina2019"
 
-{- 
+{-
 * 与数据库连接有关
 * dbport 数据库端口
 * dpip 数据库ip
@@ -24,18 +24,18 @@ originalsalt = "hnbrina2019XN9dUU8uhnbrina2019bQSkvEZIRhnbrina2019UWr9UVWCjzOLsU
 -}
 dbport=3306::Word16
 
---dpip="localhost"
-dpip="192.168.0.134"
+dpip="localhost"
+-- dpip="192.168.0.134"
 
 dpuser="root"
 
-dppwd="1"
+dppwd="Hnbrina2019."
 
-dbbase = "test"
+dbbase = "codingame"
 
 -- normalState=0::Int
 
--- abnormalState=1::Int 
+-- abnormalState=1::Int
 
 
 languages=[
@@ -63,6 +63,6 @@ languages=[
     ("Scala","f8067b43-099e-4420-97bb-c5356ea7619c"),
     ("Swift","9358fb6e-0bb3-4829-8845-d8cc15e8052d"),
     ("VB.NET","c93105b4-2e39-4aef-81eb-8ea6141ba60b")
-    ]    
+    ]
 
-admin="fe95c189-5720-49d6-9059-8c94dd373fd2"    
+admin="fe95c189-5720-49d6-9059-8c94dd373fd2"
