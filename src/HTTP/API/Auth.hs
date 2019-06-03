@@ -251,6 +251,7 @@ listAll req=do
   traceM(show("=================="))
   puzzles<-M.selectPuzzleByState Public
   traceM(show("************************"))
+  traceM(show(puzzles))
   case puzzles of
     []->
       resJson "数据库查询出错"
