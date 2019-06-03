@@ -249,7 +249,7 @@ getCookie cookieMess cokieKey= do
 listAll::Request ->IO Response
 listAll req=do
   traceM(show("=================="))
-  puzzles<-M.selectPuzzleByState Public
+  puzzles<-M.selectPuzzleByState "Public"
   traceM(show("************************"))
   traceM(show(puzzles))
   case puzzles of

@@ -60,7 +60,7 @@ Puzzle
     star String
     -- exp Exp
     picture String
-    state PuzzleState
+    state String
     deriving Show Generic
 Solution
     uuid String
@@ -451,7 +451,7 @@ selectPuzzleByCategory category number =
     inBackend $ do
         puzzle<- E.select $
                  E.from $ \p->do
-                 E.where_ (p ^. PuzzleCategory E.==. E.val category &&. p ^. PuzzleState E.==. E.val Public)
+                 E.where_ (p ^. PuzzleCategory E.==. E.val category &&. p ^. PuzzleState E.==. E.val "Public")
                  E.limit number
                  return p
         liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
@@ -460,17 +460,14 @@ selectPuzzleByCategory category number =
 {-
 根据状态查询相应的puzzle
 -}
-selectPuzzleByState :: PuzzleState->IO [Puzzle]
+selectPuzzleByState :: String->IO [Puzzle]
 selectPuzzleByState sta=
     inBackend $ do
-        traceM(show("11111111111"))
         puzzle<- E.select $
                  E.from $ \p->do
                  E.where_ (p ^. PuzzleState E.==. E.val sta)
                 --  E.limit number
                  return p
-        traceM(show("222222222222"))
-        traceM(show(puzzle))
         liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
 
 --上面方法的第二种实现，不过上面number为0时，会显示所有。这个则是一个都不显示
