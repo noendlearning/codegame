@@ -20,9 +20,7 @@ import qualified System.IO.Strict as IS (hGetContents)
 import qualified Data.List as List
 import System.IO as IO
 import qualified HTTP.SetCookie as Cookie
-import Tool.Types
 import qualified System.Directory as Dir
-import Tool.Types
 import Text.Read
 import Control.Exception
 import Data.Sequence as Seq
