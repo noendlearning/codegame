@@ -472,17 +472,6 @@ selectPuzzleByState sta=
         traceM(show("222222222222"))
         liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
 
-selectPuzzleByState' :: PuzzleId->IO [Puzzle]
-selectPuzzleByState' id=
-    inBackend $ do
-        traceM(show("3333333331"))
-        puzzle<- E.select $
-                 E.from $ \p->do
-                 E.where_ (p ^. PuzzleId E.==. E.val id)
-                --  E.limit number
-                 return p
-        traceM(show("4444444444442"))
-        liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
 --上面方法的第二种实现，不过上面number为0时，会显示所有。这个则是一个都不显示
 -- selectPuzzleByCategory :: PCategory -> Int -> IO [Puzzle]
 -- selectPuzzleByCategory category number =
