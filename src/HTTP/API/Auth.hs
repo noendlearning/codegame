@@ -33,7 +33,7 @@ initCode ::Request ->IO Response
 initCode req = do
     {- M.insertValidationWithPuzzleId $ M.Validation ""  "1" "4\n5\nE\n #  ##   ## ##  ### ### ##  # # ###  ## # # #   # # ###  #  ##   #  ##  ##  ### # # # # # # # # # # ### ### \n# # # # #   # # #   #   #   # #  #    # # # #   ### # # # # # # # # # # #    #  # # # # # # # # # #   #   # \n### ##  #   # # ##  ##  # # ###  #    # ##  #   ### # # # # ##  # # ##   #   #  # # # # ###  #   #   #   ## \n# # # # #   # # #   #   # # # #  #  # # # # #   # # # # # # #    ## # #   #  #  # # # # ### # #  #  #       \n# # ##   ## ##  ### #   ##  # # ###  #  # # ### # # # #  #  #     # # # ##   #  ###  #  # # # #  #  ###  #  "
         "### \n#   \n##  \n#   \n### " Major 1 "createBy" Nothing (Just "updateBy")  Nothing Normal "" -}
-    --实验    
+    --实验
     (params, _) <- parseRequestBody lbsBackEnd req
     let paramsMap = mapFromList params :: Map ByteString ByteString
     let uuid=(unpack . decodeUtf8) $ paramsMap MAP.! "puzzleId"
@@ -109,14 +109,14 @@ testParam sessionId req = do
             puzzleId = (unpack . decodeUtf8) (paramsMap MAP.! "puzzleUuid")
         languages <- M.selectLanguagesUuidByLanguage  languageId
         let languageSetting = Tool.getLanguageSetting  (List.head languages) code userFolder
-            
+
         -- 写入文件文件名不存在的时候会新建，每次都会重新写入
         outh <- IO.openFile (List.head languageSetting) WriteMode
         hPutStrLn outh (languageSetting List.!! 1)
         IO.hClose outh
         -- 查询数据库中的正确答案和题目需要的参数
         puzzle <- M.selectValidationByPuzzleId puzzleId (read $ testIndex :: Int)
-        
+
         let input = M.validationInput $ List.head puzzle
         --把查询出来的题目参数写入文件
         out <- IO.openFile (userFolder ++ "/factor.txt") WriteMode
@@ -145,9 +145,9 @@ testParam sessionId req = do
                 codeOutput =  if contents == inpStrs
                               then
                                 encode (CodeOutput {output=fromString res, message="Success", found="", expected="", errMessage= fromString errMessage})
-                              else 
+                              else
                                 encode (CodeOutput {output=fromString res, message="Failure", found=List.head contents, expected=List.head inpStrs, errMessage= fromString errMessage})
-            
+
             --保存用户提交的代码
             --M.insertCode $ M.Code "" userId "1" "python" code Nothing Nothing
             --根据email 查找 userId
@@ -248,7 +248,9 @@ getCookie cookieMess cokieKey= do
 
 listAll::Request ->IO Response
 listAll req=do
+  traceM(show("=================="))
   puzzles<-M.selectPuzzleByState Public
+  traceM(show("************************"))
   case puzzles of
     []->
       resJson "数据库查询出错"
