@@ -98,6 +98,7 @@ testParam sessionId req = do
         -- 为每个用户新建一个文件夹，这个是文件夹的路径。使用完之后删除
         let userFolder = "./static/"++ email
         --新建文件夹
+        Dir.removePathForcibly userFolder
         Dir.createDirectory userFolder
         --返回代码写入文件的路径和shell脚本在哪个路径下运行的命令
         let paramsMap = mapFromList params :: Map ByteString ByteString
