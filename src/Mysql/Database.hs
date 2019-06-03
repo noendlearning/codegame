@@ -470,6 +470,7 @@ selectPuzzleByState sta=
                 --  E.limit number
                  return p
         traceM(show("222222222222"))
+        traceM(show(puzzle))
         liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
 
 --上面方法的第二种实现，不过上面number为0时，会显示所有。这个则是一个都不显示
