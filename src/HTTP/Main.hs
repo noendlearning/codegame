@@ -49,7 +49,7 @@ app req respond =  do
         ["allpuzzles"]->
           unsafePerformIO $ Api.listAll req
         ["easypuzzles"]->
-          unsafePerformIO $ Api.categoryPuzzles Easy req
+          unsafePerformIO $ Api.categoryPuzzles "Easy" req
         ["play"]->
           unsafePerformIO $ Api.testParam "cookieMess" req
         ["init"] ->
@@ -90,7 +90,7 @@ app req respond =  do
           ["easy"]->
             resFile "text/html" "static/easy.html"
           ["easypuzzles"]->
-            unsafePerformIO $ Api.categoryPuzzles Easy req
+            unsafePerformIO $ Api.categoryPuzzles "Easy" req
           ["code"] ->
             unsafePerformIO $ Api.resData req
           _ -> res404

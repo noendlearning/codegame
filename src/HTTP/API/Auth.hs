@@ -262,7 +262,7 @@ listAll req=do
 根据类别查询puzzles，
 easy medium hard professional
 -}
-categoryPuzzles::PCategory->Request->IO Response
+categoryPuzzles::String->Request->IO Response
 categoryPuzzles p req=do
     puzzles<-M.selectPuzzleByCategory  p 0
     case puzzles of

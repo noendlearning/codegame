@@ -56,7 +56,7 @@ Puzzle
     inputDescription String
     outputDescription String
     constraints String
-    category PCategory
+    category String
     star Star
     -- exp Exp
     picture String
@@ -446,7 +446,7 @@ conInfo = ConnectInfo{
 
 
 --根据难度级别(category)和条数查询puzzle表
-selectPuzzleByCategory :: PCategory -> Int64 -> IO [Puzzle]
+selectPuzzleByCategory :: String -> Int64 -> IO [Puzzle]
 selectPuzzleByCategory category number =
     inBackend $ do
         puzzle<- E.select $
@@ -474,7 +474,7 @@ selectPuzzleByState sta=
         liftIO $ mapM (return . entityVal) (puzzle::[Entity Puzzle])
 
 --上面方法的第二种实现，不过上面number为0时，会显示所有。这个则是一个都不显示
--- selectPuzzleByCategory :: PCategory -> Int -> IO [Puzzle]
+-- selectPuzzleByCategory :: String -> Int -> IO [Puzzle]
 -- selectPuzzleByCategory category number =
 --     inBackend $ do
 --         puzzle<- E.select $
