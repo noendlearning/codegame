@@ -57,7 +57,7 @@ Puzzle
     outputDescription String
     constraints String
     category String
-    star Star
+    star String
     -- exp Exp
     picture String
     state PuzzleState
