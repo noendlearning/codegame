@@ -8,7 +8,6 @@ import Network.Wai.Handler.Warp
 import System.IO.Unsafe (unsafePerformIO)
 import qualified HTTP.API.Auth as Api
 import Network.HTTP.Types (status200, unauthorized401, status404)
-import Tool.Types
 import HTTP.API.Handler
 
 main ::Int -> IO ()

@@ -3,7 +3,6 @@ module HTTP.API.Handler where
 import ClassyPrelude
 import Network.Wai
 import Network.HTTP.Types (status200, unauthorized401, status404)
-import Tool.Types
 import Data.ByteString.Builder (lazyByteString)
 import qualified Data.ByteString.Lazy.Internal as LI (ByteString)
 

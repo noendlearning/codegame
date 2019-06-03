@@ -27,7 +27,7 @@ import System.IO.Unsafe (unsafePerformIO)
 import Control.Monad.Trans.Resource (runResourceT, ResourceT)
 import Data.Time
 import qualified Tool.Constant as Constant
-import Tool.Types
+
 import GHC.Generics
 import Data.Aeson
 
@@ -92,7 +92,7 @@ Validation
     puzzleId String
     input String
     output String
-    category Category
+    category String
     orders Int
     createBy String
     createTime UTCTime Maybe default=CURRENT_TIMESTAMP
