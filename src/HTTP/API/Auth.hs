@@ -85,7 +85,7 @@ registerUser req = do
     [_] ->
       resJson $ encode (Output {msg= "该Email已经注册", state="1"})
     [] -> do
-      M.insertUser $ M.User "" email pwd Nothing Nothing Normal
+      M.insertUser $ M.User "" email pwd Nothing Nothing "Normal"
       resJson $ encode (Output {msg= "注册成功", state="2"})
 
 -- 提交代码验证是否正确

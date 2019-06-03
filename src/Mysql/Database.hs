@@ -43,7 +43,7 @@ User
     password String
     createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     updateTime UTCTime Maybe
-    state MyState
+    state String
     deriving Show Generic
 Puzzle
     uuid String
@@ -73,7 +73,7 @@ Solution
     createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     createBy String
     unsolve String
-    state MyState
+    state String
     deriving Show Generic
 Languages
     uuid String
@@ -84,7 +84,7 @@ Languages
     createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     updateBy String Maybe
     updateTime UTCTime Maybe default=CURRENT_TIMESTAMP
-    state MyState
+    state String
     deriving Show Generic
 Validation
     uuid String
@@ -98,7 +98,7 @@ Validation
     createTime UTCTime Maybe default=CURRENT_TIMESTAMP
     updateBy String Maybe
     updateTime UTCTime Maybe default=CURRENT_TIMESTAMP
-    state MyState
+    state String
     title String
     deriving Show Generic
 Code
@@ -253,7 +253,7 @@ insertSolutionWithPuzzleId (Solution _ language code puzzleId _ updateBy _ creat
         let uuid=unsafePerformIO UV.nextRandom
         now <- liftIO getCurrentTime
         do
-            insert_ $ Solution ( DU.toString uuid ) language  code  puzzleId  (Just now)  Nothing   (Just now)  createBy  unsolve   Normal
+            insert_ $ Solution ( DU.toString uuid ) language  code  puzzleId  (Just now)  Nothing   (Just now)  createBy  unsolve   "Normal"
 --          insert_ $ Solution uuid  language   code   puzzleId   updateTime   updateBy   createTime   createBy   unsolve    state
 
 
@@ -274,7 +274,7 @@ getLanguage state =
     inBackend $ do
         language <- E.select $
                     E.from $ \l -> do
-                    E.where_ (l ^. LanguagesState E.==. E.val Normal)
+                    E.where_ (l ^. LanguagesState E.==. E.val "Normal")
                     return l
         liftIO $ mapM (return . languagesUuid . entityVal)  (language :: [Entity Languages] )
 
@@ -340,7 +340,7 @@ insertAllLanguage::IO ()
 insertAllLanguage =
     inBackend $ do
         now <- liftIO getCurrentTime
-        mapM_ (\x->insert_ $ Languages (snd x) (fst x) Constant.admin (Just now) (Just Constant.admin) (Just now) Normal) Constant.languages
+        mapM_ (\x->insert_ $ Languages (snd x) (fst x) Constant.admin (Just now) (Just Constant.admin) (Just now) "Normal") Constant.languages
 
 {-
 该方法返回一个列表，包含所有的编程语言：
@@ -354,7 +354,7 @@ queryAllLanguageWithNormalState =
     inBackend $ do
         languages<- E.select $
                     E.from $ \l->do
-                    E.where_ (l ^. LanguagesState E.==. E.val Normal)
+                    E.where_ (l ^. LanguagesState E.==. E.val "Normal")
                     return l
         liftIO $ mapM (return . entityVal) (languages::[Entity Languages])
 
@@ -382,7 +382,7 @@ insertUser (User _ email pwd _ _ _)=
     inBackend $ do
         let uuid=DU.toString . unsafePerformIO $ UV.nextRandom
         now <- liftIO getCurrentTime
-        insert_ $ User uuid email pwd (Just now) Nothing Normal
+        insert_ $ User uuid email pwd (Just now) Nothing "Normal"
 
 -- 对密码进行加密
 -- getStrictPwd :: String -> String
